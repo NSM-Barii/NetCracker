@@ -85,5 +85,7 @@ class Utilities():
         return socket.gethostname()
 
 
+# FOR MODULE TESTING
+if __name__ == "__main__":
 
-Utilities().test_static()
+    Utilities().test_static()
