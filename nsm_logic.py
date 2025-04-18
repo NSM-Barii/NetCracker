@@ -167,30 +167,47 @@ class WifiScanner():
 
 
 
+class WifiUI():
+    """This class will house basic UI logic"""
 
-
-art = """
- _____                                                     _____ 
-( ___ )---------------------------------------------------( ___ )
- |   |                                                     |   | 
- |   |  _   _      _    ____                _              |   | 
- |   | | \ | | ___| |_ / ___|_ __ __ _  ___| | _____ _ __  |   | 
- |   | |  \| |/ _ \ __| |   | '__/ _` |/ __| |/ / _ \ '__| |   | 
- |   | | |\  |  __/ |_| |___| | | (_| | (__|   <  __/ |    |   | 
- |   | |_| \_|\___|\__|\____|_|  \__,_|\___|_|\_\___|_|    |   | 
- |___|                                                     |___| 
-(_____)---------------------------------------------------(_____)
-"""
-
-for char in art:
-    print(char, end='', flush=True)
-    time.sleep(.04)
-os.system('cls')
-
-console.print(Panel(title="Malicious Practitionar", renderable=f"{art}", expand=False, style="bold purple"))
-print('\n\n')
-
+    def __init__(self):
+        pass
     
-WifiScanner().loop_controller()
+    @staticmethod
+    def welcome_message(sleep=.004):
+        """This will hold and print the ascii text and a nice sexy looking manner"""
+
+        art = """
+        _____                                                     _____ 
+        ( ___ )---------------------------------------------------( ___ )
+        |   |                                                     |   | 
+        |   |  _   _      _    ____                _              |   | 
+        |   | | \ | | ___| |_ / ___|_ __ __ _  ___| | _____ _ __  |   | 
+        |   | |  \| |/ _ \ __| |   | '__/ _` |/ __| |/ / _ \ '__| |   | 
+        |   | | |\  |  __/ |_| |___| | | (_| | (__|   <  __/ |    |   | 
+        |   | |_| \_|\___|\__|\____|_|  \__,_|\___|_|\_\___|_|    |   | 
+        |___|                                                     |___| 
+        (_____)---------------------------------------------------(_____)
+        """
+
+        
+        say = "Initiating scan for all nearby networks. If I connect, it’s legally a penetration test. If I get caught, it was a prank. NSM out."
+
+        threading.Thread(target=Utilities.tts, args=(say, False, 10)).start()
+
+        for char in art:
+            print(char, end='', flush=True)
+            time.sleep(sleep)
+
+        Utilities.clear_screen()
+
+        console.print(Panel(title="Malicious Practitionar", renderable=f"{art}", expand=False, style="bold purple"))
+        print('\n\n')
 
 
+
+
+# CURRENTLY USED FOR PROGRAM TESTING
+if __name__ == "__main__":
+    WifiUI.welcome_message()
+    WifiScanner().loop_controller()

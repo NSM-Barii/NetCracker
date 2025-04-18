@@ -72,17 +72,20 @@ class Utilities():
 
 
     
-    def test_static(func):
-        """Testing decorators"""
+    @staticmethod
+    def clear_screen():
+        """This will be used to clear the os screen"""
 
-        console.print("Heyy now running: ", func)    
+        # WINDOWS
+        if os.name == "nt":
+            os.system('cls')
 
-    @test_static
-    def runner(self):
-        """howdy"""
-
-        console.print(socket.gethostname())
-        return socket.gethostname()
+        # LINUX
+        elif os.name == "unix":
+            os.system('clear')
+        
+        else:
+            console.print("[bold red]Utilities Module Error:[/bold red] [yellow]failed to clear screen, platform not supported[yellow]")
 
 
 # FOR MODULE TESTING
