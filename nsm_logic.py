@@ -1,8 +1,7 @@
-# WIFI SCANNER  // THIS WILL BE A READ TEAM PROGRAM 
+# WIFI SCANNER  // THIS WILL BE WHERE THE SCAN LOGIC IS PERFORMED
 
 
 # UI IMPORTS
-import pywifi.iface
 from rich.panel import Panel
 from rich.table import Table
 from rich.live import Live
@@ -15,12 +14,13 @@ from scapy.all import sniff
 
 
 # ETC IMPORTS 
-import threading, os, random, time
+import threading, os, random, time, pyfiglet, random
 
 
 
 # NSM IMPORTS
 from nsm_utilities import Utilities
+from nsm_files import Network_Mapper
 
 
 
@@ -33,6 +33,9 @@ class WifiScanner():
 
         # USE THE SAME CONSOLE OBJECT FOR EVERYTHING TO NOT FUCK UP THE LIVE FEATURE LOL
         self.networks = []
+
+        # CREATE A INSTANCE FOR MAPPING
+        self.map = Network_Mapper()
         
     
 
@@ -46,7 +49,7 @@ class WifiScanner():
         
         # TELL THE USER THE INTERFACE CURRENTLY BEING USED
         if len(self.networks) == 0:
-            console.print(f"[bold green]Current WLAN:[/bold green] {iface.name}")
+            console.print(f"[bold green]Current WLAN:[/bold green] {iface.name()}")
         
         
         # NOW TO SCAN AND INTERATE THROUGH THE LIST
@@ -66,6 +69,10 @@ class WifiScanner():
                 # GET FREQ AND AKM TYPE
                 frequency = self.get_frequency(frequency=net.freq)
                 encryption = self.get_encryption(akm=net.akm[0])
+
+                # CATCH EMPTY SSID
+                if net.ssid.strip().lower() == "" or net.ssid.strip().lower() == "5ghz" or net.ssid.strip().lower() == "2ghz":
+                    net.ssid = "N/A"
                
 
                 # THESE PRINT STATEMENTS WILL NO LONGER BE USED BUT WILL BE KEPT FOR DEBUGGING REASONS FOR THE TIME BEING 
@@ -83,7 +90,10 @@ class WifiScanner():
                         
                         # ADD DATA TO TABLE
                         table.add_row(f"{len(self.networks)}",f"{net.signal}", f"{net.ssid}", f"{frequency}", f"{net.auth}", f"{encryption}", f"{net.bssid}")
-        
+                        
+                        # ADD NETWORK TO FILE
+                        self.map.network_logging(ssid=net.ssid, bssid=net.bssid, signal=net.signal, auth=net.auth, frequency=frequency, encryption=encryption)
+
 
     
     def get_encryption(self, akm):
@@ -133,12 +143,12 @@ class WifiScanner():
         # TABLE FOR WIFI NETWORKS
         table = Table(title="Wireless Network's", title_style='bold red',header_style='red', style='bold purple')
         table.add_column("#")
-        table.add_column("Signal")
-        table.add_column("SSID")
+        table.add_column("Signal", style='yellow')
+        table.add_column("SSID", style='bold green')
         table.add_column("Frequency")
         table.add_column("Authentication")
         table.add_column("Encryption")  # AKA AKM // AUTHENCTION AND KEY MANAGEMENT
-        table.add_column("BSSID")
+        table.add_column("BSSID", style='cyan')
         
 
         # PANEL FOR DATA
@@ -151,7 +161,7 @@ class WifiScanner():
         loop = 3
 
 
-        with Live(table, console=console, refresh_per_second=10):
+        with Live(table, console=console, refresh_per_second=1):
             while loop > 0:
 
                 self.scanner(table=table)
@@ -162,8 +172,10 @@ class WifiScanner():
                 
 
         # CURRENT NETWORKS FOUND
-        console.print(f"\n[bold green]Total Networks Found: [/bold green]{len(self.networks)}")
-        Utilities.tts(say=f"I have found a total of: {len(self.networks)} networks, sir")
+        self.map.done()
+        console.print(f"[bold blue]Total Networks Found: [/bold blue]{len(self.networks)}")
+        Utilities.tts(say=f"I have found a total of: {len(self.networks)} networks sir. ")
+        Utilities.tts(say="I WILL NOW BEGIN DE-clsAUTHENTICATION ATTACK. FUCK YOU ALL", voice_sound="0")
 
 
 
@@ -174,7 +186,7 @@ class WifiUI():
         pass
     
     @staticmethod
-    def welcome_message(sleep=.004):
+    def welcome_message(sleep=.01):
         """This will hold and print the ascii text and a nice sexy looking manner"""
 
         art = """
@@ -189,9 +201,14 @@ class WifiUI():
         |___|                                                     |___| 
         (_____)---------------------------------------------------(_____)
         """
-
-        
-        say = "Initiating scan for all nearby networks. If I connect, it’s legally a penetration test. If I get caught, it was a prank. NSM out."
+        from pathlib import Path
+        path = Path.home() / "Documents" / "nsm tools" / "network tools" / "wifi scanner" / "art.txt"
+        with open(path, "r") as file:
+            console.print(file.read())
+            
+ 
+           
+        say = "Initiating scan for all nearby networks. If I connect, it's legally a penetration test. If I get caught, it was a prank. FUCK YOU"
 
         threading.Thread(target=Utilities.tts, args=(say, False, 10)).start()
 
@@ -201,13 +218,39 @@ class WifiUI():
 
         Utilities.clear_screen()
 
-        console.print(Panel(title="Malicious Practitionar", renderable=f"{art}", expand=False, style="bold purple"))
+
+        fonts = pyfiglet.FigletFont.getFonts()
+        console.print(fonts)
+        
+        use = False
+        if use:
+            for f in fonts:
+                time.sleep(2)
+            
+                art_static = pyfiglet.figlet_format(text="Net\nCracker", font=f)
+                console.print(f"Using: {f}\n{art_static}", style='bold red')
+    
+
+        art_static = pyfiglet.figlet_format(text="          Net", font="bloody")
+        console.print(art_static)        
+        art_static = pyfiglet.figlet_format(text="    Cracker", font="bloody")
+        console.print(art_static, style="bold red")
+       # console.print(Panel(title="Malicious Practitionar", renderable=f"{art_static}", expand=False, style="bold red", border_style="red"))
         print('\n\n')
+
+
+
+    @staticmethod
+    def main():
+        """Call upon this method to start module logic"""
+
+
+        WifiUI.welcome_message()
+        WifiScanner().loop_controller()
 
 
 
 
 # CURRENTLY USED FOR PROGRAM TESTING
 if __name__ == "__main__":
-    WifiUI.welcome_message()
-    WifiScanner().loop_controller()
+    WifiUI.main()

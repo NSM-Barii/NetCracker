@@ -27,7 +27,7 @@ class Utilities():
 
     
     @staticmethod
-    def tts(say, lock = False, voice_rate = 20) -> str:
+    def tts(say, lock = False, voice_rate = 20, voice_sound=False) -> str:
         """This method will be used to speak to the user through voice engines, use a thread locker if using threads to prevent race conditions"""
         
 
@@ -47,12 +47,21 @@ class Utilities():
         
             
             # NOW TO CHOOSE THE VOICE WE WANT TO USE
-            if len(voices) > 1:
+            if voice_sound != False:
+                voice_sound = int(voice_sound)
+                engine.setProperty('voice', voices[voice_sound])
+                T = "1"
+
+            elif len(voices) > 1:
                 engine.setProperty('voice', voices[1].id)
-            
+                T = "2"
+
             else:
                 engine.setProperty('voice', voices[0].id)
-
+                T = "3"
+            
+            # FOR DEBUGGING
+            #console.print(T)
             
             # NOW TO SPEAK TTS
             if not lock:
@@ -81,7 +90,7 @@ class Utilities():
             os.system('cls')
 
         # LINUX
-        elif os.name == "unix":
+        elif os.name == "Posix" or os.name == "unix":
             os.system('clear')
         
         else:
