@@ -18,12 +18,12 @@ class import_handler():
         try:
 
             # UI IMPORTS
-            import pywifi.iface
             from rich.panel import Panel
             from rich.table import Table
             from rich.live import Live
             from rich.console import Console
             console = Console()
+
 
             # NETWORK IMPORTS
             import pywifi, socket, ipaddress
@@ -32,6 +32,7 @@ class import_handler():
 
             # ETC IMPORTS 
             import threading, os, random, time, pyttsx3, pyfiglet
+            from datetime import datetime
 
 
             # FILE HANDLING
@@ -69,6 +70,8 @@ class import_handler():
         """Multi-module logic will be called from here"""
 
         from nsm_ui import MainUI
+
+        
         MainUI.main()
 
 
@@ -76,5 +79,3 @@ class import_handler():
 # BEGIN MULTI-MODULE LOGIC
 if __name__ == "__main__":
     import_handler.imports()
-    
-    

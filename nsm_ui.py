@@ -17,6 +17,8 @@ import time
 
 # OTHER MODULE IMPORTS
 from nsm_logic import WifiUI 
+from nsm_utilities import Utilities
+from nsm_files import Network_Mapper
 
 
 
@@ -36,12 +38,24 @@ class MainUI():
         console.print(art_static)        
         art_static = pyfiglet.figlet_format(text="    Cracker", font="bloody")
         console.print(art_static, style="bold red")
+        
+        
+        console.print("        ========================================================================", style="bold red")
+        console.print(
+        
+           "                       Developed by NSM Barii",
+           style="black"
 
+        )
+        console.print("        ========================================================================", style="bold red")
+     
     
     @staticmethod
     def main_menu():
         """This will house the main menu logic"""
+        
 
+        # WILL NO LONGER BE USING PANELS FOR MENU SELECTION AS I WANT BETTER LOOKING UI'S
         choices = Panel(
 
             renderable="\n[1] Scan for Networks\n[2] Crack Networks\n[4] View saved networks\n[5] EXIT", 
@@ -53,7 +67,7 @@ class MainUI():
         
         )
 
-       # console.print(choices)
+        #console.print(choices)
         
         color = "red"
         color2 = "white"
@@ -61,38 +75,52 @@ class MainUI():
         choicess = (
 
             f"\n[{color}][1][/{color}] [{color2}]Scan for Networks\n"
-            f"[{color}][2][/{color}] [{color2}]Crack Networks\n"
-            f"[{color}][3][/{color}] [{color2}]Deauth Attack\n"
-            f"[{color}][4][/{color}] [{color2}]View saved networks\n"
+            f"[{color}][2][/{color}] [{color2}]View saved networks\n"
+            f"[{color}][3][/{color}] [{color2}]Crack Networks\n"
+            f"[{color}][4][/{color}] [{color2}]Deauth Attack\n"
             f"[{color}][5][/{color}] [{color2}]EXIT "
             
             )
         
-        console.print("\n", choicess)
-
+        console.print("\n\n\n", choicess, "\n")
+  
         try:
 
-            choice = console.input("\n\n[bold red]Enter choice here: [/bold red]")
-
-
-            # NOW FOR CHOICES 
-            if choice == "1":
-                WifiUI.main()
             
-            elif choice == "2":
-                pass
+            # LOOP FOR ERRORS
+            while True:
 
-            elif choice == "3":
-                pass
+                choice = console.input("[bold red]Enter choice here: [/bold red]")
 
-            elif choice == "4":
-                pass
-            
-            elif choice == "5":
-                console.print("\nLater..............", style="bold red")
-                time.sleep(1)
-                exit()
+                # NOW FOR CHOICES 
+                if choice == "1":
+                    Utilities.clear_screen()
+                    WifiUI.main()
 
+                    break
+
+                
+                elif choice == "2":
+                    Utilities.clear_screen()
+                    Network_Mapper.network_puller()
+                    #console.print("\n[yellow]Under construction")
+
+                    break
+
+                elif choice == "3":
+                    console.print("\n[yellow]Under construction")
+
+                elif choice == "4":
+                    console.print("\n[yellow]Under construction")
+                
+                elif choice == "5":
+                    console.print("\nLater..............", style="bold red")
+                    time.sleep(.1)
+                    exit()
+                
+                else:
+                    console.print("\nPlease choose a valid option")
+                
 
         
         except Exception as e:
@@ -106,8 +134,11 @@ class MainUI():
 
         
         # ANDDDD START
-        MainUI.welcome_message()
-        MainUI.main_menu()
+        while True:
+            Utilities.clear_screen()
+            MainUI.welcome_message()
+            MainUI.main_menu()
+
 
 
 

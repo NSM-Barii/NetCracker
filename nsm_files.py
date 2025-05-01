@@ -8,6 +8,10 @@ from rich.live import Live
 console = Console()
 
 
+# ETC IMPORTS
+from datetime import datetime
+import time
+
 # FILE HANDLING
 from pathlib import Path
 import json
@@ -44,25 +48,43 @@ class Network_Mapper():
 
         # CREATE VARIABLES
         self.data[self.indent] = {
+
             "ssid": ssid,
             "bssid": bssid,
             "signal": signal,
             "auth": auth,
             "frequency": frequency,
             "encryption": encryption
+            
         } 
+
+
+
+        # FOR DEBUGGING
+        use = False
+
+        if use:
+            console.print(self.indent)
+
+
+    
+    def network_saver(self):
+        """This will save the networks"""
       
         
         # LOOP THROUGH IN CASE OF ELSE OR EXCEPTION
         while True:
 
             try:
+
+                timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
+                console.print("Current Timestamp: ",timestamp)
                 
                 if path_network.exists():
 
                     #console.print(self.data)
 
-                    path = path_network / "networks.json"
+                    path = path_network / f"{timestamp}.json"
 
                     with open(path, "w") as file:
                         json.dump(self.data, file, indent=4)
@@ -73,6 +95,10 @@ class Network_Mapper():
                 else:
                     path_network.mkdir(exist_ok=True, parents=True)
 
+            
+            except json.JSONDecodeError as e:
+                console.print(f"JSON Error: {e}")
+                break
 
             except FileNotFoundError as e:
 
@@ -92,8 +118,72 @@ class Network_Mapper():
         """Call upon this method once you are done with previous method to confirm files have been saved"""
 
 
-        console.print(f"\n[bold blue]Total Networks Saved: [/bold blue] {self.indent}")
-    
+        console.print(f"\n[bold green]Total Networks Found & Saved: [/bold green] {self.indent}")
+
+
+    @staticmethod    
+    def network_puller() -> str:
+        """This will be used to pull all the save networks"""
+
+        while True:
+
+            try:
+                
+                # MAKE SURE NETWORK DIR EXIST
+                if path_network.exists() and path_network.is_dir():
+                    
+                    # USE THIS TO ITERATE THROUGH A DIR
+                    for file in path_network.iterdir():
+
+                        with open(file, "r") as file:
+                            content = json.load(file)
+
+                            
+                            # TIMESTAMP
+                            timestamp = file.name.split("\\")[8].split('.')[0]
+                            line = "-" * 80
+ 
+                            console.print("\n\n",line)                            
+                            console.print(f"TimeStamp: {timestamp}\n")
+
+
+                            # PRINT VALUES IN JSON
+                            for key, value in content.items():
+
+                                console.print(f"[cyan]Network #{key}[/cyan]: {value}")
+
+                            console.print("\n",line)   
+                            
+
+                            
+
+
+                    console.print("\n\n[bold green]All networks printed successfully")
+                    console.input(f"\n[bold red]Press enter to exit: ")
+
+                    break
+
+                
+                else:
+                    path_network.mkdir(exist_ok=True, parents=True)
+
+
+            except Exception as e:
+                console.print(e)
+
+
+                time.sleep(4)
+
+                break
+        
+
+
+
+
+
+class Network_Puller():
+    """This will pull any and all saved networks"""
+    pass
 
 
 

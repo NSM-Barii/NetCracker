@@ -161,6 +161,10 @@ class WifiScanner():
         loop = 3
 
 
+        # TELL USER SCAN HAS STARTED
+        threading.Thread(target=Utilities.tts, args=("Beginning network wide scanning", ), daemon=True).start()
+
+
         with Live(table, console=console, refresh_per_second=1):
             while loop > 0:
 
@@ -172,10 +176,10 @@ class WifiScanner():
                 
 
         # CURRENT NETWORKS FOUND
+        self.map.network_saver()
         self.map.done()
-        console.print(f"[bold blue]Total Networks Found: [/bold blue]{len(self.networks)}")
         Utilities.tts(say=f"I have found a total of: {len(self.networks)} networks sir. ")
-        Utilities.tts(say="I WILL NOW BEGIN DE-clsAUTHENTICATION ATTACK. FUCK YOU ALL", voice_sound="0")
+        Utilities.tts(say="I WILL NOW BEGIN TO HACK TARGETED NETWORKS" , voice_sound="1")
 
 
 
@@ -245,9 +249,11 @@ class WifiUI():
         """Call upon this method to start module logic"""
 
 
-        WifiUI.welcome_message()
+       # WifiUI.welcome_message()
         WifiScanner().loop_controller()
-
+       
+        console.input("\n\n[bold red]Press enter to exit: ")
+        time.sleep(.3)
 
 
 
