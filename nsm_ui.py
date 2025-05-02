@@ -97,7 +97,7 @@ class MainUI():
                 choice = console.input("[bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "2", "3", "4"]
+                cc = ["1", "2"]
 
                 if choice in cc:
                     Utilities.clear_screen()
