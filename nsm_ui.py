@@ -33,7 +33,11 @@ class MainUI():
     @staticmethod
     def welcome_message():
         """This will be the welcome message that is displayed within the main menu"""
+        
+        # FOR SPACE FROM TOP OF TERMINAL
+        print("\n\n")
 
+        # PRINT WELCOME MESSAGE
         art_static = pyfiglet.figlet_format(text="          Net", font="bloody")
         console.print(art_static)        
         art_static = pyfiglet.figlet_format(text="    Cracker", font="bloody")
@@ -74,11 +78,11 @@ class MainUI():
 
         choicess = (
 
-            f"\n[{color}][1][/{color}] [{color2}]Scan for Networks\n"
-            f"[{color}][2][/{color}] [{color2}]View saved networks\n"
-            f"[{color}][3][/{color}] [{color2}]Crack Networks\n"
-            f"[{color}][4][/{color}] [{color2}]Deauth Attack\n"
-            f"[{color}][5][/{color}] [{color2}]EXIT "
+            f"\n       [{color}][1][/{color}] [{color2}]Scan for Networks\n"
+            f"       [{color}][2][/{color}] [{color2}]View saved networks\n"
+            f"       [{color}][3][/{color}] [{color2}]Crack Networks\n"
+            f"       [{color}][4][/{color}] [{color2}]Deauth Attack\n"
+            f"       [{color}][5][/{color}] [{color2}]EXIT "
             
             )
         
@@ -92,18 +96,20 @@ class MainUI():
 
                 choice = console.input("[bold red]Enter choice here: [/bold red]")
 
+                # ALL VALID OPTIONS EXCEPT EXIT
+                cc = ["1", "2", "3", "4"]
+
+                if choice in cc:
+                    Utilities.clear_screen()
+
                 # NOW FOR CHOICES 
                 if choice == "1":
-                    Utilities.clear_screen()
                     WifiUI.main()
 
                     break
 
-                
                 elif choice == "2":
-                    Utilities.clear_screen()
                     Network_Mapper.network_puller()
-                    #console.print("\n[yellow]Under construction")
 
                     break
 
