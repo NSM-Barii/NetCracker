@@ -252,7 +252,7 @@ class WifiUI():
        # WifiUI.welcome_message()
         WifiScanner().loop_controller()
        
-        console.input("\n\n[bold red]Press enter to exit: ")
+        console.input("[bold red]Press enter to exit: ")
         time.sleep(.3)
 
 
