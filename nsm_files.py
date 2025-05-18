@@ -143,6 +143,9 @@ class Network_Mapper():
                     # USE THIS TO ITERATE THROUGH A DIR
                     for file in path_network.iterdir():
 
+                        if file.exists() == False:
+                            console.print("False")
+
                         with open(file, "r") as file:
                             content = json.load(file)
                             
@@ -187,6 +190,9 @@ class Network_Mapper():
 
                             # PRINT VALUES IN JSON
                             for key, value in content.items():
+
+                                if value == None or value == "" or value == False:
+                                    go = False
 
                                 # FOR SEXY ASS TABLE PRINT // LOL NOOB
                                 if table_use:

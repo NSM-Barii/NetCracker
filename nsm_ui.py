@@ -117,6 +117,15 @@ class MainUI():
                     console.print("\nLater..............", style="bold red")
                     time.sleep(.1)
                     exit()
+
+                
+                elif choice == "6":
+                    from nsm_main import import_handler
+
+                    Utilities.clear_screen()
+                    import_handler().import_uninstaller()
+
+                    break
                 
                 else:
                     console.print("\nPlease choose a valid option")
