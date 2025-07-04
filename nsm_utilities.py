@@ -97,7 +97,146 @@ class Utilities():
             console.print("[bold red]Utilities Module Error:[/bold red] [yellow]failed to clear screen, platform not supported[yellow]")
 
 
+
+
+class NetTilities():
+    """This class will house reusuable methods for scanning"""
+
+    def __init__(self):
+        pass
+
+
+
+    @staticmethod
+    def get_iface(get_name=False, verbose=False):
+        """This method will be used to get an iface"""
+
+
+        try:
+            
+            # GET THE IFACE AND RETURN IT
+            wifi = pywifi.PyWiFi()
+            iface = wifi.interfaces()[1]
+
+            
+            
+
+            if get_name:
+                return iface.name()
+            
+            return iface
+
+
+        
+
+        except Exception as e:
+            if verbose:
+                console.print(f"[bold red]NetTilities Error:[yellow] {e}")
+            
+
+            return False
+    
+
+     
+    @staticmethod
+    def get_cipher(cipher):
+        """This method will be used to get cipher"""
+        
+       # console.print(cipher)
+        ciphers = {
+            0: "None",
+            1: "WEP",
+            2: "TKIP",
+            3: "AES",
+            4: "UNKOWN"
+        }
+        
+        cipher = int(cipher)
+        result = ciphers.get(cipher)
+
+
+        return result
+
+
+
+    
+
+    @staticmethod
+    def get_encryption(akm):
+        """This method will be used to get the get_encryption type that the network is using"""
+
+
+        # CREATE A LIST FULL OF THE AUTHENTICATION TYPES
+
+        encryptions = {
+            0: "Open",
+            1: "WPA",
+            2: "WPA-PSK",
+            3: "WPA2",
+            4: "WPA2-PSK",
+            5: "Unkown",
+            6: "WPA3",
+            7: "WPA3-SAE"
+
+        }
+        
+        encryption = encryptions.get(akm)
+        
+        return encryption
+     
+     
+
+    @staticmethod
+    def get_frequency(frequency):
+        """Get the frequency being used by the wifi"""
+
+
+        # 2.4GHZ OR 5GHZ
+        if  frequency in range(2400000, 2500000):
+            return "2.4 GHz"
+        
+        elif frequency in range(5000000, 5800000):
+            return "5 GHz"
+        
+        elif frequency in range(5900000, 7200000):
+            return "6 GHz"
+
+
+        else:
+            return frequency
+        
+    
+
+    @staticmethod
+    def get_channel(freq):
+        """This method will be responsible for getting the channel"""
+
+        
+        if 2412 <= freq <= 2472:
+            return (freq - 2407) // 5
+        elif freq == 2484:
+            return 14
+        elif 5180 <= freq <= 5825:
+            return (freq - 5000) // 5
+        return None
+
+
+
+
+
 # FOR MODULE TESTING
 if __name__ == "__main__":
 
-    Utilities().test_static()
+
+
+    tests = {
+        0: "ass",
+        1: "toes",
+        2: "booty",
+        3: "but"
+    }
+
+
+    toe = 3
+
+    console.print(tests.get(toe))

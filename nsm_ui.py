@@ -16,7 +16,7 @@ import time
 
 
 # OTHER MODULE IMPORTS
-from nsm_logic import WifiUI 
+from nsm_scanner_mode import WifiUI 
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
 
@@ -86,7 +86,7 @@ class MainUI():
             
             )
         
-        console.print("\n\n\n", choicess, "\n")
+        console.print("\n\n\n", choicess, "\n\n")
   
         try:
 
@@ -94,7 +94,7 @@ class MainUI():
             # LOOP FOR ERRORS
             while True:
 
-                choice = console.input("[bold red]Enter choice here: [/bold red]")
+                choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
                 cc = ["1", "2"]
@@ -134,7 +134,7 @@ class MainUI():
                     break
                 
                 else:
-                    console.print("\nPlease choose a valid option")
+                    console.print("\n     Please choose a valid option")
                 
 
         

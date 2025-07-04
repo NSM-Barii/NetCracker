@@ -42,7 +42,7 @@ class Network_Mapper():
 
 
 
-    def network_logging(self, ssid, bssid, signal, auth, frequency, encryption):
+    def network_logging(self, ssid, bssid, signal, frequency, channel, auth, akm, cipher):
         """This will be used to store networks and there info"""
 
         
@@ -56,18 +56,20 @@ class Network_Mapper():
             "ssid": ssid,
             "bssid": bssid,
             "signal": signal,
-            "auth": auth,
             "frequency": frequency,
-            "encryption": encryption
+            "channel": channel,
+            "auth": auth,
+            "encryption": akm,  # ENCRYPTION  
+            "cipher": cipher
             
         } 
 
 
 
         # FOR DEBUGGING
-        use = False
+        verbose = False
 
-        if use:
+        if verbose:
             console.print(self.indent)
 
 
@@ -109,18 +111,20 @@ class Network_Mapper():
                     json.dump(file)
 
                 console.print(f"[bold red]File not found Error:[/bold red] [yellow]{e}[/yellow]")
+                break
 
 
             except Exception as e:
                 console.print(f"[bold red]Exception Error:[/bold red] [yellow]{e}[/yellow]")
                 break
+            
     
     
-    def done(self):
+    def done(self, go):
         """Call upon this method once you are done with previous method to confirm files have been saved"""
 
-
-        console.print(f"\n\n[bold green]Total Networks Found & Saved:[/bold green] {self.indent}")
+        if go:
+            console.print(f"\n\n[bold green]Total Networks Found & Saved:[/bold green] {self.indent}")
 
 
     @staticmethod    
@@ -252,16 +256,18 @@ class Network_Mapper():
                     # MAKE A CHOICE
                     choice = console.input(f"\n[bold red]Press enter to exit: ")
 
-                
+                    
+                    # TEXT VIEW
                     if choice.strip().lower() == "1" or choice.strip().lower() == "text" or choice.strip().lower() == "json":
                         table_use = False
                         Utilities.clear_screen()
 
-
+                    # TABLE VIEW
                     elif choice.strip().lower() == "2" or choice.strip().lower() == "table":
                         table_use = True
                         Utilities.clear_screen()
                     
+                    # DELETE FILES // NOT DONE // MIGHT NOT EVER BE DONE // LOLOLO
                     elif choice.strip().lower() == "clear" or choice.strip().lower() == "3" or choice.strip().lower() == "cls":
                         Network_Mapper.network_deleter()
 

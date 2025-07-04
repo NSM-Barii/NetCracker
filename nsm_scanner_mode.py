@@ -19,7 +19,7 @@ import threading, os, random, time, pyfiglet, random
 
 
 # NSM IMPORTS
-from nsm_utilities import Utilities
+from nsm_utilities import Utilities, NetTilities
 from nsm_files import Network_Mapper
 
 
@@ -87,8 +87,8 @@ class WifiScanner():
                     use = False
 
                     # GET FREQ AND AKM TYPE
-                    frequency = self.get_frequency(frequency=net.freq)
-                    encryption = self.get_encryption(akm=net.akm[0])
+                    frequency = NetTilities.get_frequency(frequency=net.freq)
+                    encryption = NetTilities.get_encryption(akm=net.akm[0])
 
                     # CATCH EMPTY SSID
                     if net.ssid.strip().lower() == "" or net.ssid.strip().lower() == "5ghz" or net.ssid.strip().lower() == "2ghz":
@@ -112,53 +112,12 @@ class WifiScanner():
                             table.add_row(f"{len(self.networks)}",f"{net.signal}", f"{net.ssid}", f"{frequency}", f"{net.auth}", f"{encryption}", f"{net.bssid}")
                             
                             # ADD NETWORK TO FILE
-                            self.map.network_logging(ssid=net.ssid, bssid=net.bssid, signal=net.signal, auth=net.auth, frequency=frequency, encryption=encryption)
+                            self.map.network_logging(ssid=net.ssid, bssid=net.bssid, signal=net.signal, auth=net.auth, frequency=frequency, akm=encryption, channel=1, cipher=net.cipher, )
         
 
         #else:
             #table.add_row("FAILED TO SCAN")
 
-
-    
-    def get_encryption(self, akm):
-        """This method will be used to get the get_encryption type that the network is using"""
-
-
-        # CREATE A LIST FULL OF THE AUTHENTICATION TYPES
-        encryptions = {
-            0: "Open",
-            1: "WPA",
-            2: "WPA-PSK",
-            3: "WPA2",
-            4: "WPA2-PSK",
-            5: "Unkown",
-            6: "WPA3",
-            7: "WPA3-SAE"
-
-        }
-        
-        encryption = encryptions.get(akm)
-        
-        return encryption
-    
-    def get_frequency(self, frequency):
-        """Get the frequency being used by the wifi"""
-
-
-        # 2.4GHZ OR 5GHZ
-        if  frequency in range(2400000, 2500000):
-            return "2.4 GHz"
-        
-        elif frequency in range(5000000, 5800000):
-            return "5 GHz"
-        
-        elif frequency in range(5900000, 7200000):
-            return "6 GHz"
-
-
-        else:
-            return frequency
-        
     
     def loop_controller(self):
         """This will be responsible for looping through wifi scanning and appending data to the table"""
