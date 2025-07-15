@@ -11,7 +11,7 @@ console = Console()
 
 # NETWORK IMPORTS
 import pywifi, socket, ipaddress
-from scapy.all import sniff, RadioTap, sendp 
+from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp
 from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
 
 
@@ -26,10 +26,12 @@ MATH = ["percentage", "algebra", "PEMDAS", "Area & Distance", "regular to fracti
 
 for m in MATH:
     console.print(m)
+print("\n\n")
 
 
 
-
+# RUN THIS FOR NOW TO BEGIN DEAUTH MODULE
+# sudo ./.venv/bin/python nsm_deauth.py
 
 class Frame_Snatcher():
     """This class will be responsible for sniffing out frames and or pulling mac address"""
@@ -59,13 +61,10 @@ class Frame_Snatcher():
 
 
 
-        #print("hi")
 
 
-
+        # THIS IS STRICTLY USED TO CAPTURE BEACON FRAMES // SENT FROM AP'S
         if pkt.haslayer(Dot11Beacon):
-
-            #console.print(pkt[Dot11Beacon])
 
 
             addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else "No"
@@ -85,7 +84,7 @@ class Frame_Snatcher():
 
                 # ADD MAC
                 cls.macs.append(addr2)
-                console.print(f"[{c2}][+] Found a new mac addr2:[{c4}] {addr2}")
+                console.print(f"[{c2}][+] Found Mac addr:[{c4}] {addr2}")
 
 
 
@@ -139,11 +138,6 @@ class Frame_Snatcher():
 
         else:
             console.print("Failed to capture macs / frames", style="bold red")
-
-
-
-
-
 
 
 
@@ -245,13 +239,7 @@ class Deauth_You():
 
 
 
-
-
-import pyttsx3, socket, pyfiglet
-from scapy.all import IP, ICMP, sr1
-
-
-
+# THIS CLASS IS STRICTLY TO BE USED AS A VICTIM NODE TO TEST IF THIS MODULE IS FUNCTIONAL 
 class You_Cant_DOS_ME():
     """This is testing ground for weather or not i can withstand a ddos attack"""
 
@@ -359,6 +347,16 @@ class You_Cant_DOS_ME():
 
 # FOR MODULE TESTING
 if __name__ == "__main__":
-    You_Cant_DOS_ME.ping()
+
+    use = 1
+
+
+    if use == 1:
+        Frame_Snatcher.sniffer_scapy()
+    
+
+
+    if use == 3:
+        You_Cant_DOS_ME.ping()
 
 
