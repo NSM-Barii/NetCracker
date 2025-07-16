@@ -15,11 +15,11 @@ import pyfiglet
 import time
 
 
-# OTHER MODULE IMPORTS
+# NSM MODULE IMPORTS
 from nsm_scanner_mode import WifiUI 
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-
+from nsm_deauth import Frame_Snatcher
 
 
 class MainUI():
@@ -31,29 +31,34 @@ class MainUI():
 
     
     @staticmethod
-    def welcome_message():
+    def welcome_message(font="dos_rebel"):
         """This will be the welcome message that is displayed within the main menu"""
         
         # FOR SPACE FROM TOP OF TERMINAL
         print("\n\n")
 
-        # PRINT WELCOME MESSAGE
-        art_static = pyfiglet.figlet_format(text="          Net", font="bloody")
-        console.print(art_static)        
-        art_static = pyfiglet.figlet_format(text="    Cracker", font="bloody")
-        console.print(art_static, style="bold red")
+        # CREATE
+        art1 = pyfiglet.figlet_format(text="        Net", font=font)    
+        art2 = pyfiglet.figlet_format(text="  Cracker", font=font)
+
+
+        # PRINT
+        console.print(art1, style="bold yellow")  
+        console.print(art2, style="bold blue")
         
         
-        console.print("        ========================================================================", style="bold red")
+
+        console.print("        ========================================================================", style="bold yellow")
         console.print(
         
-           "                       Developed by NSM Barii",
-           style="black"
+           "            ===================  Developed by NSM Barii  ===================",
+           style="bold blue"
 
         )
-        console.print("        ========================================================================", style="bold red")
+        console.print("        ========================================================================", style="bold yellow")
      
     
+
     @staticmethod
     def main_menu():
         """This will house the main menu logic"""
@@ -71,17 +76,16 @@ class MainUI():
         
         )
 
-        #console.print(choices)
         
-        color = "red"
-        color2 = "white"
+        color = "bold blue"
+        color2 = "bold yellow"
 
         choicess = (
 
-            f"\n       [{color}][1][/{color}] [{color2}]Scan for Networks\n"
-            f"       [{color}][2][/{color}] [{color2}]View saved networks\n"
-            f"       [{color}][3][/{color}] [{color2}]Crack Networks\n"
-            f"       [{color}][4][/{color}] [{color2}]Deauth Attack\n"
+            f"\n       [{color}][1][/{color}] [{color2}]Deauth Attack\n"
+            f"       [{color}][2][/{color}] [{color2}]Crack Handshake\n\n"
+            f"       [{color}][3][/{color}] [{color2}]Scan for Networks\n"
+            f"       [{color}][4][/{color}] [{color2}]View Saved Networks\n\n"
             f"       [{color}][5][/{color}] [{color2}]EXIT "
             
             )
@@ -97,35 +101,53 @@ class MainUI():
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "2"]
+                cc = ["1", "3", "4"]
 
                 if choice in cc:
                     Utilities.clear_screen()
 
-                # NOW FOR CHOICES 
+
+
+                # DEAUTH ATTACK
                 if choice == "1":
+                    Frame_Snatcher.main()
+                    
+                    break
+                
+
+                # CRACK HANDSHAKES
+                elif choice == "2":
+                    console.print("[bold yellow]     This option is still under Construction")
+
+                    
+                
+
+                # SCAN FOR NETWORKS
+                elif choice == "3":
                     WifiUI.main()
 
                     break
 
-                elif choice == "2":
+
+                # VIEW SAVED NETWORKS
+                elif choice == "4":
                     Network_Mapper.network_puller()
 
                     break
-
-                elif choice == "3":
-                    console.print("\n[yellow]Under construction")
-
-                elif choice == "4":
-                    console.print("\n[yellow]Under construction")
                 
+                
+
+                # EXIT
                 elif choice == "5":
                     console.print("\nLater..............", style="bold red")
                     time.sleep(.1)
                     exit()
 
                 
-                elif choice == "6":
+                
+
+                # THIS IS STRICTLY FOR TESTING // ITS ALSO DEAPPRECIATED
+                elif choice == "101":
                     from nsm_main import import_handler
 
                     Utilities.clear_screen()
