@@ -19,11 +19,20 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
 
 # NSM IMPORTS
 from nsm_utilities import Utilities
-
+from nsm_files import Settings
 
 
 # ETC IMPORTS 
 import threading, os, random, time, pyttsx3
+
+
+# FILE IMPORTS
+from pathlib import Path
+import json
+
+  # PATH
+BASE_DIR = Path.home() / "Documents" / "nsm_tools" / ".data" 
+BASE_DIR.mkdir(exist_ok=True, parents=True)
 
     
 # THINGS TO STUDY FOR MATH ASVAB 
@@ -42,6 +51,8 @@ print("\n\n")
 # RUN THIS FOR NOW TO BEGIN DEAUTH MODULE
 # sudo ./.venv/bin/python nsm_deauth.py
 
+
+
 class Frame_Snatcher():
     """This class will be responsible for sniffing out frames and or pulling mac address"""
 
@@ -53,9 +64,61 @@ class Frame_Snatcher():
 
     def __init__(self):
         pass
-
+    
 
     
+    @classmethod
+    def get_interface(cls):
+        """This method will be used to get the user interface and automatically create a file saving it for default use"""
+
+        
+        try:
+            # SET DEFAULT IFACE IF AVAILABLE
+            data = Settings.get_json()
+            def_iface = data['iface']
+
+
+            # GIVE OPTION FOR DEFAULT
+            if def_iface != "":
+                use = f"or press enter for {def_iface}"
+            
+            else:
+                use = ""
+
+            
+            while True:
+                iface = console.input(f"[bold blue]Enter iface {use}: ").strip()
+                
+
+                # NEED SOME TYPE OF IFACE
+                if iface == "" and def_iface == "":
+
+                    console.print("You must enter iface to procced silly", style="bold red")
+
+                
+                # ROLL BACK TO DEFAUT
+                elif iface == "":
+                    iface = def_iface
+
+                    return iface
+                
+
+                
+                # SET NEW DEF IFACE
+                else:
+                    data['iface'] = iface
+                    
+                    # NOW TO UPDATE SETTINGS
+                    Settings.push_json(data=data)
+
+                    return iface
+            
+
+        # ERROR 
+        except Exception as e:
+            console.print(f"[bold red]Exception Error:[yello] {e}")
+                    
+
     @classmethod
     def welcome_ui(cls, text="    WiFi \nHacking", font="dos_rebel", c1="bold red", c2="bold purple", skip=False):
         """This method will house the welcome message"""
@@ -108,8 +171,6 @@ class Frame_Snatcher():
                 time.sleep(t)
 
 
-
-
     @classmethod
     def sniff_for_targets(cls, iface="wlan0", verbose=1, timeout=15):
         """This method will be used to sniff out mac addresses using the sniff function"""
@@ -154,9 +215,7 @@ class Frame_Snatcher():
             from nsm_ui import MainUI
             MainUI.main()
             
-            
 
-    
     @classmethod
     def packet_parser(cls, pkt):
         """This method will be called upon to then parse the given packet"""
@@ -227,9 +286,6 @@ class Frame_Snatcher():
                 console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}")
 
    
-
-
-    
     @classmethod
     def track_clients(cls, target, iface, track=True, delay=5):
         """This method will be responsible for tracking the online clients"""
@@ -313,9 +369,6 @@ class Frame_Snatcher():
             cls.clients = []
             console.print("wiped", style="bold red")
             time.sleep(delay)
-
-
-
 
 
     @classmethod
@@ -483,7 +536,6 @@ class Frame_Snatcher():
                     console.print("Alright ur done for", style="bold red")
                     break
 
-       
 
     @classmethod
     def target_attacker(cls, target, client="ff:ff:ff:ff:ff:ff", verbose=1, iface="wlan0", inter=0.1, count=25):
@@ -581,7 +633,6 @@ class Frame_Snatcher():
                         break
                     
     
-
     @classmethod
     def main(cls, skip=False):
         """This is where the module will spawn from"""
@@ -598,37 +649,46 @@ class Frame_Snatcher():
         cls.clients = []
 
         
-        # GET GLOBAL IFACE
-        cls.iface = console.input("Enter Interface: ").strip() 
+        # CATCH YOU 
+        try:
 
-        if cls.iface == "":
-            cls.iface = "wlan0"
+            # GET GLOBAL IFACE
+            cls.iface = Frame_Snatcher.get_interface()
+            
+
+            # PRINT WELCOME UI
+            Frame_Snatcher.welcome_ui(skip=skip)
+
+            
+            # SNIFF FOR TARGETS
+            Frame_Snatcher.sniff_for_targets(iface=cls.iface)
 
 
-        # PRINT WELCOME UI
-        Frame_Snatcher.welcome_ui(skip=skip)
+            # ALLOW THE USER TO CHOOSE THERE TARGET
+            target = Frame_Snatcher.target_chooser()
+
+
+            # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
+            threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
+
+
+            # NOW TO ATTACK THE TARGET
+            Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
 
         
-        # SNIFF FOR TARGETS
-        Frame_Snatcher.sniff_for_targets(iface=cls.iface)
+        except KeyboardInterrupt as e:
+            console.print(e)
 
-
-        # ALLOW THE USER TO CHOOSE THERE TARGET
-        target = Frame_Snatcher.target_chooser()
-
-
-        # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
-        threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
-
-
-        # NOW TO ATTACK THE TARGET
-        Frame_Snatcher.target_attacker(target=target, iface=cls.iface)      
+        
+        #
+        except Exception as e:
+            console.print(f'[bold red]Exception Error:[yellow] {e}')   
 
 
 
 
-        # END
-        console.print("\n\nThank you for trying out my program", style="bold red") 
+            # END
+            console.print("\n\nThank you for trying out my program", style="bold red") 
 
         time.sleep(3)
 
@@ -679,10 +739,7 @@ class Beacon_Flooder():
             num += 1
         
 
-
     
-
-
 
 class Deauth_You():
     """This module will be responsible for crafting and sending deauth packets"""
@@ -824,21 +881,33 @@ class You_Cant_DOS_ME():
             "You can’t trace me — I lost myself years ago."
         ]
 
-
-        try:
-            
-            # CREATE PACKET AND GET HOST
-            ip = socket.gethostbyname(str(host))
-            console.print(IP)
-            ping = IP(dst=ip) / ICMP()
-
-            
-            # ERROR CHECK
-            console.print(ping)
-            time.sleep(3)
         
-        except Exception as e:
-            console.print(f"[bold red]Socket Exception Error: {e}")
+        while True:
+            try:
+                
+                # CREATE PACKET AND GET HOST
+                ip = socket.gethostbyname(str(host))
+                console.print(ip)
+                ping = IP(dst=ip) / ICMP()
+
+                
+                # ERROR CHECK
+                console.print(ping)
+                time.sleep(3)
+
+                break
+
+
+            # CTRL + C
+            except KeyboardInterrupt as e:
+                console.print(e)
+
+                return
+            
+            except Exception as e:
+                console.print(f"[bold red]Socket Exception Error: {e}")
+                time.sleep(3)
+                return
             
             
         # LOOP THAT BITCH
@@ -863,8 +932,6 @@ class You_Cant_DOS_ME():
 
 
                     
-
-                
                 pings += 1 
                 if time_took < 1.0:
                     time.sleep(1.5)
@@ -875,9 +942,13 @@ class You_Cant_DOS_ME():
                 if ran == 4:
 
                     console.print(talks[random.randint(0,14)])
+            
 
 
-                
+            
+            # CTRL + C
+            except KeyboardInterrupt as e:
+                console.print(e)
         
 
             except Exception as e:
@@ -892,7 +963,7 @@ class You_Cant_DOS_ME():
 if __name__ == "__main__":
     
 
-    use = 3
+    use = 2
 
 
     if use == 1:

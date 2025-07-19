@@ -249,9 +249,6 @@ class NetTilities():
         return result
 
 
-
-    
-
     @staticmethod
     def get_encryption(akm):
         """This method will be used to get the get_encryption type that the network is using"""

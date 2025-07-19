@@ -19,7 +19,7 @@ import time
 from nsm_scanner_mode import WifiUI 
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-from nsm_deauth import Frame_Snatcher
+from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME
 
 
 class MainUI():
@@ -82,11 +82,13 @@ class MainUI():
 
         choicess = (
 
-            f"\n       [{color}][1][/{color}] [{color2}]Deauth Attack\n"
-            f"       [{color}][2][/{color}] [{color2}]Crack Handshake\n\n"
-            f"       [{color}][3][/{color}] [{color2}]Scan for Networks\n"
-            f"       [{color}][4][/{color}] [{color2}]View Saved Networks\n\n"
-            f"       [{color}][5][/{color}] [{color2}]EXIT "
+            f"\n       [{color}][1][/{color}] [{color2}]Deauth One Client\n"
+            f"       [{color}][2][/{color}] [{color2}]Deauth All Clients\n\n"
+            f"       [{color}][3][/{color}] [{color2}]Capture n Crack Handshake\n\n"
+            f"       [{color}][4][/{color}] [{color2}]Ping Me\n\n"
+            f"       [{color}][5][/{color}] [{color2}]Scan for Networks\n"
+            f"       [{color}][6][/{color}] [{color2}]View Saved Networks\n\n"
+            f"       [{color}][7][/{color}] [{color2}]EXIT "
             
             )
         
@@ -101,36 +103,48 @@ class MainUI():
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "3", "4"]
+                cc = ["1", "4", "5", "6"]
 
                 if choice in cc:
                     Utilities.clear_screen()
 
 
 
-                # DEAUTH ATTACK
+                # DEAUTH ATTACK - ONE CLIENT
                 if choice == "1":
                     Frame_Snatcher.main()
                     
                     break
                 
 
-                # CRACK HANDSHAKES
+                # DEAUTH ATTACK - ALL CLIENTS
                 elif choice == "2":
                     console.print("[bold yellow]     This option is still under Construction")
 
-                    
+                
+
+                # CAPTURE AND CRACK HANDSHAKES
+                elif choice == "3":
+                    console.print("[bold yellow]     This option is still under Construction")
+
+                
+
+                # PING ME 
+                elif choice == "4":
+                    You_Cant_DOS_ME.ping()
+
+                    break
                 
 
                 # SCAN FOR NETWORKS
-                elif choice == "3":
+                elif choice == "5":
                     WifiUI.main()
 
                     break
 
 
                 # VIEW SAVED NETWORKS
-                elif choice == "4":
+                elif choice == "6":
                     Network_Mapper.network_puller()
 
                     break
@@ -138,7 +152,7 @@ class MainUI():
                 
 
                 # EXIT
-                elif choice == "5":
+                elif choice == "7":
                     console.print("\nLater..............", style="bold red")
                     time.sleep(.1)
                     exit()

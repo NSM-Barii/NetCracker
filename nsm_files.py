@@ -22,11 +22,14 @@ import json
 
 # CREATE DEFAULT FILE PATH LOCATION
 base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker" 
-base_dir.mkdir(exist_ok=True, parents=True)
+
+USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / ".data" / "netcracker"
+BASE_DIR.mkdir(exist_ok=True, parents=True)
 
 
 # ALT PATH WAYS
-path_network = base_dir / "Networks" 
+path_network = BASE_DIR / "Networks" 
 
 
 
@@ -306,7 +309,7 @@ class Network_Mapper():
             if path_network.exists() and path_network.is_dir():
                 
                 # REDEFINE THE NETWORK DIR // I DONT THINK ITS NEEDED BUT FUCK IT LOL
-                path_network = base_dir / "Networks"
+                path_network = BASE_DIR / "Networks"
 
                 # NOW TO OVERWRITE CURRENT DIR
                 os.remove(path_network)
@@ -323,11 +326,214 @@ class Network_Mapper():
                     
  
 
+class Settings():
+    """This method will be responsible for controlling json info"""
 
 
-class Network_Puller():
-    """This will pull any and all saved networks"""
-    pass
+    def __init__(self):
+        pass
+
+
+    
+    @classmethod
+    def get_json(cls):
+        """This will pull and return json info"""
+
+
+        # DEBUG
+        verbose = True
+
+        
+        # DESTROY ERRORS
+        while True:
+            try:
+
+                # IF EXISTS
+                if BASE_DIR.exists():
+
+
+                    # MAKE SETTINGS
+                    path = BASE_DIR / "settings.json"
+
+
+                    with open(path, "r") as file:
+
+                        settings = json.load(file)
+
+
+                        if verbose:
+                            console.print(f"Successfully Pulled settings.json from {path}", style="bold green")
+
+
+                    return settings
+                
+
+                
+
+                # MAKE PATHS
+                else:
+
+                    BASE_DIR.mkdir(exist_ok=True, parents=True)
+            
+
+
+            # MAKE JSON
+            except FileNotFoundError as e:
+
+                if verbose:
+                    console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
+
+                
+                # CREATE VARS
+                path = BASE_DIR / "settings.json"
+                data = {
+                        "iface": "",
+                        "captures": ""
+                    }
+
+
+                # PUSH IT 
+                with open(path, "w") as file:
+
+                    json.dump(data, file, indent=4)
+                
+
+                # PERFECT
+                console.print("Successfully created json file", style="bold green")
+
+
+        
+            
+            # ERRORS
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+                break
+
+
+
+    @classmethod
+    def push_json(cls, data):
+        """This method will be used to push info to settings.json"""
+
+
+        # VARS
+        verbsoe = True
+        time_stamp = datetime.now().strftime("%m/%d/%Y - %I:%M:%S")
+
+
+        # DESTROY ERRORS
+        while True:
+            try:
+
+                # 
+                if BASE_DIR.exists():
+                    
+
+                    # VARS
+                    path = BASE_DIR / "settings.json"
+
+                    with open(path, "w") as file:
+
+                        json.dump(data, file, indent=4)
+
+
+                        if verbsoe:
+                            console.print("Successfully pushed settings.json", style="bold green")
+                    
+
+                    return
+
+
+
+                
+                # MAKE DIR
+                else:
+
+                    BASE_DIR.mkdir(exist_ok=True, parents=True)
+
+
+                    if verbsoe:
+                        console.print(f"Successfully created dir", style="bold green")
+                
+            
+
+
+            except FileNotFoundError as e:
+
+                if verbsoe:
+                    console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
+
+                
+                # CREATE VARS
+                path = BASE_DIR / "settings.json"
+                data = {
+                        "iface": "",
+                        "captures": ""
+                    }
+
+
+                # PUSH IT 
+                with open(path, "w") as file:
+
+                    json.dump(data, file, indent=4)
+                
+
+                # PERFECT
+                console.print("Successfully created json file", style="bold green")
+
+                
+            
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[yellow] {e}")
+                
+                break
+
+
+    
+
+    @classmethod
+    def push_txt(cls, data):
+        """This method is just to make a new txt file with info"""
+
+        
+        # VAR
+        verbose = True
+
+
+        
+        # LOOP FOR ERRORS
+        while True:
+
+            try:
+
+                if BASE_DIR.exists():
+
+                    path = BASE_DIR / ""
+
+
+                    with open(path, "a") as file:
+                        file.write(data)
+
+
+                    if verbose:
+                        console.print(f"Successfully appended info", style="bold green")
+
+                
+
+
+                else:
+
+
+                    BASE_DIR.mkdir()
+            
+
+
+
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+
 
 
 
