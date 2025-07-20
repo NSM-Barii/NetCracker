@@ -948,7 +948,13 @@ class You_Cant_DOS_ME():
             
             # CTRL + C
             except KeyboardInterrupt as e:
-                console.print(e)
+                console.print("\n",e)
+                
+                console.input("[bold yellow]Press Enter to leave: ")
+                console.print("\nReturning to Main Menu", style="bold green")
+                time.sleep(2)
+
+                break
         
 
             except Exception as e:
