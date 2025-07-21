@@ -923,7 +923,7 @@ class You_Cant_DOS_ME():
 
                 
                 if response:
-                    console.print(f"[bold blue]Connection Status: [bold green]Online  -  Ping Latency: {time_took:.2f}")
+                    console.print(f"[bold blue]Connection Status: [bold green]Online  -  Latency: {time_took:.2f}")
                 
 
                 else:

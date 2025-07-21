@@ -103,7 +103,7 @@ class MainUI():
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "4", "5", "6"]
+                cc = ["2", "4", "5", "6"]
 
                 if choice in cc:
                     Utilities.clear_screen()
@@ -112,16 +112,15 @@ class MainUI():
 
                 # DEAUTH ATTACK - ONE CLIENT
                 if choice == "1":
-                    Frame_Snatcher.main()
-                    
-                    break
+                    console.print("[bold yellow]     This option is still under Construction")
                 
 
                 # DEAUTH ATTACK - ALL CLIENTS
                 elif choice == "2":
-                    console.print("[bold yellow]     This option is still under Construction")
+                    Frame_Snatcher.main()
 
-                
+                    break
+                    
 
                 # CAPTURE AND CRACK HANDSHAKES
                 elif choice == "3":
