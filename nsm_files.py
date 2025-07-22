@@ -23,8 +23,18 @@ import json
 # CREATE DEFAULT FILE PATH LOCATION
 base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker" 
 
-USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
-BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / ".data" / "netcracker"
+
+# TEMP FIX FOR FILE CRASHING WITHOUT SUDO
+try:
+    USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+    BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / ".data" / "netcracker"
+except Exception as e:
+    console.print(e)
+    
+    # SWITCH BACK TO PATH
+    BASE_DIR = Path.home() / "Documents" / "nsm_tools" / ".data" / "netcracker"
+
+
 BASE_DIR.mkdir(exist_ok=True, parents=True)
 
 
