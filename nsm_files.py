@@ -20,7 +20,7 @@ from nsm_utilities import Utilities
 from pathlib import Path
 import json
 
-# CREATE DEFAULT FILE PATH LOCATION
+# CREATE DEFAULT FILE PATH LOCATION // DEAPPRECIATED
 base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker" 
 
 

