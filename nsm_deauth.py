@@ -988,20 +988,132 @@ class Beacon_Flooder():
     
     def __init__(self):
         pass
+    
+
+    
+    @classmethod
+    def sniff_local_ssids(cls, iface):
+        """This method will be used to sniff the local ssids in the area"""
+
+
+        # VARS
+        ssids = []
+        verbose = True
+
+
+        def sniffer():
+            """This will begin sniffing"""
+            
+
+            # VAR
+            attempt = 0
+            
+
+            # LOOP FOR BLANKS
+            while True:
+
+                # ATTEMPT
+                attempt += 1
+                console.print(f"Sniff Attempt #{attempt}")
+
+
+                sniff(iface=iface, prn=parser, timeout=15, count=0, store=0)
+
+                if ssids:
+
+                    
+                    # SNIFF AGAIN
+                    sniff(iface=iface, prn=parser, timeout=15)
+
+
+                    # LEAVE
+                    break
+
+        
+
+        def parser(pkt):
+            """This will parse pkt"""
+
+            
+            # MUST MEET PROTOCOL
+            if pkt.haslayer(Dot11Beacon):
+
+
+                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+
+                use = False
+
+                
+                
+                # DESTINATION ADDR
+                if addr1 and addr1 not in ssids and use: 
+
+                    
+                    # RETRIEVE SSID
+                    ssid = pkt[Dot11Elt].info.decode(errors="ignore")
+
+
+                    # APPEND
+                    ssids.append(ssid)
+
+
+                    if verbose:
+                        console.print(f"[+] Found SSID: {ssid}", style="bold red")
+                 
+               
+                
+                # SOURCE ADDR  <-- BEACON
+                elif addr2 and addr2 not in ssids:
+
+
+                    # RETRIEVE SSID
+                    ssid = pkt[Dot11Elt].info.decode(errors="ignore")
+
+
+                    # APPEND
+                    ssids.append(ssid)
+
+
+                    if verbose:
+                        console.print(f"[+] Found SSID: {ssid}", style="bold red")
+
+        
+
+        # SNIFF FOR SSIDS
+        sniffer()
+
+
+        # NOW TO RETURN IT 
+        return ssids
+ 
+
+
 
 
 
     @classmethod
-    def get_ssid(cls):
+    def get_ssid(cls, type):
         """This method will create a ssid"""
+
+
+        # 1 == RANDOM
+        if type == 1:
+            return random.choices()
 
 
         pass
 
     
     @classmethod
-    def get_bssid(cls):
+    def get_bssid(cls, type):
         """This method will create a bssid"""
+
+        
+        # 1 == RANDOM
+        if type == 1:
+            return RandMAC()
 
 
         pass
@@ -1027,7 +1139,7 @@ class Beacon_Flooder():
 
 
             # CRAFT FRAME
-            frame = RadioTap() / Dot11(addr1=client, addr2=bssid, addr3=bssid) / Dot11Beacon(cap="ESS") / Dot11Elt(ID="ssid", info=ssid)
+            frame = RadioTap() / Dot11(addr1=client, addr2=bssid, addr3=bssid) / Dot11Beacon(cap="ESS") / Dot11Elt(ID="ssid", info=ssid, len=len(ssid))
 
 
             # APPEND AND GO
@@ -1041,7 +1153,22 @@ class Beacon_Flooder():
     
    
     
+    
+    @classmethod
+    def main(cls):
+        """This is where class wide logic will be performed from"""
 
+
+
+        # GET IFACE
+        cls.iface = Frame_Snatcher.get_interface()
+
+
+        # SNIFF AREA FOR NEARBY SSIDS
+        ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
+
+
+        console.print(ssids)
 
 
 
@@ -1176,7 +1303,7 @@ class You_Cant_DOS_ME():
 if __name__ == "__main__":
     
 
-    use = 1
+    use = 3
 
 
     if use == 1:
@@ -1192,7 +1319,7 @@ if __name__ == "__main__":
     elif use == 3:
 
 
-        #Beacon_Flooder.beacon_packet()
+        Beacon_Flooder.main()
 
 
 
