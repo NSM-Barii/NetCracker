@@ -529,6 +529,9 @@ class Settings():
                     if verbose:
                         console.print(f"Successfully appended info", style="bold green")
 
+                    
+                    break
+
                 
 
 
@@ -542,6 +545,8 @@ class Settings():
 
             except Exception as e:
                 console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+                break
 
 
 

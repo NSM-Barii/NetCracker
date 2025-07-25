@@ -19,7 +19,7 @@ import time
 from nsm_scanner_mode import WifiUI 
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME
+from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME, Hash_Snatcher
 
 
 class MainUI():
@@ -103,7 +103,7 @@ class MainUI():
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "2", "4", "5", "6"]
+                cc = ["1", "2", "3", "4", "5", "6"]
 
                 if choice in cc:
                     Utilities.clear_screen()
@@ -126,9 +126,10 @@ class MainUI():
 
                 # CAPTURE AND CRACK HANDSHAKES
                 elif choice == "3":
-                    console.print("[bold yellow]     This option is still under Construction")
+                    Hash_Snatcher.main()
+                    
+                    break
 
-                
 
                 # PING ME 
                 elif choice == "4":
