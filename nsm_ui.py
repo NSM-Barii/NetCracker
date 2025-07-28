@@ -19,7 +19,7 @@ import time
 from nsm_scanner_mode import WifiUI 
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME, Hash_Snatcher
+from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME, Hash_Snatcher, Beacon_Flooder
 
 
 class MainUI():
@@ -84,11 +84,12 @@ class MainUI():
 
             f"\n       [{color}][1][/{color}] [{color2}]Deauth One Client\n"
             f"       [{color}][2][/{color}] [{color2}]Deauth All Clients\n\n"
-            f"       [{color}][3][/{color}] [{color2}]Capture n Crack Handshake\n\n"
-            f"       [{color}][4][/{color}] [{color2}]Ping Me\n\n"
-            f"       [{color}][5][/{color}] [{color2}]Scan for Networks\n"
-            f"       [{color}][6][/{color}] [{color2}]View Saved Networks\n\n"
-            f"       [{color}][7][/{color}] [{color2}]EXIT "
+            f"       [{color}][3][/{color}] [{color2}]Beacon Flooood\n"
+            f"       [{color}][4][/{color}] [{color2}]Capture n Crack Handshake\n\n"
+            f"       [{color}][5][/{color}] [{color2}]Ping Me\n\n"
+            f"       [{color}][6][/{color}] [{color2}]Scan for Networks\n"
+            f"       [{color}][7][/{color}] [{color2}]View Saved Networks\n\n"
+            f"       [{color}][99][/{color}] [{color2}]EXIT "
             
             )
         
@@ -103,7 +104,7 @@ class MainUI():
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "2", "3", "4", "5", "6"]
+                cc = ["1", "2", "3", "4", "5", "6", "7"]
 
                 if choice in cc:
                     Utilities.clear_screen()
@@ -122,31 +123,38 @@ class MainUI():
                     Frame_Snatcher.main(type=2)
 
                     break
-                    
+
+
+                # BEACON FLOOD
+                elif choice == "3":
+                    Beacon_Flooder.main()
+
+                    break
+                   
 
                 # CAPTURE AND CRACK HANDSHAKES
-                elif choice == "3":
+                elif choice == "4":
                     Hash_Snatcher.main()
                     
                     break
 
 
                 # PING ME 
-                elif choice == "4":
+                elif choice == "5":
                     You_Cant_DOS_ME.ping()
 
                     break
                 
 
                 # SCAN FOR NETWORKS
-                elif choice == "5":
+                elif choice == "6":
                     WifiUI.main()
 
                     break
 
 
                 # VIEW SAVED NETWORKS
-                elif choice == "6":
+                elif choice == "7":
                     Network_Mapper.network_puller()
 
                     break
@@ -154,7 +162,7 @@ class MainUI():
                 
 
                 # EXIT
-                elif choice == "7":
+                elif choice == "99":
                     console.print("\nLater..............", style="bold red")
                     time.sleep(.1)
                     exit()

