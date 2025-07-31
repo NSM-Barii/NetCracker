@@ -1,6 +1,7 @@
 {
-    "1": "rich",
-    "2": "scapy",
-    "3": "pyfiglet",
-    "4": "pyttsx3",
+    "1": "scapy"
+    "2": "rich",
+    "3": "scapy",
+    "4": "pyfiglet",
+    "5": "pyttsx3",
 }
