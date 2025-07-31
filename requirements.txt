@@ -1,0 +1,5 @@
+scapy
+rich
+pyfiglet
+pywifi
+pyttsx3
