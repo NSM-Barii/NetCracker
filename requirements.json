@@ -1,13 +1,6 @@
 {
     "1": "rich",
     "2": "scapy",
-    "3": "socket",
-    "4": "threading",
-    "5": "pyfiglet",
-    "6": "json",
-    "7": "pathlib",
-    "8": "pyttsx3",
-    "9": "random",
-    "10": "time",
-    "11": "datetime"
+    "3": "pyfiglet",
+    "4": "pyttsx3",
 }
