@@ -3,7 +3,6 @@
 
 # UI IMPORTS
 import pyfiglet
-import pyfiglet.fonts
 from rich.panel import Panel
 from rich.table import Table
 from rich.live import Live
@@ -26,15 +25,8 @@ from nsm_files import Settings
 # ETC IMPORTS 
 import threading, os, random, time, pyttsx3, string
 
-# FILE IMPORTS
-from pathlib import Path
-import json
 
-  # PATH
-BASE_DIR = Path.home() / "Documents" / "nsm_tools" / ".data" 
-BASE_DIR.mkdir(exist_ok=True, parents=True)
 
-    
 # THINGS TO STUDY FOR MATH ASVAB 
 MATH = ["percentage", "algebra", "PEMDAS", "Area & Distance", "regular to fraction", "factor equations", "angle of triangle", "area and volume"]
 
@@ -189,7 +181,7 @@ class Frame_Snatcher():
 
                     
                 # SNIFF THAT BITCH
-                sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
+                sniff(filter="Dot11", iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
                 
                 # APPEND TEMPT
                 tempt += 1
@@ -849,6 +841,7 @@ class Frame_Snatcher():
                     # NOW TO SEND THE FRAME
                     sendp(frame, iface=iface, inter=inter, count=count, verbose=verbose)
 
+                    
 
                     # UPDATE VAR & PANEL
                     packets_sent += count
@@ -864,6 +857,7 @@ class Frame_Snatcher():
                         f"[{c1}]Clients:[/{c1}] {len(cls.clients)}"
 
                         )
+
                     
             
 
@@ -880,6 +874,7 @@ class Frame_Snatcher():
 
                             STAY = False       # BREAK NESTED LOOP
                             cls.SNIFF = False  # KILL BACKGROUND THREAD 
+                            break             # JUST IN CASE
                         
 
                         except KeyboardInterrupt as e:
@@ -902,6 +897,7 @@ class Frame_Snatcher():
 
                         STAY = False       # BREAK NESTED LOOP
                         cls.SNIFF = False  # KILL BACKGROUND THREAD
+                        break             # JUST IN CASE
                     
     
     @classmethod
@@ -948,6 +944,9 @@ class Frame_Snatcher():
 
                 # ATTACK ALL CLIENTS ON TARGET
                 Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
+
+                # END
+                console.input("\n\n[bold green]Press Enter to Return: ")
             
 
             # SINGLE CLIENT 
@@ -959,24 +958,18 @@ class Frame_Snatcher():
                 # NOW ATTACK CLIENT ON TARGET
                 Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface)
 
-
+                # END
+                console.input("\n\n[bold green]Press Enter to Return: ")
         
 
+        
         except KeyboardInterrupt as e:
             console.print(e)
 
-        
-        # DESTROY YOU
+
+
         except Exception as e:
             console.print(f'[bold red]Exception Error:[yellow] {e}')   
-
-
-
-
-            # END
-            console.print("\n\nThank you for trying out my program", style="bold red") 
-
-            time.sleep(1.5)
 
 
 
@@ -1359,7 +1352,6 @@ class Beacon_Flooder():
         except Exception as e:
             
             console.print(f"[bold red]Exception Error:[yellow] {e}")
-
 
 
 class Hash_Snatcher():
@@ -1758,12 +1750,12 @@ class Hash_Snatcher():
         
         
         except KeyboardInterrupt as e:
-            console.print(f"[bold red]Exception Error:[yellow] {e}")
-
+            console.print(f"[bold red]Keyboard Error:[yellow] {e}")
 
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[yellow] {e}")
+
 
 
 
