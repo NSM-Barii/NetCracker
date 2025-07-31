@@ -181,7 +181,7 @@ class Frame_Snatcher():
 
                     
                 # SNIFF THAT BITCH
-                sniff(filter="Dot11", iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
+                sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
                 
                 # APPEND TEMPT
                 tempt += 1
@@ -946,6 +946,7 @@ class Frame_Snatcher():
                 Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
 
                 # END
+                time.sleep(2)
                 console.input("\n\n[bold green]Press Enter to Return: ")
             
 
@@ -959,6 +960,7 @@ class Frame_Snatcher():
                 Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface)
 
                 # END
+                time.sleep(2)
                 console.input("\n\n[bold green]Press Enter to Return: ")
         
 
