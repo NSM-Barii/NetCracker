@@ -1,9 +1,9 @@
 {
     "1": "scapy",
     "2": "rich",
-    "3": "scapy",
-    "4": "pyfiglet",
+    "3": "pyfiglet",
+    "4": "pywifi",
     "5": "pyttsx3",
-    "6": "pywifi",
-    "7": "manuf"
+    "6": "manuf",
+    "7": "mac-vendor-lookup"
 }
