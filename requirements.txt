@@ -3,3 +3,5 @@ rich
 pyfiglet
 pywifi
 pyttsx3
+pywifi
+manuf

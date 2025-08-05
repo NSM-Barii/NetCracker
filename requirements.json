@@ -3,5 +3,7 @@
     "2": "rich",
     "3": "scapy",
     "4": "pyfiglet",
-    "5": "pyttsx3"
+    "5": "pyttsx3",
+    "6": "pywifi",
+    "7": "manuf"
 }
