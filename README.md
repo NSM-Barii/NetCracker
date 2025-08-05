@@ -15,6 +15,7 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
 
 
 ## Comming Soon
+- Frames that can crash Routers
 - Wifi cracking (done with hashcat)
 
 ## 🚀 Quick Start
