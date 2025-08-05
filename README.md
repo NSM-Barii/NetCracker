@@ -1,4 +1,3 @@
-<img width="1215" height="911" alt="image" src="https://github.com/user-attachments/assets/2ce86603-1fa2-43c7-af7f-7a5213458646" />
 
 
 # 🛠️ NetCracker
@@ -37,6 +36,8 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
    `sudo python3 netcracker.py`
 
 ---
+
+<img width="1215" height="911" alt="image" src="https://github.com/user-attachments/assets/2ce86603-1fa2-43c7-af7f-7a5213458646" />
 
 > 📸 *Image above shows NetCracker running on a dual-laptop setup using ALFA adapters for extended wireless penetration testing.*
 
