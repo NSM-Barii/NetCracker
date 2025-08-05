@@ -974,7 +974,6 @@ class Frame_Snatcher():
             console.print(f'[bold red]Exception Error:[yellow] {e}')   
 
 
-
 class Beacon_Flooder():
     """This class will be responsible for creating and flooding fake APs to nearby devices"""
     
@@ -1760,8 +1759,6 @@ class Hash_Snatcher():
             console.print(f"[bold red]Exception Error:[yellow] {e}")
 
 
-
-
 class War_Driving():
     """This class will be responsible for allowing the user to war drive"""
 
@@ -1774,6 +1771,13 @@ class War_Driving():
     @classmethod
     def data_assist(cls, iface):
         """This method will be responsible for updating panel values"""
+
+
+        # COLORS
+        c1 = "bold red"
+        c2 = "bold green"
+        c3 = "bold blue"
+        c4 = "bold purple"
 
 
         
@@ -1795,7 +1799,7 @@ class War_Driving():
 
 
                     # UPDATE RENDERABLE
-                    panel.renderable = (f"AP's Found: {len(cls.beacons)}   -   Clients Found: {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
+                    panel.renderable = (f"[{c1}]AP's Found:[/{c1}] {len(cls.beacons)}   -   [{c1}]Clients Found:[/{c1}] {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
 
 
                     # SMALL DELAY BECAUSE OF LOOP
@@ -1809,7 +1813,7 @@ class War_Driving():
                             cls.macs.remove(ap)
 
                             # TELL USER
-                            console.print(f"[bold red][-][/bold red] Removed AP from Client list", style="bold green")
+                            console.print(f"[bold red][-][/bold red] Removed AP from Client list --> {ap}", style="bold green")
                 
 
 
@@ -1890,128 +1894,138 @@ class War_Driving():
     def packet_parser(cls, pkt, verbose=True):
         """This method will parse packets"""
 
+
+        def parser(pkt):
+
+            
+            # FOR AP's
+            if pkt.haslayer(Dot11Beacon):
+
+
+                # GET SSID
+                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
+
+
+                # GET ADDR
+                addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
+                addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+                
+
+                # NONE AP //  ADDR1 == DST, ADDR2 == SRC
+                if addr1 and addr1 not in cls.macs:
+
+
+                    # APPEND TO LIST
+                    cls.macs.append(addr1)
+
+
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr1)
+                    
+
+                    if vendor:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                    else:
+                        use = ""
+
+
+                    # OUTPUT 
+                    if verbose:
+                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
+
+
+                
+                # AP's ONLY 
+                if addr2 and addr2 not in cls.beacons:
+
+                    
+                    # APPEND TO LIST
+                    cls.beacons.append(addr2)
+
+
+
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr2)            
+
+                    # REVISE SSID
+                    ssid = f"[bold green]SSID:[bold yellow] {ssid}"  
+
+                    if ssid:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {ssid}"
+
+                    elif vendor:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                    
+                    else:
+                        use = ""
+
+
+                    # OUTPUT 
+                    if verbose:
+                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
+
+
+
+            
+            # FOR CLIENTS AND NON BEACON FRAMES
+            elif pkt.haslayer(Dot11):
+
+
+                # GET ADDR
+                addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
+                addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+                
+
+                # NONE AP //  ADDR1 == DST, ADDR2 == SRC
+                if addr1 and addr1 not in cls.macs and addr1 not in cls.beacons:
+
+
+                    # APPEND TO LIST
+                    cls.macs.append(addr1)
+                    
+                    
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr1)
+
+                    if vendor:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                    else:
+                        use = ""
+
+
+                    # OUTPUT 
+                    if verbose:
+                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
+
+
+                
+                # NONE AP //  ADDR1 == DST, ADDR2 == SRC
+                if addr2 and addr2 not in cls.macs and addr2 not in cls.beacons:
+
+                    
+                    # APPEND TO LIST
+                    cls.macs.append(addr2)
+
+
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr2)
+
+                    if vendor:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                    else:
+                        use = ""
+
+
+                    # OUTPUT 
+                    if verbose:
+                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
+
         
-        # FOR AP's
-        if pkt.haslayer(Dot11Beacon):
 
-
-            # GET SSID
-            ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
-
-
-            # GET ADDR
-            addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
-            addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
-
-            
-
-            # NONE AP //  ADDR1 == DST, ADDR2 == SRC
-            if addr1 and addr1 not in cls.macs:
-
-
-                # APPEND TO LIST
-                cls.macs.append(addr1)
-
-
-                # GET VENDOR
-                vendor = Utilities.get_vendor(mac=addr1)
-                
-
-                if vendor:
-                    use = f"[bold red]Vendor:[bold yellow] {vendor}"
-                else:
-                    use = ""
-
-
-                # OUTPUT 
-                if verbose:
-                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
-
-
-            
-            # AP's ONLY 
-            if addr2 and addr2 not in cls.beacons:
-
-                
-                # APPEND TO LIST
-                cls.beacons.append(addr2)
-
-
-                # GET VENDOR
-                vendor = Utilities.get_vendor(mac=addr2)            
-
-                # REVISE SSID
-                ssid = f"[bold green]SSID:[bold yellow] {ssid}"  
-
-
-                if vendor:
-                   use = f"[bold red]Vendor:[bold yellow] {vendor}"
-                else:
-                    use = ""
-
-
-                # OUTPUT 
-                if verbose:
-                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}  {ssid}")
-
-
-
-        
-        # FOR CLIENTS AND NON BEACON FRAMES
-        elif pkt.haslayer(Dot11):
-
-
-            # GET ADDR
-            addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
-            addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
-
-            
-
-            # NONE AP //  ADDR1 == DST, ADDR2 == SRC
-            if addr1 and addr1 not in cls.macs:
-
-
-                # APPEND TO LIST
-                cls.macs.append(addr1)
-                
-                
-                # GET VENDOR
-                vendor = Utilities.get_vendor(mac=addr1)
-
-                if vendor:
-                    use = f"[bold red]Vendor:[bold yellow] {vendor}"
-                else:
-                    use = ""
-
-
-                # OUTPUT 
-                if verbose:
-                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
-
-
-            
-            # NONE AP //  ADDR1 == DST, ADDR2 == SRC
-            if addr2 and addr2 not in cls.macs:
-
-                
-                # APPEND TO LIST
-                cls.macs.append(addr2)
-
-
-                # GET VENDOR
-                vendor = Utilities.get_vendor(mac=addr2)
-
-                if vendor:
-                    use = f"[bold red]Vendor:[bold yellow] {vendor}"
-                else:
-                    use = ""
-
-
-                # OUTPUT 
-                if verbose:
-                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
-
-            
+        # THREAD IT SO THAT WAY MAIN THREAD CAN GET BACK TO WORK
+        threading.Thread(target=parser, args=(pkt, ), daemon=True).start()
      
     
     @classmethod

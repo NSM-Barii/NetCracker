@@ -11,6 +11,12 @@ console = Console()
 # NETWORK IMPORTS
 import pywifi, socket, ipaddress, requests, manuf
 from scapy.all import sniff
+from mac_vendor_lookup import MacLookup
+
+# DOWNLOAD THE WHOLE DATABASE
+#MacLookup().update_vendors(data_store_path="mac-vendors.json")
+vendors = MacLookup()
+vendors.load_vendors()
 
 
 # ETC IMPORTS 
@@ -59,9 +65,11 @@ class Utilities():
             if verbose:
                 console.print(f"[bold red]Exception Error:[yellow] {e}")
 
-
             
-            response = manuf.MacParser().get_manuf_long(mac=mac)
+            
+            #response = vendors.lookup(mac=mac) if vendors.lookup(mac=mac) else None
+
+            response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
 
             return response
     
