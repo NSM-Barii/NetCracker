@@ -34,7 +34,7 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
    `pip install -r requirements.txt`
 
 6. Run the tool  
-   `sudo python3 netcracker.py`
+   `sudo python netcracker.py`
 
 ---
 
