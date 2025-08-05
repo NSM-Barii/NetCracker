@@ -1,0 +1,21 @@
+# HOW TO GO BACK TO MANAGED MODE
+
+
+adapter = "your_adapter"
+
+# FIRST TURN THE ADAPTER OFF (optional)
+1. sudo ip link set {adapter} down
+
+
+# NOW TO SET IT TO MONITOR MODE
+2. sudo iwconfig {adapter} mode managed
+
+
+# NOW TO TURN IT BACK ON (if you turned it off)
+3. sudo ip link set {adapter} up
+
+
+# ENJOYYY 😼😼😼
+
+
+# Instagram: nsm_barii

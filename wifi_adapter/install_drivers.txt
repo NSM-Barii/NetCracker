@@ -1,0 +1,14 @@
+GitHub Repo: https://github.com/zebulon2/rtl8814au
+
+
+# INSTALLATION FOR KALI-LINUX
+
+
+1. git clone https://github.com/zebulon2/rtl8814au
+
+2. sudo cp -R . /usr/src/rtl8814au-4.3.21
+   sudo dkms build -m rtl8814au -v 4.3.21
+   sudo dkms install -m rtl8814au -v 4.3.21
+
+
+3. May need to restart environment (system)
