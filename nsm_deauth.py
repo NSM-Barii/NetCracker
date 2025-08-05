@@ -1135,8 +1135,9 @@ class Beacon_Flooder():
            
 
            # SET
-           vr = cls.custom_ssids[0]
-           cls.custom_ssids.remove(vr)
+           #vr = cls.custom_ssids[0]
+           #cls.custom_ssids.remove(vr)
+           vr = random.choice(cls.custom_ssids)
            return vr
 
            t = random.choices(cls.custom_ssids)[0]
@@ -1255,7 +1256,7 @@ class Beacon_Flooder():
 
                 try:
 
-                    frames = Beacon_Flooder.get_frames(ssid_type=3, bssid_type=2, amount=15)
+                    frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=1, amount=15)
 
                     
                     # INJECT PACKETS INTO 
@@ -1336,7 +1337,7 @@ class Beacon_Flooder():
 
     
             # CRAFT FRAMES
-            frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=2, amount=15)
+            frames = Beacon_Flooder.get_frames(ssid_type=2, bssid_type=2, amount=15)
 
             
             # INJECT THE FRAMES
@@ -1757,6 +1758,298 @@ class Hash_Snatcher():
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[yellow] {e}")
+
+
+
+
+class War_Driving():
+    """This class will be responsible for allowing the user to war drive"""
+
+
+    def __init__(self):
+        pass
+
+    
+
+    @classmethod
+    def data_assist(cls, iface):
+        """This method will be responsible for updating panel values"""
+
+
+        
+        # DEFINE PANEL
+        panel = Panel(renderable=f"AP's Found: 0   -   Clients Found: 0   -   [bold green]Developed by NSM Barii",
+                      style="bold yellow", border_style="bold red",
+                      expand=False
+                      )
+        
+
+        # CREATE LIVE ENV
+        with Live(panel, console=console, refresh_per_second=4):
+           while cls.LIVE:
+
+                try:            
+
+                    # START WAR DRIVE MODE
+                    #threading.Thread(target=War_Driving.war_drive, args=(iface, ), daemon=True).start()
+
+
+                    # UPDATE RENDERABLE
+                    panel.renderable = (f"AP's Found: {len(cls.beacons)}   -   Clients Found: {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
+
+
+                    # SMALL DELAY BECAUSE OF LOOP
+                    time.sleep(0.5)
+
+
+                    # USE THIS TO REMOVE APS FROM CLIENT LIST
+                    for ap in cls.beacons:
+
+                        if ap in cls.macs:
+                            cls.macs.remove(ap)
+
+                            # TELL USER
+                            console.print(f"[bold red][-][/bold red] Removed AP from Client list", style="bold green")
+                
+
+
+                except KeyboardInterrupt as e:
+                    console.print("Now escaping the MATRIX", style="bold red")
+
+                    # KILL BACKGROUND THREAD
+                    cls.LIVE = False
+
+                    break
+
+                
+
+                except Exception as e:
+                    console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+
+                    # KILL BACKGROUND THREAD
+                    cls.LIVE = False
+
+                    break
+
+   
+    @classmethod
+    def war_drive(cls, iface="wlan0", verbose=0):
+        """This will begin the sniffing function"""
+
+
+        # SET VARS
+        attempts = 0
+
+
+        # START BACKGROUND THREAD
+        threading.Thread(target=War_Driving.data_assist, args=(iface, ), daemon=True).start()
+
+        
+        # LOOP FOF ERRORS
+        while cls.LIVE:
+
+            try:
+
+                # APPEND
+                attempts += 1
+
+                console.print(f"Sniff Attempt #{attempts}", style="bold yellow")
+
+
+                # SNIFF
+                sniff(iface=iface, prn=War_Driving.packet_parser , store=0)
+
+
+                # DELAY
+                time.sleep(1)
+
+                
+
+            
+            except KeyboardInterrupt as e:
+                console.print(e)
+
+
+                # KILL BACKGROUND THREAD
+                cls.LIVE = False
+              
+                break
+
+            
+
+            # DESTROY ERRORS
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+
+
+                # IN CASE OF LOOP ERRORS
+                time.sleep(2)
+
+
+    @classmethod
+    def packet_parser(cls, pkt, verbose=True):
+        """This method will parse packets"""
+
+        
+        # FOR AP's
+        if pkt.haslayer(Dot11Beacon):
+
+
+            # GET SSID
+            ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
+
+
+            # GET ADDR
+            addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
+            addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+            
+
+            # NONE AP //  ADDR1 == DST, ADDR2 == SRC
+            if addr1 and addr1 not in cls.macs:
+
+
+                # APPEND TO LIST
+                cls.macs.append(addr1)
+
+
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr1)
+                
+
+                if vendor:
+                    use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                else:
+                    use = ""
+
+
+                # OUTPUT 
+                if verbose:
+                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
+
+
+            
+            # AP's ONLY 
+            if addr2 and addr2 not in cls.beacons:
+
+                
+                # APPEND TO LIST
+                cls.beacons.append(addr2)
+
+
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr2)            
+
+                # REVISE SSID
+                ssid = f"[bold green]SSID:[bold yellow] {ssid}"  
+
+
+                if vendor:
+                   use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                else:
+                    use = ""
+
+
+                # OUTPUT 
+                if verbose:
+                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}  {ssid}")
+
+
+
+        
+        # FOR CLIENTS AND NON BEACON FRAMES
+        elif pkt.haslayer(Dot11):
+
+
+            # GET ADDR
+            addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
+            addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+            
+
+            # NONE AP //  ADDR1 == DST, ADDR2 == SRC
+            if addr1 and addr1 not in cls.macs:
+
+
+                # APPEND TO LIST
+                cls.macs.append(addr1)
+                
+                
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr1)
+
+                if vendor:
+                    use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                else:
+                    use = ""
+
+
+                # OUTPUT 
+                if verbose:
+                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
+
+
+            
+            # NONE AP //  ADDR1 == DST, ADDR2 == SRC
+            if addr2 and addr2 not in cls.macs:
+
+                
+                # APPEND TO LIST
+                cls.macs.append(addr2)
+
+
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr2)
+
+                if vendor:
+                    use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                else:
+                    use = ""
+
+
+                # OUTPUT 
+                if verbose:
+                    console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
+
+            
+     
+    
+    @classmethod
+    def main(cls):
+        """This will be in charge of running class wide logic"""
+
+
+        # SET VARS
+        cls.macs = []
+        cls.beacons = []
+        cls.LIVE = True
+
+        
+        try:
+
+            # GET IFACE
+            iface = Frame_Snatcher.get_interface()
+
+
+            # WELCOME UI
+            Frame_Snatcher.welcome_ui(iface=iface, text="    War \nDriving", c2="bold blue")
+            
+            
+            # START WAR DRIVING
+            War_Driving.war_drive(iface=iface)
+
+            
+
+            # NOW FOR THE EXIT
+            time.sleep(2)
+            console.input("\n\n[bold red]Press enter to return: ")
+
+        except Exception as e:
+            console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+            
+        
+
+
 
 
 
