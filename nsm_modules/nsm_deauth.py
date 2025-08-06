@@ -19,7 +19,7 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
 
 # NSM IMPORTS
 from nsm_utilities import Utilities
-from nsm_files import Settings
+from nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS 
@@ -1780,6 +1780,10 @@ class War_Driving():
         c4 = "bold purple"
 
 
+        # VARS
+        d = 1
+
+
         
         # DEFINE PANEL
         panel = Panel(renderable=f"AP's Found: 0   -   Clients Found: 0   -   [bold green]Developed by NSM Barii",
@@ -1803,7 +1807,7 @@ class War_Driving():
 
 
                     # SMALL DELAY BECAUSE OF LOOP
-                    time.sleep(0.5)
+                    time.sleep(1)
 
 
                     # USE THIS TO REMOVE APS FROM CLIENT LIST
@@ -1813,7 +1817,18 @@ class War_Driving():
                             cls.macs.remove(ap)
 
                             # TELL USER
-                            console.print(f"[bold red][-][/bold red] Removed AP from Client list --> {ap}", style="bold green")
+                            console.print(f"[bold yellow][-][/bold yellow] Removed AP from Client list --> {ap}", style="bold yellow")
+                    
+
+                    # USE THIS TO UPDATE JSON
+                    if d == 120:
+                        Recon_Pusher.push_war(save_data=cls.probes, CONSOLE=console)
+                        d = 0
+
+                    d += 1
+                    
+                    
+
                 
 
 
@@ -2022,21 +2037,102 @@ class War_Driving():
                     if verbose:
                         console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
 
-        
+            
+
+            # FOR CLIENT TRACKING
+            War_Driving.track_clients(pkt)
 
         # THREAD IT SO THAT WAY MAIN THREAD CAN GET BACK TO WORK
         threading.Thread(target=parser, args=(pkt, ), daemon=True).start()
      
     
     @classmethod
+    def track_clients(cls, pkt):
+        """This method will be responsible for tracking clinets that are in the client list"""
+
+
+        # COLORS
+        c1 = "bold red"
+        c2 = "bold green"
+        c3 = "bold purple"
+        c4 = "bold yellow"
+
+
+        # INFO
+        # ADDR1 == DST, ADDR2 == SRC
+
+
+        if pkt.haslayer(Dot11):
+
+
+            # SET ADDR1
+            addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
+            addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
+
+            
+            # FOR NON CLIENT // DONT NEED OR WANT THIS
+            if addr1:
+                
+                pass
+               # console.print(f"NON CLIENT {addr2}  -->  {addr1} ")
+
+
+
+            # FOR CLIENTS PROBING OR TALKING TO AP
+            if addr2 and addr2 in cls.macs:
+
+                
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr2)
+
+
+                # GET SSID IF AVAILABLE
+                try:
+                    ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else False
+                except Exception:
+                    ssid = False
+
+
+                sd = f"[{c4}]{addr2}   [{c1}]Vendor:[/{c1}] {vendor}  -->  {ssid}"
+
+                
+                # FILTER NON PROBES
+                if ssid:
+
+                    # MAKE
+                    if addr2 not in cls.probes:
+                        cls.probes[addr2] = []
+                        console.print(f"make --> {addr2}")
+
+                    # CHECK
+                    if ssid not in cls.probes[addr2]:
+
+
+                        # APPEND VALUE
+                        cls.probes[addr2].append(ssid)
+                        
+
+                        # OUTPUT RESULTS TO UI
+                        console.print(f"[{c2}][+] Probe Detected:[/{c2}] {sd}")
+            
+
+        # TEST
+        if len(cls.macs) == 40:
+            console.print(cls.probes)
+
+
+    @classmethod
     def main(cls):
         """This will be in charge of running class wide logic"""
 
 
         # SET VARS
+        cls.probes = {}
         cls.macs = []
         cls.beacons = []
         cls.LIVE = True
+
+        d = {}
 
         
         try:
@@ -2047,6 +2143,10 @@ class War_Driving():
 
             # WELCOME UI
             Frame_Snatcher.welcome_ui(iface=iface, text="    War \nDriving", c2="bold blue")
+
+
+            # INIT WAR
+            Recon_Pusher.main()
             
             
             # START WAR DRIVING

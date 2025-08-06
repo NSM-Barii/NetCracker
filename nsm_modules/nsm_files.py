@@ -394,22 +394,8 @@ class Settings():
                     console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
 
                 
-                # CREATE VARS
-                path = BASE_DIR / "settings.json"
-                data = {
-                        "iface": "",
-                        "captures": ""
-                    }
 
-
-                # PUSH IT 
-                with open(path, "w") as file:
-
-                    json.dump(data, file, indent=4)
-                
-
-                # PERFECT
-                console.print("Successfully created json file", style="bold green")
+                Settings.create_json()
 
 
         
@@ -419,7 +405,6 @@ class Settings():
                 console.print(f"[bold red]Exception Error:[yellow] {e}")
 
                 break
-
 
 
     @classmethod
@@ -475,22 +460,7 @@ class Settings():
                     console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
 
                 
-                # CREATE VARS
-                path = BASE_DIR / "settings.json"
-                data = {
-                        "iface": "",
-                        "captures": ""
-                    }
-
-
-                # PUSH IT 
-                with open(path, "w") as file:
-
-                    json.dump(data, file, indent=4)
-                
-
-                # PERFECT
-                console.print("Successfully created json file", style="bold green")
+                Settings.create_json()
 
                 
             
@@ -498,10 +468,30 @@ class Settings():
                 console.print(f"[bold red]Exception Error:[yellow] {e}")
                 
                 break
-
-
     
 
+    @classmethod
+    def create_json(cls):
+        """This is a sub method to be called upon when the json file is missing"""
+
+        # CREATE VARS
+        path = BASE_DIR / "settings.json"
+        data = {
+                "iface": "",
+                "captures": ""
+            }
+
+
+        # PUSH IT 
+        with open(path, "w") as file:
+
+            json.dump(data, file, indent=4)
+        
+
+        # PERFECT
+        console.print("Successfully created json file", style="bold green")
+
+    
     @classmethod
     def push_txt(cls, data):
         """This method is just to make a new txt file with info"""
@@ -550,9 +540,106 @@ class Settings():
 
 
 
+class Recon_Pusher():
+    """This class will be used to push data from recon mode"""
+
+    
+    def __init__(self):
+        pass
+
+
+    @classmethod
+    def get_path(cls):
+        """This will be responsible for creating path"""
+
+        
+        # VARS
+        count = 1
+
+        paths = BASE_DIR / "war_drives"
+        paths.mkdir(exist_ok=True, parents=True)
+
+        if BASE_DIR.exists():
+
+
+            # GET A VALID FILE NAME
+            while True:
+                
+                # CREATE PATH
+                p = paths / f"drive_{count}.json"
+                 
+                # IF ITS FALSE WE KEEP THAT PATH
+                if not p.exists():
+                    break
+                
+                
+                # += 
+                count += 1
+            
+
+            # VERBOSE SHII
+            #console.print(f"File: drive_{count}")
+         
+
+            # NOW RETURN PATH
+            return p, count
+    
+
+    @classmethod
+    def push_war(cls, save_data, CONSOLE):
+        """This method will be used to push results from war driving"""
+
+        path = cls.path
+
+
+        # PUSH
+        try:
+            with open(path, "w") as file:
+                json.dump(save_data, file, indent=4)
+
+                
+                CONSOLE.print(f"[+] War Results Succesfully pushed", style="bold green")
+            
+        
+        # DESTROY ERRORS
+        except Exception as e:
+            CONSOLE.print(f"[bold red]Exception Error:[bold yellow] {e}")
+    
+
+    @classmethod
+    def main(cls):
+        """This will be called upon to init class vars"""
+
+        # SET PATH
+        cls.path, c = Recon_Pusher.get_path()
+
+
+        # VERBOSE
+        console.print(f"Recon init --> {c}", style="bold green")
+
+
+
+
 
 
 # FOR MODULAR TESTING
 if __name__ == "__main__":
+
+    use = 1
+
+    if use == 1:
+
+        Recon_Pusher.main()
+
+        while True:
+            value = console.input("[bold green]Enter value: ")
+            data = {
+                "data": value
+            }
+            Recon_Pusher.push_war(save_data=data)
+
     
-    Network_Mapper().network_logging("aa", "ass", "as", "dd", "ff", "1111")
+
+
+    elif use == 2:
+        Network_Mapper().network_logging("aa", "ass", "as", "dd", "ff", "1111")
