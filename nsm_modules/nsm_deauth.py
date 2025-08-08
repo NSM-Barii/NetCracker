@@ -13,18 +13,21 @@ console = Console()
 import pywifi, socket, ipaddress
 from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp, RandMAC
 from scapy.layers.eap import EAPOL
-from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth
+from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11ProbeReq
 
 
 
 # NSM IMPORTS
-from nsm_utilities import Utilities
+from nsm_utilities import Utilities, NetTilities
 from nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS 
 import threading, os, random, time, pyttsx3, string
 
+
+# THREAD LOCKER
+LOCK = threading.Lock()
 
 
 # THINGS TO STUDY FOR MATH ASVAB 
@@ -1959,15 +1962,25 @@ class War_Driving():
                     cls.beacons.append(addr2)
 
 
+                    # GET IE's
+                    ssidd, channel, rsn, vendorr = NetTilities.get_ies(pkt=pkt, sort=True, ap=True)
+
+
+                    # GET SIGNAL
+                    signal = NetTilities.get_rssi(pkt=pkt, format=True)
+
 
                     # GET VENDOR
-                    vendor = Utilities.get_vendor(mac=addr2)            
+                    vendor = Utilities.get_vendor(mac=addr2)  
 
                     # REVISE SSID
                     ssid = f"[bold green]SSID:[bold yellow] {ssid}"  
 
+
+                    
+                    # SET USE
                     if ssid:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {ssid}"
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {ssid}  {channel}  {signal}  {rsn}"
 
                     elif vendor:
                         use = f"[bold red]Vendor:[bold yellow] {vendor}"
@@ -2027,8 +2040,17 @@ class War_Driving():
                     # GET VENDOR
                     vendor = Utilities.get_vendor(mac=addr2)
 
+
+                    # GET IE's
+                   # ssidd, channel, rsn, vendorr = NetTilities.get_ies(pkt=pkt, sort=True, client=True)
+
+
+                    # GET SIGNAL
+                    signal = NetTilities.get_rssi(pkt=pkt, format=True)
+
+
                     if vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  [bold red]Signal:[/bold red] {signal}"
                     else:
                         use = ""
 
@@ -2041,6 +2063,7 @@ class War_Driving():
 
             # FOR CLIENT TRACKING
             War_Driving.track_clients(pkt)
+
 
         # THREAD IT SO THAT WAY MAIN THREAD CAN GET BACK TO WORK
         threading.Thread(target=parser, args=(pkt, ), daemon=True).start()
@@ -2062,7 +2085,7 @@ class War_Driving():
         # ADDR1 == DST, ADDR2 == SRC
 
 
-        if pkt.haslayer(Dot11):
+        if pkt.haslayer(Dot11ProbeReq):
 
 
             # SET ADDR1
@@ -2070,50 +2093,94 @@ class War_Driving():
             addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
 
             
-            # FOR NON CLIENT // DONT NEED OR WANT THIS
-            if addr1:
-                
-                pass
-               # console.print(f"NON CLIENT {addr2}  -->  {addr1} ")
+            # SNAG SSID
+            ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else False
+ 
+            
+            # IF NOT SNAGGED ALREADY
+            if addr2 and ssid:
+
+
+                # MAKE
+                if addr2 not in cls.probes:
+                    cls.probes[addr2] = []
+                    console.print(f"make --> {addr2}")
 
 
 
-            # FOR CLIENTS PROBING OR TALKING TO AP
-            if addr2 and addr2 in cls.macs:
-
-                
                 # GET VENDOR
                 vendor = Utilities.get_vendor(mac=addr2)
 
 
-                # GET SSID IF AVAILABLE
-                try:
-                    ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else False
-                except Exception:
-                    ssid = False
-
-
+                # FOR SOURCE DESTINATION
                 sd = f"[{c4}]{addr2}   [{c1}]Vendor:[/{c1}] {vendor}  -->  {ssid}"
 
+
                 
-                # FILTER NON PROBES
-                if ssid:
+                # CHECK IF WE ALREADY SNAGGED THE SSID
+                if ssid not in cls.probes[addr2]:
+
+
+                    # PREVENT RACE ERRORS
+                    with LOCK:
+
+                        # OUTPUT RESULTS TO UI
+                        console.print(f"[{c2}][+] Probe Detected:[/{c2}] {sd}")
+
+
+                        # APPEND TO LIST 
+                        cls.probes[addr2].append(ssid)
+
+                
+
+
+
+            # FOR CLIENTS PROBING OR TALKING TO AP
+            use =  False
+            if use:
+                if addr2 and addr2 in cls.macs:
+
 
                     # MAKE
                     if addr2 not in cls.probes:
                         cls.probes[addr2] = []
                         console.print(f"make --> {addr2}")
 
-                    # CHECK
-                    if ssid not in cls.probes[addr2]:
+                    
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr2)
 
 
-                        # APPEND VALUE
-                        cls.probes[addr2].append(ssid)
-                        
+                    # GET SSID IF AVAILABLE
+                    try:
+                        ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else False
+                    except Exception:
+                        ssid = False
 
-                        # OUTPUT RESULTS TO UI
-                        console.print(f"[{c2}][+] Probe Detected:[/{c2}] {sd}")
+
+                    sd = f"[{c4}]{addr2}   [{c1}]Vendor:[/{c1}] {vendor}  -->  {ssid}"
+
+                    
+                    # FILTER NON PROBES
+                    if ssid:
+
+
+                        # MAKE KEY 
+                        if addr2 not in cls.probes:
+                            cls.probes[addr2] = []
+                            console.print(f"make --> {addr2}")
+
+
+                        # CHECK
+                        if ssid not in cls.probes[addr2]:
+
+
+                            # APPEND VALUE
+                            cls.probes[addr2].append(ssid)
+                            
+
+                            # OUTPUT RESULTS TO UI
+                            console.print(f"[{c2}][+] Probe Detected:[/{c2}] {sd}")
             
 
         # TEST

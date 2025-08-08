@@ -10,7 +10,8 @@ console = Console()
 
 # NETWORK IMPORTS
 import pywifi, socket, ipaddress, requests, manuf
-from scapy.all import sniff
+from scapy.all import sniff, RadioTap
+from scapy.layers.dot11 import Dot11Elt
 from mac_vendor_lookup import MacLookup
 
 # DOWNLOAD THE WHOLE DATABASE
@@ -192,7 +193,7 @@ class Utilities():
         except Exception as e:
             console.print(f"[bold red]Exception Error:[yellow] {e}")
 
-
+    
 
 
 
@@ -236,7 +237,6 @@ class NetTilities():
             return False
     
 
-     
     @staticmethod
     def get_cipher(cipher):
         """This method will be used to get cipher"""
@@ -280,7 +280,6 @@ class NetTilities():
         
         return encryption
      
-     
 
     @staticmethod
     def get_frequency(frequency):
@@ -301,7 +300,6 @@ class NetTilities():
         else:
             return frequency
         
-    
 
     @staticmethod
     def get_channel(freq):
@@ -316,7 +314,105 @@ class NetTilities():
             return (freq - 5000) // 5
         return None
 
+ 
+    @staticmethod
+    def get_ies(pkt, sort=False, client=False, ap=False):
+        """This method will be responsible for pulling ie info"""
 
+
+        # IE == INFORMATION ELEMENTS
+
+
+        # FAIL SAFE
+        if not pkt.haslayer(Dot11Elt):
+            return False
+        
+
+        # COMMON IE NAMES
+        IE_NAMES = { 
+            0:  "SSID",
+            1:  "Supported Rates",
+            3:  "Channel",
+            5:  "TIM",
+            7:  "Country Info",
+            45: "HT Capabilities",
+            48: "RSN Info",
+            50: "Extended Rates",
+            61: "HT Information",
+            191: "VHT Capabilities",
+            192: "VHT Operation",
+            221: "Vendor Specific"
+        }
+        
+        
+        # STORE IES
+        elements = {}
+
+        # GET IES
+        elt = pkt[Dot11Elt]
+
+
+        # LOOP THROUGH AND STORE IE's
+        while elt:
+            
+            try:
+            
+
+                # GET ID & NAME
+                ie_id = elt.ID
+                ie_name = IE_NAMES.get(ie_id, f"UNKOWN({ie_id})")
+                ie_data = elt.info.decode(errors="ignore") if elt.info.decode(errors="ignore") else 'False'
+
+
+                # NOW TO ADD INFO
+                elements[ie_id] = ie_data
+
+                # NOW TO GO TO THE NEXT IE
+                elt = elt.payload.getlayer(Dot11Elt)
+            
+            except Exception as e:
+                console.print(f"[bold red]IE Error:[bold yellow] {e}")
+        
+
+        # FIX LATER
+        elements[3] = "N/A"
+        
+
+        # RETURN INFO
+
+        # FOR AP
+        if sort and ap:  # SSID, CHANNEL, RSN INFO, VENDOR
+            return elements[0], elements[3], elements[48], elements[221]
+        
+
+        # FOR CLIENT
+        elif sort and client:  # SSID, 
+            return elements[0]
+
+        # ELSE RETURN RAW DICT
+        else:
+            return elements
+    
+
+    @staticmethod
+    def get_rssi(pkt, format=False):
+        """This method will be responsible for pulling signal strength"""
+
+        
+        # CHECK FOR RADIO HEADER
+        if pkt.haslayer(RadioTap):
+            
+
+            # PULL RSSI
+            rssi = getattr(pkt, "dBm_AntSignal", False)
+            
+            # NOW RETURN
+            if rssi:
+
+                if format:
+                    return f"{rssi} dBm"
+                
+                return rssi
 
 
 
