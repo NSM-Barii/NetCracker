@@ -1938,19 +1938,33 @@ class War_Driving():
                     cls.macs.append(addr1)
 
 
-                    # GET VENDOR
-                    vendor = Utilities.get_vendor(mac=addr1)
-                    
+                    # GET SIGNAL
+                    signal = NetTilities.get_rssi(pkt=pkt, format=True)
 
-                    if vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr2)  
+
+                    # REVISE SSID
+                    
+                    signal = f"[bold red]Signal:[/bold red] {signal}"  
+
+
+                    
+                    # SET USE
+                    if ssid:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  [bold red]SSID:[/bold red] {ssid}  {signal}"
+
+                    elif vendor:
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {signal}"
+                    
                     else:
-                        use = ""
+                        use = f"{signal}"
 
 
                     # OUTPUT 
                     if verbose:
-                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
+                        console.print(f"[bold cyan][+] Found AP?:[/bold cyan] {addr1}   {use}", style="bold yellow")
 
 
                 
@@ -1963,7 +1977,7 @@ class War_Driving():
 
 
                     # GET IE's
-                    ssidd, channel, rsn, vendorr = NetTilities.get_ies(pkt=pkt, sort=True, ap=True)
+                    #ssidd, channel, rsn, vendorr = NetTilities.get_ies(pkt=pkt, sort=True, ap=True)
 
 
                     # GET SIGNAL
@@ -1974,24 +1988,25 @@ class War_Driving():
                     vendor = Utilities.get_vendor(mac=addr2)  
 
                     # REVISE SSID
-                    ssid = f"[bold green]SSID:[bold yellow] {ssid}"  
+                    
+                    signal = f"[bold red]Signal:[/bold red] {signal}"  
 
 
                     
                     # SET USE
                     if ssid:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {ssid}  {channel}  {signal}  {rsn}"
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  [bold red]SSID:[/bold red] {ssid}  {signal}"
 
                     elif vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {signal}"
                     
                     else:
-                        use = ""
+                        use = f"{signal}"
 
 
                     # OUTPUT 
                     if verbose:
-                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
+                        console.print(f"[bold cyan][+] Found AP:[/bold cyan] {addr2}   {use}", style="bold yellow")
 
 
 
@@ -2003,6 +2018,7 @@ class War_Driving():
                 # GET ADDR
                 addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
                 addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
+                
 
                 
 
@@ -2014,18 +2030,31 @@ class War_Driving():
                     cls.macs.append(addr1)
                     
                     
-                    # GET VENDOR
-                    vendor = Utilities.get_vendor(mac=addr1)
 
+                    # GET SIGNAL
+                    signal = NetTilities.get_rssi(pkt=pkt, format=True)
+
+
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr2)  
+                    
+
+                    signal = f"[bold red]Signal:[/bold red] {signal}"  
+
+
+                    
+                    # SET USE
                     if vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}"
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {signal}"
+
+
                     else:
-                        use = ""
+                        use = f"{signal}"
 
 
                     # OUTPUT 
                     if verbose:
-                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}")
+                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr1}   {use}", style="bold yellow")
 
 
                 
@@ -2037,27 +2066,31 @@ class War_Driving():
                     cls.macs.append(addr2)
 
 
-                    # GET VENDOR
-                    vendor = Utilities.get_vendor(mac=addr2)
-
-
-                    # GET IE's
-                   # ssidd, channel, rsn, vendorr = NetTilities.get_ies(pkt=pkt, sort=True, client=True)
-
 
                     # GET SIGNAL
                     signal = NetTilities.get_rssi(pkt=pkt, format=True)
 
 
+                    # GET VENDOR
+                    vendor = Utilities.get_vendor(mac=addr2)  
+
+
+                    # REVISE SSID
+                    signal = f"[bold red]Signal:[/bold red] {signal}"  
+
+
+                    
+                    # SET USE
                     if vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  [bold red]Signal:[/bold red] {signal}"
+                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {signal}"
+                    
                     else:
-                        use = ""
+                        use = f"{signal}"
 
 
                     # OUTPUT 
                     if verbose:
-                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}")
+                        console.print(f"[bold red][+] Found Mac Addr:[bold yellow] {addr2}   {use}", style="bold yellow")
 
             
 
@@ -2079,6 +2112,7 @@ class War_Driving():
         c2 = "bold green"
         c3 = "bold purple"
         c4 = "bold yellow"
+        c5 = "bold cyan"
 
 
         # INFO
@@ -2113,7 +2147,7 @@ class War_Driving():
 
 
                 # FOR SOURCE DESTINATION
-                sd = f"[{c4}]{addr2}   [{c1}]Vendor:[/{c1}] {vendor}  -->  {ssid}"
+                sd = f"[{c4}]{addr2}   [{c1}]Vendor:[/{c1}] {vendor}[/{c4}]  -->  [{c3}]{ssid}"
 
 
                 
