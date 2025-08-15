@@ -24,17 +24,17 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
    `git clone https://github.com/your-username/netcracker.git`
 
 2. Navigate to the project directory  
-   `cd netcracker`
+   `cd netcracker/nsm_modules`
 
 3. create virtual env 
-  `python3 -m venv venv`
+  `python -m venv venv`
   'source venv/bin/activate'
 
 5. Install dependencies  
-   `pip install -r requirements.txt`
+   `pip install -r ../requirements.txt`
 
 6. Run the tool  
-   `sudo python nsm_modules/netcracker.py`
+   `sudo venv/bin/python nsm_main.py`
 
 ---
 
