@@ -21,7 +21,7 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
 ## 🚀 Quick Start
 
 1. Clone the repo  
-   `git clone https://github.com/your-username/netcracker.git`
+   `git clone https://github.com/nsm-barii/netcracker.git`
 
 2. Navigate to the project directory  
    `cd netcracker/nsm_modules`
