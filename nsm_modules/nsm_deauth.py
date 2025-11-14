@@ -18,7 +18,7 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11P
 
 
 # NSM IMPORTS
-from nsm_utilities import Utilities, NetTilities
+from nsm_utilities import Utilities, NetTilities, Background_Threads
 from nsm_files import Settings, Recon_Pusher
 
 
@@ -185,6 +185,8 @@ class Frame_Snatcher():
                     
                 # SNIFF THAT BITCH
                 sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
+
+                time.sleep(1)
                 
                 # APPEND TEMPT
                 tempt += 1
@@ -216,67 +218,83 @@ class Frame_Snatcher():
         """This method will be called upon to then parse the given packet"""
 
 
-
-        # COLORS
-        c1 = "bold yellow"
-        c2 = "bold red"
-        c3 = "bold blue"
-        c4 = "bold green"
-
         
-      
-        # THIS IS STRICTLY USED TO CAPTURE BEACON FRAMES // SENT FROM AP'S
-        if pkt.haslayer(Dot11Beacon):
+        def parser(pkt):
+
+
+            # COLORS
+            c1 = "bold yellow"
+            c2 = "bold red"
+            c3 = "bold blue"
+            c4 = "bold green"
 
             
-            # SET VARS
-            addr1 = str(pkt[Dot11].addr1) if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else "No"
-            addr2 = str(pkt[Dot11].addr2) if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else "No"
+        
+            # THIS IS STRICTLY USED TO CAPTURE BEACON FRAMES // SENT FROM AP'S
+            if pkt.haslayer(Dot11Beacon):
+
+                
+                # SET VARS
+                addr1 = str(pkt[Dot11].addr1) if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else "No"
+                addr2 = str(pkt[Dot11].addr2) if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else "No"
 
 
-            # GET SSID
-            ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
+                # GET SSID
+                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
 
-            # GET VENDOR
-            vendor = Utilities.get_vendor(mac=addr2)
+                # GET VENDOR
+                vendor = Utilities.get_vendor(mac=addr2)
 
-            if vendor:
-                text = f"Vendor: {vendor}"
-            
-            else:
-                text = ""
-
-
-
-            
-            # THIS IS HERE JUST TO BE HERE FRL
-            if addr1 not in cls.macs and addr1 != "No":
+                if vendor:
+                    text = f"Vendor: {vendor}"
+                
+                else:
+                    text = ""
                 
 
-                # ADD MAC
-                cls.beacons.append((ssid, addr1, vendor))
-                cls.macs.append(addr1)
-                cls.num += 1
+                channel = Background_Threads.get_channel(pkt=pkt)
+                
 
 
-                # NOW TO OUTPUT RESULTS
-                console.print(f"[{c2}][+] Found a new mac addr1:[{c4}] {addr1}")
+                #ssid, channel, rsn, info, vendor = NetTilities.get_ies(pkt=pkt, sort=True, ap=True)
 
 
 
-            # BEACON == AP FRAMES ONLY           
-            if addr2 not in cls.macs and addr2 != "No":
+                
+                # THIS IS HERE JUST TO BE HERE FRL
+                if addr1 not in cls.macs and addr1 != "No":
+                    
+
+                    # ADD MAC
+                    cls.beacons.append((ssid, addr1, vendor, channel))
+                    cls.macs.append(addr1)
+                    cls.num += 1
 
 
-                # ADD MAC
-                cls.beacons.append((ssid, addr2, vendor))
-                cls.macs.append(addr2)
-                cls.num += 1
+                    # NOW TO OUTPUT RESULTS
+                    console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr1}  -  {channel}")
 
 
 
-                # NOW TO OUTPUT RESULTS
-                console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}") #  -  [{c1}]{ssid}")
+                # BEACON == AP FRAMES ONLY           
+                if addr2 not in cls.macs and addr2 != "No":
+
+
+                    # ADD MAC
+                    cls.beacons.append((ssid, addr2, vendor, channel))
+                    cls.macs.append(addr2)
+                    cls.num += 1
+
+
+
+                    # NOW TO OUTPUT RESULTS
+                    console.print(f"[{c2}][+] Found MAC addr:[{c4}] {addr2}  -   {channel}") #  -  [{c1}]{ssid}")
+        
+
+
+
+        threading.Thread(target=parser, args=(pkt,), daemon=True).start()
+            
 
    
     @classmethod
@@ -388,6 +406,7 @@ class Frame_Snatcher():
         table.add_column("SSID", style="bold blue")
         table.add_column("MAC Addr", style="bold green")
         table.add_column("Vendor", style="yellow")
+        table.add_column("Channel", style="red")
         
 
 
@@ -403,7 +422,7 @@ class Frame_Snatcher():
 
 
             # ADD TO TABLE
-            table.add_row(f"{num}", f"{var[0]}",  f"{var[1]}", f"{var[2]}")
+            table.add_row(f"{num}", f"{var[0]}",  f"{var[1]}", f"{var[2]}", f"{var[3]}")
             
         
 
@@ -474,13 +493,17 @@ class Frame_Snatcher():
 
                 if choice in range(1, num) or choice == num:
                     target = data[choice]
+                    console.print(cls.beacons)
+                    console.print(cls.beacons[choice])
+                    channel = cls.beacons[choice][3]
+                    console.print(channel)
 
 
                     console.print(f"\n[bold red]Target choosen:[yellow] {target}")
 
                     
                     # RETURN THE TARGET
-                    return target
+                    return target, channel
                 
                 
 
@@ -929,13 +952,19 @@ class Frame_Snatcher():
             # PRINT WELCOME UI
             Frame_Snatcher.welcome_ui(skip=skip, iface=cls.iface)
 
+
+            # START AUTO HOPPER // FOR NOW
+            Background_Threads.channel_hopper(verbose=False)
+
             
             # SNIFF FOR TARGETS
             Frame_Snatcher.sniff_for_targets(iface=cls.iface)
+            Background_Threads.hop = False
 
 
             # ALLOW THE USER TO CHOOSE THERE TARGET
-            target = Frame_Snatcher.target_chooser(type=type)
+            target, channel = Frame_Snatcher.target_chooser(type=type)
+            Background_Threads.channel_hopper(set_channel=channel)
 
 
             # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
@@ -948,10 +977,6 @@ class Frame_Snatcher():
                 # ATTACK ALL CLIENTS ON TARGET
                 Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
 
-                # END
-                time.sleep(2)
-                console.input("\n\n[bold green]Press Enter to Return: ")
-            
 
             # SINGLE CLIENT 
             elif type == 1:
@@ -962,9 +987,9 @@ class Frame_Snatcher():
                 # NOW ATTACK CLIENT ON TARGET
                 Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface)
 
-                # END
-                time.sleep(2)
-                console.input("\n\n[bold green]Press Enter to Return: ")
+
+            # LEAVE
+            time.sleep(.2);  console.input("\n\n[bold green]Press Enter to Return: ")
         
 
         
@@ -1794,19 +1819,19 @@ class War_Driving():
                       expand=False
                       )
         
+        from rich.align import Align
+        panel_allign = Align(panel, align="left", vertical="bottom")
+        
 
         # CREATE LIVE ENV
-        with Live(panel, console=console, refresh_per_second=4):
+        with Live(panel, console=console, refresh_per_second=1, screen=False):
            while cls.LIVE:
 
                 try:            
 
-                    # START WAR DRIVE MODE
-                    #threading.Thread(target=War_Driving.war_drive, args=(iface, ), daemon=True).start()
-
 
                     # UPDATE RENDERABLE
-                    panel.renderable = (f"[{c1}]AP's Found:[/{c1}] {len(cls.beacons)}   -   [{c1}]Clients Found:[/{c1}] {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
+                    panel.renderable = (f"[{c1}]Channel:[/{c1}] {Background_Threads.channel}   -   [{c1}]AP's Found:[/{c1}] {len(cls.beacons)}   -   [{c1}]Clients Found:[/{c1}] {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
 
 
                     # SMALL DELAY BECAUSE OF LOOP
@@ -1831,8 +1856,6 @@ class War_Driving():
                     d += 1
                     
                     
-
-                
 
 
                 except KeyboardInterrupt as e:
@@ -1953,10 +1976,10 @@ class War_Driving():
                     
                     # SET USE
                     if ssid:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  [bold red]SSID:[/bold red] {ssid}  {signal}"
+                        use = f"{signal}  [bold red]Vendor:[bold yellow] {vendor}  [bold red]SSID:[/bold red] {ssid}"
 
                     elif vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {signal}"
+                        use = f"signal{signal}  [bold red]Vendor:[bold yellow] {vendor}"
                     
                     else:
                         use = f"{signal}"
@@ -1995,10 +2018,10 @@ class War_Driving():
                     
                     # SET USE
                     if ssid:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  [bold red]SSID:[/bold red] {ssid}  {signal}"
+                        use = f"{signal}  [bold red]Vendor:[bold yellow] {vendor}  [bold red]SSID:[/bold red] {ssid}"
 
                     elif vendor:
-                        use = f"[bold red]Vendor:[bold yellow] {vendor}  {signal}"
+                        use = f" {signal}  [bold red]Vendor:[bold yellow] {vendor}"
                     
                     else:
                         use = f"{signal}"
@@ -2248,15 +2271,22 @@ class War_Driving():
 
             # INIT WAR
             Recon_Pusher.main()
+
+
+            # START CHANNEL HOPPER
+            Background_Threads.channel_hopper(verbose=False)
+            
             
             
             # START WAR DRIVING
             War_Driving.war_drive(iface=iface)
+           # threading.Thread(target=War_Driving.war_drive, args=(iface, ), daemon=True).start()
+           # War_Driving.data_assist(iface=iface)
 
             
 
             # NOW FOR THE EXIT
-            time.sleep(2)
+            time.sleep(.2)
             console.input("\n\n[bold red]Press enter to return: ")
 
         except Exception as e:

@@ -20,8 +20,10 @@ vendors = MacLookup()
 vendors.load_vendors()
 
 
+
+
 # ETC IMPORTS 
-import threading, os, random, time, pyttsx3, platform, os
+import threading, os, random, time, pyttsx3, platform, os, subprocess
 
 
 
@@ -194,9 +196,6 @@ class Utilities():
             console.print(f"[bold red]Exception Error:[yellow] {e}")
 
     
-
-
-
 
 
 class NetTilities():
@@ -375,7 +374,7 @@ class NetTilities():
         
 
         # FIX LATER
-        elements[3] = "N/A"
+        if not elements[3]: elements[3] = False 
         
 
         # RETURN INFO
@@ -398,6 +397,8 @@ class NetTilities():
     def get_rssi(pkt, format=False):
         """This method will be responsible for pulling signal strength"""
 
+        signal = ""; signal = f"[bold red]Signal:[/bold red] {signal}"  
+
         
         # CHECK FOR RADIO HEADER
         if pkt.haslayer(RadioTap):
@@ -413,6 +414,119 @@ class NetTilities():
                     return f"{rssi} dBm"
                 
                 return rssi
+
+
+
+
+class Background_Threads():
+    """This module will house background permanent running threads"""
+    
+
+    # CLASS VARIABLES
+    hop = True
+    channel = 0
+
+
+
+
+    @classmethod
+    def get_channel(cls, pkt):
+        """This will be used to get the ssid channel"""
+
+
+        elt = pkt[Dot11Elt]
+        channel = 0
+
+
+        while isinstance(elt, Dot11Elt):
+
+            if elt.ID == 3:
+                channel = elt.info[0]
+                return channel
+            
+            elt = elt.payload
+
+
+
+
+    @classmethod
+    def channel_hopper(cls, set_channel=False, verbose=False):
+        """This method will be responsible for automatically hopping channels"""
+
+
+        # NSM IMPORTS
+        from nsm_files import Settings
+        
+
+        def hopper():
+
+            delay = 0.25
+            all_hops = [1, 6, 11, 36, 40, 44, 48, 149, 153, 157, 161]
+
+            iface = Settings.get_json()['iface']
+
+
+            # TUNE HOP
+            if set_channel:
+
+
+                cls.hop = False
+
+
+                try:
+
+                    subprocess.Popen(
+                    ["sudo", "iw", "dev", iface, "set", "channel", str(set_channel)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    stdin=subprocess.DEVNULL,
+                    start_new_session=True
+                )
+
+                except Exception as e:
+                    console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+   
+
+            # AUTO HOPPING
+            while cls.hop:
+
+                for channel in all_hops:
+
+
+                    try:
+                    
+
+                        # HOP CHANNEL
+                        subprocess.Popen(
+                            ["sudo", "iw", "dev", iface, "set", "channel", str(channel)],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            stdin=subprocess.DEVNULL,
+                            start_new_session=True
+                        )
+                        cls.channel = channel
+                        if verbose:
+                            console.print(f"[bold green]Hopping on Channel:[bold yellow] {channel}")
+
+                        # DELAY
+                        time.sleep(delay)
+                    
+                    except Exception as e:
+                        console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+
+
+
+        threading.Thread(target=hopper, args=(), daemon=True).start()
+        cls.hop = True
+
+
+
+
+
+
+
+
+
 
 
 
@@ -435,3 +549,12 @@ if __name__ == "__main__":
 
 
     console.print(os.name)
+
+
+
+    Background_Threads.channel_hopper()
+
+
+
+    while True:
+        pass

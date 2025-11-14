@@ -1,0 +1,16 @@
+# iwconfig_commands.txt is DEAPPRECIATTED and these commands should be used instead
+
+
+# MONITOR/MANAGED MODE
+sudo iw dev wlan1 set type monitor
+sudo iw dev wlan1 set type managed
+
+
+# CHANNEL
+sudo iw dev wlan1 set channel 6
+
+
+# Examples
+dev = "Hey, im talking to this interface"
+wlan1 = "Your wireless interface"
+set = "Do this action"

@@ -18,3 +18,4 @@ all_hops = [1, 6, 11, 36, 40, 44, 48, 149, 153, 157, 161]
 
 # HOP INTERVAL // HOP EACH CHANNEL PER .
 250ms per channel
+Total scan cycle (11 channels × 250ms) = 2.75 seconds
