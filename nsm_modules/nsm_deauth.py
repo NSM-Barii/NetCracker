@@ -2634,8 +2634,8 @@ class Client_Sniffer():
                 
 
                 # SEND THE FRAME
-                while True:
-                    sendp(frame, iface=iface, inter=0.03, count=20, realtime=False,verbose=True )
+                #while True:
+                sendp(frame, iface=iface, count=15, realtime=False,verbose=False)
        
 
                 # WAIT
