@@ -586,7 +586,7 @@ class Recon_Pusher():
     
 
     @classmethod
-    def push_war(cls, save_data, CONSOLE):
+    def push_war(cls, save_data, CONSOLE, verbose=False):
         """This method will be used to push results from war driving"""
 
         path = cls.path
@@ -598,7 +598,8 @@ class Recon_Pusher():
                 json.dump(save_data, file, indent=4)
 
                 
-                CONSOLE.print(f"[+] War Results Succesfully pushed", style="bold green")
+                if verbose:
+                    CONSOLE.print(f"[+] War Results Succesfully pushed", style="bold green")
             
         
         # DESTROY ERRORS

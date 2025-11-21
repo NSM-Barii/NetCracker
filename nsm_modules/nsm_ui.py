@@ -19,7 +19,7 @@ import time
 from nsm_scanner_mode import WifiUI 
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME, Hash_Snatcher, Beacon_Flooder, War_Driving
+from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME, Hash_Snatcher, Beacon_Flooder, War_Driving, Client_Sniffer
 
 
 class MainUI():
@@ -81,14 +81,16 @@ class MainUI():
         color2 = "bold yellow"
 
         choicess = (
-            f"\n       [{color}][1][/{color}] [{color2}]War Driving\n\n"
-            f"       [{color}][2][/{color}] [{color2}]Deauth One Client\n"
-            f"       [{color}][3][/{color}] [{color2}]Deauth All Clients\n\n"
-            f"       [{color}][4][/{color}] [{color2}]Beacon Flooood\n"
-            f"       [{color}][5][/{color}] [{color2}]Capture n Crack Handshake\n\n"
-            f"       [{color}][6][/{color}] [{color2}]Ping Me\n\n"
-            f"       [{color}][7][/{color}] [{color2}]Scan for Networks\n"
-            f"       [{color}][8][/{color}] [{color2}]View Saved Networks\n\n"
+            f"\n       [{color}][1][/{color}] [{color2}]War Driving\n"
+            f"       [{color}][2][/{color}] [{color2}]War Driving - Stationary Mode\n\n"            
+            f"       [{color}][3][/{color}] [{color2}]Client Sniffer - (Spy on network)\n\n"            
+            f"       [{color}][4][/{color}] [{color2}]Deauth One Client\n"
+            f"       [{color}][5][/{color}] [{color2}]Deauth All Clients\n\n"
+            f"       [{color}][6][/{color}] [{color2}]Beacon Flooood\n"
+            f"       [{color}][7][/{color}] [{color2}]Capture n Crack Handshake\n\n"
+            f"       [{color}][8][/{color}] [{color2}]Ping Me\n\n"
+            f"       [{color}][9][/{color}] [{color2}]Scan for Networks\n"
+            f"       [{color}][10][/{color}] [{color2}]View Saved Networks\n\n"
             f"       [{color}][99][/{color}] [{color2}]EXIT "
             
             )
@@ -104,7 +106,7 @@ class MainUI():
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
-                cc = ["1", "2", "3", "4", "5", "6", "7", "8"]
+                cc = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
                 if choice in cc:
                     Utilities.clear_screen()
@@ -112,60 +114,46 @@ class MainUI():
 
 
                 # DEAUTH ATTACK - ONE CLIENT
-                if choice == "1":
-                    War_Driving.main()
+                if choice == "1": 
+                    War_Driving.main(mode=1);  break
+                
+                elif choice == "2":
+                    War_Driving.main(mode=2); break
 
-                    break
-
-
+                # CLIENT SNIFFER               
+                elif choice == "3": 
+                    Client_Sniffer.main(); break
 
                 # DEAUTH ATTACK - ONE CLIENT
-                if choice == "2":
-                    Frame_Snatcher.main(type=1)
-
-                    break
-                
+                elif choice == "4":
+                    Frame_Snatcher.main(type=1); break
 
                 # DEAUTH ATTACK - ALL CLIENTS
-                elif choice == "3":
-                    Frame_Snatcher.main(type=2)
-
-                    break
-
+                elif choice == "5":
+                    Frame_Snatcher.main(type=2); break
 
                 # BEACON FLOOD
-                elif choice == "4":
-                    Beacon_Flooder.main()
-
-                    break
+                elif choice == "6":
+                    Beacon_Flooder.main(); break
                    
-
                 # CAPTURE AND CRACK HANDSHAKES
-                elif choice == "5":
-                    Hash_Snatcher.main()
-                    
-                    break
+                elif choice == "7":
+                    Hash_Snatcher.main(); break
 
 
                 # PING ME 
-                elif choice == "6":
-                    You_Cant_DOS_ME.ping()
-
-                    break
+                elif choice == "8":
+                    You_Cant_DOS_ME.ping(); break
                 
 
                 # SCAN FOR NETWORKS
-                elif choice == "7":
-                    WifiUI.main()
-
-                    break
+                elif choice == "9":
+                    WifiUI.main(); break
 
 
                 # VIEW SAVED NETWORKS
-                elif choice == "8":
-                    Network_Mapper.network_puller()
-
-                    break
+                elif choice == "10":
+                    Network_Mapper.network_puller(); break
                 
                 
 

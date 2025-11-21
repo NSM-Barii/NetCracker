@@ -50,7 +50,7 @@ class Utilities():
         
 
         try:
-            response = requests.get(url=url, timeout=3)
+            response = requests.get(url=url, timeout=1.5)
 
             if response.status_code == 200:
 
@@ -59,9 +59,16 @@ class Utilities():
 
                 
                 return response.text
+            
 
-        
-        
+            else:
+
+                response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
+
+                return response
+
+
+
         # DESTROY ERRORS
         except Exception as e:
 
@@ -73,6 +80,7 @@ class Utilities():
             #response = vendors.lookup(mac=mac) if vendors.lookup(mac=mac) else None
 
             response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
+            #console.print(len(manuf.MacParser("manuf.txt")))
 
             return response
     
@@ -445,6 +453,28 @@ class Background_Threads():
                 return channel
             
             elt = elt.payload
+        
+        return False
+
+    
+
+    @classmethod
+    def get_freq(cls, freq):
+        """This will return frequency"""
+
+
+        if freq in range(2412, 2472): return "2.4 GHz"
+        elif freq in range(5180, 5825): return "5 GHz"
+        else: return "6 GHz"
+
+
+
+    @classmethod
+    def get_encryption(cls, pkt):
+        """Get this encryption"""
+
+
+
 
 
 
@@ -470,7 +500,7 @@ class Background_Threads():
             if set_channel:
 
 
-                cls.hop = False
+                cls.hop = False; time.sleep(2)
 
 
                 try:
@@ -532,6 +562,11 @@ class Background_Threads():
 
 # FOR MODULE TESTING
 if __name__ == "__main__":
+
+
+
+    parser = manuf.MacParser("manuf.txt")
+    console.print(len(parser))
 
 
 

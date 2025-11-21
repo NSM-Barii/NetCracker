@@ -1,0 +1,3 @@
+# USE THIS URL WITH WGET TO GET THE LATEST OUI DATABASE 
+https://raw.githubusercontent.com/joshschmelzle/manuf2/refs/heads/master/manuf2/manuf
+
