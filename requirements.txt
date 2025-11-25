@@ -6,4 +6,5 @@ pyttsx3
 manuf
 mac-vendor-lookup
 requests
-#subprocess
+bleak
+subprocess

