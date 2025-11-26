@@ -3,7 +3,9 @@
 
 FLOCK_SIGNATURES = {
     "wifi_ssid_patterns": [
-        "flock", "Flock", "FLOCK",
+        "flock", 
+        "Flock", 
+        "FLOCK",
         "FS Ext Battery",
         "Penguin",
         "Pigvision",
