@@ -14,7 +14,7 @@ import time, os
 
 
 # NSM IMPORTS
-from nsm_utilities import Utilities
+from nsm_modules.nsm_utilities import Utilities
 
 # FILE HANDLING
 from pathlib import Path

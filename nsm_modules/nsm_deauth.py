@@ -18,8 +18,8 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11P
 
 
 # NSM IMPORTS
-from nsm_utilities import Utilities, NetTilities, Background_Threads
-from nsm_files import Settings, Recon_Pusher
+from nsm_modules.nsm_utilities import Utilities, NetTilities, Background_Threads
+from nsm_modules.nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS 
@@ -29,22 +29,24 @@ import threading, os, random, time, pyttsx3, string
 # THREAD LOCKER
 LOCK = threading.Lock()
 
+test = False
 
-# THINGS TO STUDY FOR MATH ASVAB 
-MATH = ["percentage", "algebra", "PEMDAS", "Area & Distance", "regular to fraction", "factor equations", "angle of triangle", "area and volume"]
-
-
-for m in MATH:
-    console.print(m)
-print("\n\n")
+if test:
+    # THINGS TO STUDY FOR MATH ASVAB 
+    MATH = ["percentage", "algebra", "PEMDAS", "Area & Distance", "regular to fraction", "factor equations", "angle of triangle", "area and volume"]
 
 
-# USE THIS TO INSTALL LIBARIES IN VENV
-# source .venv/bin/activate
+    for m in MATH:
+        console.print(m)
+    print("\n\n")
 
 
-# RUN THIS FOR NOW TO BEGIN DEAUTH MODULE
-# sudo ./.venv/bin/python nsm_deauth.py
+    # USE THIS TO INSTALL LIBARIES IN VENV
+    # source .venv/bin/activate
+
+
+    # RUN THIS FOR NOW TO BEGIN DEAUTH MODULE
+    # sudo ./.venv/bin/python nsm_deauth.py
 
 
 

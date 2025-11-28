@@ -45,45 +45,14 @@ class Utilities():
         verbose = False
 
 
-        # TRY API FIRST
-        url = f"https://api.macvendors.com/{mac}"
-        
 
-        try:
-            response = requests.get(url=url, timeout=1.5)
 
-            if response.status_code == 200:
+        response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
 
-                if verbose:
-                    console.print(f"Successfully retrieved API Key: {response.text}")
-
-                
-                return response.text
-            
-
-            else:
-
-                response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
-
-                return response
+        return response
 
 
 
-        # DESTROY ERRORS
-        except Exception as e:
-
-            if verbose:
-                console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-            
-            
-            #response = vendors.lookup(mac=mac) if vendors.lookup(mac=mac) else None
-
-            response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
-            #console.print(len(manuf.MacParser("manuf.txt")))
-
-            return response
-    
     
     @staticmethod
     def tts(say, lock = False, voice_rate = 20, voice_sound=False) -> str:
@@ -485,7 +454,7 @@ class Background_Threads():
 
 
         # NSM IMPORTS
-        from nsm_files import Settings
+        from nsm_modules.nsm_files import Settings
         
 
         def hopper():
