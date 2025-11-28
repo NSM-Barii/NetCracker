@@ -23,19 +23,25 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11P
 import time, asyncio, threading
 
 
-# NSM IMPORTS
+# NSM SAME-MODULE IMPORTS
+from nsm_utilities import Utilities, Background_Threads
+
+
+
+# NSM MODULE IMPORTS
 from signatures import FLOCK_SIGNATURES
-from nsm_modules.nsm_utilities import Background_Threads, NetTilities
-from nsm_modules.nsm_utilities import Utilities as nsm_utilities
+#from nsm_modules.nsm_utilities import Background_Threads, NetTilities
+#from nsm_modules.nsm_utilities import Utilities as nsm_utilities
 from nsm_modules.nsm_deauth import Frame_Snatcher
 
 
 
+# GLOBAL LOCK
+LOCK = threading.Lock()
 
 
 
-
-class Utilities():
+class PDU_Inspector():
     """This class will be responsible for called upon methods"""
 
 
@@ -140,44 +146,44 @@ class Utilities():
     
     
     @classmethod
-    def matches(cls, ssid=False, mac=False, ble_name=False, uuid=False, vendor=False):
+    def matches(cls, type, data, ssid=False, mac=False, ble_name=False, uuid=False, vendor=False,
+                check_ssid=False, check_mac=False, check_ble_name=False, check_uuid=False):
         """This will output to the user what matches lead to a potential AI Camera being found"""
 
         space = "    "
 
+        if type == 1:  console.print(f"[bold green][+] Found AI Camera (BLE):[bold yellow] {data}")
+        elif type == 2: console.print(f"[bold green][+] Found AI Camera (WiFi):[bold yellow] {data}")
+ 
 
-        if ssid: console.print(f"{space}[bold green][+] Match SSID:[bold yellow] {ssid}") or console.print(f"{space}[bold red][-] Match SSID:[bold yellow] False")
-        if mac: console.print(f"{space}[bold green][+] Match MAC:[bold yellow] {mac}") or console.print(f"{space}[bold red][-] Match MAC:[bold yellow] False")
-        if vendor: console.print(f"{space}[bold green][+] Match Vendor:[bold yellow] {vendor}") or console.print(f"{space}[bold red][-] Match Vendor:[bold yellow] False")
-        if ble_name: console.print(f"{space}[bold green][+] Match BLE_name:[bold yellow] {ble_name}") or console.print(f"{space}[bold red][-] Match BLE_name:[bold yellow] False")
-        if uuid: console.print(f"{space}[bold green][+] Match UUID(s):[bold yellow] {uuid}") or console.print(f"{space}[bold red][-] Match UUID(s): [bold yellow] False")
+        if check_ssid: console.print(f"{space}[bold green][+] Match SSID:[bold yellow] {ssid}")  
+        else: console.print(f"{space}[bold red][-] Match SSID:[bold yellow] {ssid if ssid else False}")
+        if check_mac: console.print(f"{space}[bold green][+] Match MAC:[bold yellow] {mac}") 
+        else: console.print(f"{space}[bold red][-] Match MAC:[bold yellow] {mac if mac else False}")
+        if check_ble_name: console.print(f"{space}[bold green][+] Match BLE_name:[bold yellow] {ble_name}") 
+        else: console.print(f"{space}[bold red][-] Match BLE_name:[bold yellow] {ble_name if ble_name else False}")
+        if check_uuid: console.print(f"{space}[bold green][+] Match UUID(s):[bold yellow] {uuid}") 
+        else: console.print(f"{space}[bold red][-] Match UUID(s):[bold yellow] {uuid if uuid else False    }")
+
+        #if vendor: console.print(f"{space}[bold green][+] Extra Info Vendor:[bold yellow] {vendor}") 
+        #else: console.print(f"{space}[bold red][-] Match Vendor:[bold yellow] False")
 
 
-
-
-
-    
     @classmethod
     def controller(cls, ssid=False, mac=False, ble_name=False, uuid=False):
         """This method will be the ultimate controller of all sub methods"""
 
         
         # BOOL CHECK DATA
-        check_ssid = Utilities._check_ssid(ssid=ssid)            if ssid else False
-        check_mac = Utilities._check_mac(mac=mac)                     if mac else False
-        check_ble_name = Utilities._check_ble_name(ble_name=ble_name) if ble_name else False
-        check_uuid = Utilities._check_uuid(uuid=uuid)                 if uuid else False
+        check_ssid = PDU_Inspector._check_ssid(ssid=ssid)            if ssid else False
+        check_mac = PDU_Inspector._check_mac(mac=mac)                     if mac else False
+        check_ble_name = PDU_Inspector._check_ble_name(ble_name=ble_name) if ble_name else False
+        check_uuid = PDU_Inspector._check_uuid(uuid=uuid)                 if uuid else False
 
 
 
         return check_ssid, check_mac, check_ble_name, check_uuid
     
-
-
-
-
-
-
 
 
 class BLE_Sniffer():
@@ -219,12 +225,9 @@ class BLE_Sniffer():
                     rssi = adv.rssi
                     manufacturer = adv.manufacturer_data
                     services = adv.service_uuids
-                    vendor = nsm_utilities.get_vendor(mac=mac)
-
 
                     data = {
                         "mac": mac,
-                        "vendor": vendor,
                         "rssi": rssi,
                         "local_name": local_name,
                         "manufacturer": manufacturer,
@@ -233,15 +236,18 @@ class BLE_Sniffer():
 
 
                     # ARE YOU FLOCK or AI ???
-                    check_ssid, check_mac, check_ble_name, check_uuid = Utilities.controller(ssid=False, mac=mac, ble_name=local_name, uuid=services)
+                    check_ssid, check_mac, check_ble_name, check_uuid = PDU_Inspector.controller(ssid=False, mac=mac, ble_name=local_name, uuid=services)
                                         
 
                     # REALISTICALLY THIS WOULD BE THE BEST ONE TO USE
                     if check_mac or check_ble_name or check_uuid: 
 
-                        console.print(f"[bold green][+] Found AI Camera (BLE):[bold yellow] {data}")
-                        Utilities.matches(ssid=False, mac=mac, vendor=vendor, ble_name=local_name, uuid=services)
-                        cls.ai_cameras.append(data)
+
+                        
+                        with LOCK:
+                            PDU_Inspector.matches(type=1, data=data, ssid=False, mac=mac, vendor=False, ble_name=local_name, uuid=services,
+                                              check_ssid=check_ssid, check_mac=check_mac, check_ble_name=check_ble_name, check_uuid=check_uuid)
+                            cls.ai_cameras.append(data)
                     
 
                     if cls.verbose:
@@ -257,12 +263,12 @@ class BLE_Sniffer():
         
          
     @classmethod
-    def main(cls, scan_duration=5, timeout=2, verbose=True):
+    def main(cls, verbose=True, scan_duration=5, timeout=2):
         """This method will be resposnible for looping through ble_scan <-- scan"""
 
 
         # VARS
-        cls.verbose = False
+        cls.verbose = verbose
         scans = 1
         cls.ble_devices = []
         cls.ai_cameras = []
@@ -298,19 +304,17 @@ class WiFi_Sniffer():
                 addr1 = pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
                 addr2 = pkt[Dot11].addr2 if pkt[Dot11].addr2 != "ff:ff:ff:ff:ff:ff" else False
 
-
                 ssid = pkt[Dot11Elt].info.decode(errors="ignore") or False
 
 
                 channel = Background_Threads.get_channel(pkt=pkt)
-                vendor = nsm_utilities.get_vendor(mac=addr2)
-                rssi = NetTilities.get_rssi(pkt=pkt)
+                #vendor = nsm_utilities.get_vendor(mac=addr2)
+                rssi = Background_Threads.get_rssi(pkt=pkt)
                 encryption = Background_Threads.get_encryption(pkt=pkt)
                 freq = Background_Threads.get_freq(freq=pkt[RadioTap].ChannelFrequency)
 
                 data = {
                     "ssid": ssid,
-                    "vendor": vendor,
                     "frequency": freq,
                     "encryption": encryption,
                     "channel": channel,
@@ -320,28 +324,30 @@ class WiFi_Sniffer():
                 if not ssid or not channel:
                     return
 
-                if ssid and ssid not in cls.beacons: 
-
-                    check_ssid, check_mac, check_ble_name, check_uuid = Utilities.controller(ssid=ssid, mac=addr2, ble_name=False, uuid=False)
+                if ssid and addr2 not in cls.macs: 
+                    
+                    cls.beacons.append(ssid)
+                    cls.macs.append(addr2)
+                    check_ssid, check_mac, check_ble_name, check_uuid = PDU_Inspector.controller(ssid=ssid, mac=addr2, ble_name=False, uuid=False)
 
 
                     if check_ssid or check_mac:
-                        
-                        console.print(f"[bold green][+] Found AI Camera (WiFi):[bold yellow] {data}")
-                        Utilities.matches(ssid=ssid, mac=addr2, vendor=vendor, ble_name=False, uuid=False)
 
-                        cls.ai_cameras.append(data)
-                        cls.beacons.append(ssid)
+
+                        with LOCK:
+                            PDU_Inspector.matches(type=2, data=data, ssid=ssid, mac=addr2, vendor=False, ble_name=False, uuid=False,
+                                              check_ssid=check_ssid, check_mac=check_mac, check_ble_name=check_ble_name, check_uuid=check_uuid)
+                            cls.ai_cameras.append(data)
+
 
                         return
                     
-                if cls.verbose and ssid not in cls.beacons:
-                    console.print(f"[bold red][-] Non AI Camera (WiFi):[bold yellow] {data}")
-                    cls.beacons.append(ssid)
+                    if cls.verbose:
+                        console.print(f"[bold red][-] Non AI Camera (WiFi):[bold yellow] {data}")
         
         
         if  Main_Thread.BACKGROUND: threading.Thread(target=_parser, args=(), daemon=True).start()
-        else: raise KeyboardInterrupt
+        else: return KeyboardInterrupt
         
 
 
@@ -374,15 +380,16 @@ class WiFi_Sniffer():
     
 
     @classmethod
-    def main(cls, iface):
+    def main(cls, iface, verbose=True):
         """This method will be responsible for running wifi_scan <-- """
 
 
-        console.print("[bold green][+]Starting WiFi_Sniffer")
+        console.print("[bold green][+] Starting WiFi_Sniffer")
 
 
         # VARS
-        cls.verbose = True
+        cls.verbose = verbose
+        cls.macs = []
         cls.beacons = []
         cls.ai_cameras = []
 
@@ -404,19 +411,20 @@ class Main_Thread():
         """Get shit done"""
 
         cls.BACKGROUND = True
-
+        verbose = False
         iface = Frame_Snatcher.get_interface()
+        Utilities.welcome_ui(iface=iface, text=" FLOCK \nDriving")
 
 
         # WIFI SNIFFER
-        threading.Thread(target=WiFi_Sniffer.main, args=(iface,), daemon=True).start()
+        threading.Thread(target=WiFi_Sniffer.main, args=(iface,verbose), daemon=True).start()
         
 
         # BLE SNIFFER
-        threading.Thread(target=BLE_Sniffer.main, args=(), daemon=True).start()
+        threading.Thread(target=BLE_Sniffer.main, args=(verbose,), daemon=True).start()
 
         
-        time.sleep(.5); console.print(f"[bold green][+] ALL Background Threads Started")
+        #time.sleep(.5); console.print(f"[bold green][+] ALL Background Threads Started")
 
         try:
             while True: time.sleep(0.1)
@@ -424,7 +432,7 @@ class Main_Thread():
         except KeyboardInterrupt as e:
 
             cls.BACKGROUND = False
-            time.sleep(0.5); console.print(f"Killing Background Threads")
+            time.sleep(0.1); console.print(f"[bold red][-] Killing Background Threads.....")
 
 
 
