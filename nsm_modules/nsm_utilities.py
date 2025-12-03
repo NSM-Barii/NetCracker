@@ -402,6 +402,30 @@ class Background_Threads():
     # CLASS VARIABLES
     hop = True
     channel = 0
+    
+
+    @staticmethod
+    def freq_to_channel(freq):
+        # 2.4 GHz band
+        if 2412 <= freq <= 2484:
+            return (freq - 2407) // 5
+        # 5 GHz band (partial support)
+        elif 5180 <= freq <= 5825:
+            return (freq - 5000) // 5
+        # 6 GHz and others can be added as needed
+        return None
+
+        
+    @staticmethod
+    def get_channel_from_radiotap(pkt):
+        if pkt.haslayer(RadioTap):
+            try:
+                freq = pkt[RadioTap].ChannelFrequency
+                if freq:
+                    return Background_Threads.freq_to_channel(freq)
+            except:
+                pass
+        return None
 
 
 
@@ -417,13 +441,18 @@ class Background_Threads():
 
         while isinstance(elt, Dot11Elt):
 
+
             if elt.ID == 3:
                 channel = elt.info[0]
                 return channel
             
             elt = elt.payload
-        
-        return False
+
+
+            channel = Background_Threads.get_channel_from_radiotap(pkt=pkt)
+            #console.print(channel); return channel
+
+        return channel
 
     
 

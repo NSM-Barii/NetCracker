@@ -1829,39 +1829,40 @@ class War_Driving():
         with Live(panel, console=console, refresh_per_second=1, screen=False):
            while cls.LIVE:
 
-                try:            
+                try:     
+                    if cls.LIVE:       
 
 
-                    # UPDATE RENDERABLE
-                    panel.renderable = (f"[{c1}]Channel:[/{c1}] {Background_Threads.channel}   -   [{c1}]AP's Found:[/{c1}] {len(cls.beacons)}   -   [{c1}]Clients Found:[/{c1}] {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
+                        # UPDATE RENDERABLE
+                        panel.renderable = (f"[{c1}]Channel:[/{c1}] {Background_Threads.channel}   -   [{c1}]AP's Found:[/{c1}] {len(cls.beacons)}   -   [{c1}]Clients Found:[/{c1}] {len(cls.macs)}   -   [bold green]Developed by NSM Barii")
 
 
-                    # SMALL DELAY BECAUSE OF LOOP
-                    time.sleep(1)
+                        # SMALL DELAY BECAUSE OF LOOP
+                        time.sleep(1)
 
 
-                    # USE THIS TO REMOVE APS FROM CLIENT LIST
-                    for ap in cls.beacons:
+                        # USE THIS TO REMOVE APS FROM CLIENT LIST
+                        for ap in cls.beacons:
 
-                        if ap in cls.macs:
-                            cls.macs.remove(ap)
+                            if ap in cls.macs:
+                                cls.macs.remove(ap)
 
-                            # TELL USER
-                            console.print(f"[bold yellow][-][/bold yellow] Removed AP from Client list --> {ap}", style="bold yellow")
-                    
+                                # TELL USER
+                                console.print(f"[bold yellow][-][/bold yellow] Removed AP from Client list --> {ap}", style="bold yellow")
+                        
 
-                    # USE THIS TO UPDATE JSON
-                    if d == 5:
-                        Recon_Pusher.push_war(save_data=cls.aps, CONSOLE=console)
-                        d = 0
+                        # USE THIS TO UPDATE JSON
+                        if d == 5:
+                            Recon_Pusher.push_war(save_data=cls.aps, CONSOLE=console)
+                            d = 0
 
-                    d += 1
+                        d += 1
                     
                     
 
 
                 except KeyboardInterrupt as e:
-                    console.print("Now escaping the MATRIX", style="bold red")
+                    #console.print("Now escaping the MATRIX", style="bold red")
 
                     # KILL BACKGROUND THREAD
                     cls.LIVE = False
@@ -1929,8 +1930,12 @@ class War_Driving():
                 console.print(f"[bold red]Exception Error:[bold yellow] {e}")
 
 
+                # KILL BACKGROUND THREAD
+                cls.LIVE = False
+
+
                 # IN CASE OF LOOP ERRORS
-                time.sleep(2)
+                time.sleep(1)
 
 
     @classmethod
