@@ -405,7 +405,7 @@ class Background_Threads():
     
 
     @staticmethod
-    def freq_to_channel(freq):
+    def _freq_to_channel(freq):
         # 2.4 GHz band
         if 2412 <= freq <= 2484:
             return (freq - 2407) // 5
@@ -417,12 +417,12 @@ class Background_Threads():
 
         
     @staticmethod
-    def get_channel_from_radiotap(pkt):
+    def _get_channel_from_radiotap(pkt):
         if pkt.haslayer(RadioTap):
             try:
                 freq = pkt[RadioTap].ChannelFrequency
                 if freq:
-                    return Background_Threads.freq_to_channel(freq)
+                    return Background_Threads._freq_to_channel(freq)
             except:
                 pass
         return None
@@ -449,7 +449,7 @@ class Background_Threads():
             elt = elt.payload
 
 
-            channel = Background_Threads.get_channel_from_radiotap(pkt=pkt)
+            channel = Background_Threads._get_channel_from_radiotap(pkt=pkt)
             #console.print(channel); return channel
 
         return channel
