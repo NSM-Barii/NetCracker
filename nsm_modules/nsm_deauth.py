@@ -18,8 +18,8 @@ from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11P
 
 
 # NSM IMPORTS
-from nsm_modules.nsm_utilities import Utilities, NetTilities, Background_Threads
-from nsm_modules.nsm_files import Settings, Recon_Pusher
+from nsm_utilities import Utilities, NetTilities, Background_Threads
+from nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS 

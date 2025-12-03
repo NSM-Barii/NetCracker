@@ -483,7 +483,7 @@ class Background_Threads():
 
 
         # NSM IMPORTS
-        from nsm_modules.nsm_files import Settings
+        from nsm_files import Settings
         
 
         def hopper():
