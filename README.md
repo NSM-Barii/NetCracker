@@ -12,9 +12,12 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
 
 ## 🧪 Tested On
 - Kali Linux
+- Arch Linux
 
 
 ## Comming Soon
+- Evil Twin Attack
+- Beacon (spam) Flood 
 - Frames that can crash Routers
 - Wifi cracking (done with hashcat)
 
