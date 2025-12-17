@@ -252,7 +252,7 @@ class WifiUI():
             
  
            
-        say = "Initiating scan for all nearby networks. If I connect, it's legally a penetration test. If I get caught, it was a prank. FUCK YOU"
+        say = "Initiating scan for all nearby networks."
 
         threading.Thread(target=Utilities.tts, args=(say, False, 10)).start()
 

@@ -1,287 +1,162 @@
-# WIFI SCANNER  // UTILITIES MODULE
+"""Utility functions for NetCracker.
 
-# UI IMPORTS
-import pywifi.iface
-from rich.panel import Panel
-from rich.table import Table
-from rich.live import Live
+Provides helper functions for vendor lookup, text-to-speech, OS detection,
+network utilities, and background threading operations.
+"""
+
+import os
+import time
+import platform
+import subprocess
+import threading
+from typing import Optional, Tuple
+
+import manuf
+import pyttsx3
 from rich.console import Console
-console = Console()
-
-# NETWORK IMPORTS
-import pywifi, socket, ipaddress, requests, manuf
-from scapy.all import sniff, RadioTap
+from scapy.all import RadioTap
 from scapy.layers.dot11 import Dot11Elt
-from mac_vendor_lookup import MacLookup
 
-# DOWNLOAD THE WHOLE DATABASE
-#MacLookup().update_vendors(data_store_path="mac-vendors.json")
-vendors = MacLookup()
-vendors.load_vendors()
-
-
-
-
-# ETC IMPORTS 
-import threading, os, random, time, pyttsx3, platform, os, subprocess
+# Initialize vendor lookup database
+try:
+    _vendor_parser = manuf.MacParser("manuf.txt")
+except FileNotFoundError:
+    _vendor_parser = None
 
 
 
-class Utilities():
-    """This class will hold secondary methods that will provide info for main program logic"""
-
-
-    def __init__(self):
-        pass
-    
-    
+class Utilities:
+    """General utility functions for the application."""
 
     @staticmethod
-    def get_vendor(mac:str):
-        """This class will be responsible for getting the vendor"""
+    def get_vendor(mac: str) -> Optional[str]:
+        """Get vendor name from MAC address.
 
-        
-        # FOR DEBUGIGNG
-        verbose = False
+        Args:
+            mac: MAC address string (e.g., "00:11:22:33:44:55")
 
+        Returns:
+            Vendor name if found, None otherwise
+        """
+        if not _vendor_parser:
+            return None
 
+        try:
+            return _vendor_parser.get_manuf_long(mac=mac)
+        except Exception:
+            return None
 
-
-        response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
-
-        return response
-
-
-
-    
     @staticmethod
-    def tts(say, lock = False, voice_rate = 20, voice_sound=False) -> str:
-        """This method will be used to speak to the user through voice engines, use a thread locker if using threads to prevent race conditions"""
+    def tts(text: str, lock: Optional[threading.Lock] = None,
+            voice_rate: int = 20, voice_index: Optional[int] = None) -> None:
+        """Text-to-speech output using system TTS engine.
 
+        Args:
+            text: Text to speak
+            lock: Optional threading lock for thread-safe operation
+            voice_rate: Speed reduction from default rate
+            voice_index: Optional voice index to use
+        """
+        if not Utilities.get_os(windows=True):
+            return
 
-        
-        # CHECK FOR OS FIRST // TRANSITION TO LINUX FROM WINDOWS
-        if Utilities.get_os(windows=True):
-        
-
-            # CREATE OBJECT
+        try:
             engine = pyttsx3.init()
+            rate = engine.getProperty('rate')
+            voices = engine.getProperty('voices')
 
+            engine.setProperty('rate', rate - voice_rate)
 
-            # SET VARIABLES
-            try:
-            
-                rate = engine.getProperty('rate')
-                voices = engine.getProperty('voices')
+            if voice_index is not None and 0 <= voice_index < len(voices):
+                engine.setProperty('voice', voices[voice_index].id)
+            elif len(voices) > 1:
+                engine.setProperty('voice', voices[1].id)
 
-
-                # SET RATE
-                engine.setProperty('rate', rate - voice_rate)
-            
-                
-                # NOW TO CHOOSE THE VOICE WE WANT TO USE
-                if voice_sound != False:
-                    voice_sound = int(voice_sound)
-                    engine.setProperty('voice', voices[voice_sound])
-                    T = "1"
-
-                elif len(voices) > 1:
-                    engine.setProperty('voice', voices[1].id)
-                    T = "2"
-
-                else:
-                    engine.setProperty('voice', voices[0].id)
-                    T = "3"
-                
-                # FOR DEBUGGING
-                #console.print(T)
-                
-                # NOW TO SPEAK TTS
-                if not lock:
-                        
-                    engine.say(say)
+            if lock:
+                with lock:
+                    engine.say(text)
                     engine.runAndWait()
-                    
-                else:
-
-                    with lock:
-                        engine.say(say)
-                        engine.runAndWait()
-                
-
-            except Exception as e:
-                console.print(e)
-
-
-    
-    @staticmethod
-    def clear_screen():
-        """This will be used to clear the os screen"""
-
-        # WINDOWS
-        if os.name.strip() == "nt":
-            os.system('cls')
-
-        # LINUX
-        elif os.name.strip() == "posix":
-            os.system('clear')
-        
-        else:
-            console.print("[bold red]Utilities Module Error:[/bold red] [yellow]failed to clear screen, platform not supported[yellow]")
-
-
-    
-    @classmethod
-    def get_os(cls, windows=False, linux=False):
-        """THis method will be used to get the os that the user is operating this program off of"""
-
-
-        try:
-            
-            # CAPTURE OS
-            OS = platform.system()
-            
-
-            # BOOLEAN MAKING IT EASIER
-            if linux: 
-                if OS.lower() == "linux":
-                    return True
-            
-                else:
-                    return False
-
-            
-            
-            if windows:
-                if OS.lower() == "windows":
-                    return True
-            
-                else:
-                    return False
-            
-
-            # IF BOTH ARE FALSE
-            if OS.lower() in ["windows","linx"]:
-                return OS
-            
             else:
-                return "mac"
+                engine.say(text)
+                engine.runAndWait()
 
-        
+        except Exception:
+            pass
 
-        except Exception as e:
-            console.print(f"[bold red]Exception Error:[yellow] {e}")
+    @staticmethod
+    def clear_screen() -> None:
+        """Clear the terminal screen."""
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    @staticmethod
+    def get_os(windows: bool = False, linux: bool = False) -> bool:
+        """Check the operating system.
+
+        Args:
+            windows: Return True if Windows
+            linux: Return True if Linux
+
+        Returns:
+            Boolean result based on requested OS check
+        """
+        system = platform.system().lower()
+
+        if windows:
+            return system == "windows"
+        if linux:
+            return system == "linux"
+
+        return system
 
     
 
 
-class NetTilities():
-    """This class will house reusuable methods for scanning"""
+class NetworkUtilities:
+    """Network-related utility functions for WiFi operations."""
 
-    def __init__(self):
-        pass
+    CIPHER_TYPES = {
+        0: "None",
+        1: "WEP",
+        2: "TKIP",
+        3: "AES",
+        4: "Unknown"
+    }
 
-
-
-    @staticmethod
-    def get_iface(get_name=False, verbose=False):
-        """This method will be used to get an iface"""
-
-
-        try:
-            
-            # GET THE IFACE AND RETURN IT
-            wifi = pywifi.PyWiFi()
-            iface = wifi.interfaces()[1]
-
-            
-            
-
-            if get_name:
-                return iface.name()
-            
-            return iface
-
-
-        
-
-        except Exception as e:
-            if verbose:
-                console.print(f"[bold red]NetTilities Error:[yellow] {e}")
-            
-
-            return False
-    
+    ENCRYPTION_TYPES = {
+        0: "Open",
+        1: "WPA",
+        2: "WPA-PSK",
+        3: "WPA2",
+        4: "WPA2-PSK",
+        5: "Unknown",
+        6: "WPA3",
+        7: "WPA3-SAE"
+    }
 
     @staticmethod
-    def get_cipher(cipher):
-        """This method will be used to get cipher"""
-        
-       # console.print(cipher)
-        ciphers = {
-            0: "None",
-            1: "WEP",
-            2: "TKIP",
-            3: "AES",
-            4: "UNKOWN"
-        }
-        
-        cipher = int(cipher)
-        result = ciphers.get(cipher)
-
-
-        return result
-
+    def get_cipher(cipher: int) -> str:
+        """Get cipher type name from cipher code."""
+        return NetworkUtilities.CIPHER_TYPES.get(cipher, "Unknown")
 
     @staticmethod
-    def get_encryption(akm):
-        """This method will be used to get the get_encryption type that the network is using"""
-
-
-        # CREATE A LIST FULL OF THE AUTHENTICATION TYPES
-
-        encryptions = {
-            0: "Open",
-            1: "WPA",
-            2: "WPA-PSK",
-            3: "WPA2",
-            4: "WPA2-PSK",
-            5: "Unkown",
-            6: "WPA3",
-            7: "WPA3-SAE"
-
-        }
-        
-        encryption = encryptions.get(akm)
-        
-        return encryption
-     
+    def get_encryption(akm: int) -> str:
+        """Get encryption type name from AKM code."""
+        return NetworkUtilities.ENCRYPTION_TYPES.get(akm, "Unknown")
 
     @staticmethod
-    def get_frequency(frequency):
-        """Get the frequency being used by the wifi"""
-
-
-        # 2.4GHZ OR 5GHZ
-        if  frequency in range(2400000, 2500000):
+    def get_frequency(frequency: int) -> str:
+        """Get frequency band from frequency value."""
+        if 2400000 <= frequency < 2500000:
             return "2.4 GHz"
-        
-        elif frequency in range(5000000, 5800000):
+        elif 5000000 <= frequency < 5800000:
             return "5 GHz"
-        
-        elif frequency in range(5900000, 7200000):
+        elif 5900000 <= frequency < 7200000:
             return "6 GHz"
-
-
-        else:
-            return frequency
-        
+        return f"{frequency} Hz"
 
     @staticmethod
-    def get_channel(freq):
-        """This method will be responsible for getting the channel"""
-
-        
+    def get_channel(freq: int) -> Optional[int]:
+        """Get WiFi channel number from frequency."""
         if 2412 <= freq <= 2472:
             return (freq - 2407) // 5
         elif freq == 2484:
@@ -371,35 +246,32 @@ class NetTilities():
     
 
     @staticmethod
-    def get_rssi(pkt, format=False):
-        """This method will be responsible for pulling signal strength"""
+    def get_rssi(pkt, format: bool = False) -> Optional[str]:
+        """Extract RSSI (signal strength) from packet.
 
-        signal = ""; signal = f"[bold red]Signal:[/bold red] {signal}"  
+        Args:
+            pkt: Scapy packet with RadioTap layer
+            format: If True, return formatted string with units
 
-        
-        # CHECK FOR RADIO HEADER
-        if pkt.haslayer(RadioTap):
-            
+        Returns:
+            RSSI value as string if found, None otherwise
+        """
+        if not pkt.haslayer(RadioTap):
+            return None
 
-            # PULL RSSI
-            rssi = getattr(pkt, "dBm_AntSignal", False)
-            
-            # NOW RETURN
-            if rssi:
+        rssi = getattr(pkt, "dBm_AntSignal", None)
 
-                if format:
-                    return f"{rssi} dBm"
-                
-                return rssi
+        if rssi is None:
+            return None
 
+        return f"{rssi} dBm" if format else rssi
 
 
 
-class Background_Threads():
-    """This module will house background permanent running threads"""
-    
 
-    # CLASS VARIABLES
+class BackgroundThreads:
+    """Manages background thread operations for channel hopping."""
+
     hop = True
     channel = 0
     
@@ -558,36 +430,11 @@ class Background_Threads():
 
 
 
-# FOR MODULE TESTING
+# Backward compatibility aliases
+NetTilities = NetworkUtilities
+Background_Threads = BackgroundThreads
+
+
 if __name__ == "__main__":
-
-
-
-    parser = manuf.MacParser("manuf.txt")
-    console.print(len(parser))
-
-
-
-    tests = {
-        0: "ass",
-        1: "toes",
-        2: "booty",
-        3: "but"
-    }
-
-
-    toe = 3
-
-    console.print(tests.get(toe))
-
-
-    console.print(os.name)
-
-
-
-    Background_Threads.channel_hopper()
-
-
-
-    while True:
-        pass
+    print("NetCracker Utilities Module")
+    print("Use 'from nsm_utilities import Utilities, NetworkUtilities' to import")

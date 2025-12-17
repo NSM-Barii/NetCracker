@@ -1,143 +1,120 @@
-# WIFI SCANNER  // THIS WILL BE WHERE FILE HANDLING WILL HAPPEN
+"""File handling and data storage for NetCracker.
 
-# UI IMPORTS
+Manages network scan results, settings, and war driving data persistence.
+"""
+
+import json
+import os
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional, Any
+
+from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.console import Console
-from rich.live import Live
-console = Console()
+
+# Initialize console for this module
+_console = Console()
 
 
-# ETC IMPORTS
-from datetime import datetime
-import time, os
+def get_base_dir() -> Path:
+    """Get the base data directory, accounting for sudo usage.
+
+    Returns:
+        Path to base data directory
+    """
+    try:
+        sudo_user = os.getenv("SUDO_USER")
+        if sudo_user:
+            user_home = Path(f"/home/{sudo_user}")
+        else:
+            user_home = Path.home()
+
+        base_dir = user_home / "Documents" / "nsm_tools" / ".data" / "netcracker"
+    except Exception:
+        base_dir = Path.home() / "Documents" / "nsm_tools" / ".data" / "netcracker"
+
+    base_dir.mkdir(exist_ok=True, parents=True)
+    return base_dir
 
 
-# NSM IMPORTS
-from nsm_utilities import Utilities
+BASE_DIR = get_base_dir()
+NETWORKS_DIR = BASE_DIR / "Networks"
+WAR_DRIVES_DIR = BASE_DIR / "war_drives"
+SETTINGS_FILE = BASE_DIR / "settings.json"
 
-# FILE HANDLING
-from pathlib import Path
-import json
-
-# CREATE DEFAULT FILE PATH LOCATION // DEAPPRECIATED
-base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker" 
-
-
-# TEMP FIX FOR FILE CRASHING WITHOUT SUDO
-try:
-    USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
-    BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / ".data" / "netcracker"
-except Exception as e:
-    console.print(e)
-    
-    # SWITCH BACK TO PATH
-    BASE_DIR = Path.home() / "Documents" / "nsm_tools" / ".data" / "netcracker"
-
-
-BASE_DIR.mkdir(exist_ok=True, parents=True)
-
-
-# ALT PATH WAYS
-path_network = BASE_DIR / "Networks" 
+# Ensure directories exist
+NETWORKS_DIR.mkdir(exist_ok=True, parents=True)
+WAR_DRIVES_DIR.mkdir(exist_ok=True, parents=True) 
 
 
 
 
-class Network_Mapper():
-    """This class will be used to store and save found networks along with extra info about them"""
-    
+class NetworkMapper:
+    """Stores and persists network scan results."""
 
     def __init__(self):
-        self.indent = 0
-        self.data = {}
-        pass
+        self.network_count = 0
+        self.data: Dict[int, Dict[str, Any]] = {}
 
+    def add_network(self, ssid: str, bssid: str, signal: int,
+                    frequency: str, channel: int, auth: str,
+                    encryption: str, cipher: str) -> None:
+        """Log a discovered network.
 
+        Args:
+            ssid: Network SSID
+            bssid: Network BSSID (MAC address)
+            signal: Signal strength
+            frequency: Frequency band
+            channel: WiFi channel
+            auth: Authentication method
+            encryption: Encryption type
+            cipher: Cipher suite
+        """
+        self.network_count += 1
 
-    def network_logging(self, ssid, bssid, signal, frequency, channel, auth, akm, cipher):
-        """This will be used to store networks and there info"""
-
-        
-        # 1 FOR EACH NETWORK
-        self.indent += 1
-      
-
-        # CREATE VARIABLES
-        self.data[self.indent] = {
-
+        self.data[self.network_count] = {
             "ssid": ssid,
             "bssid": bssid,
             "signal": signal,
             "frequency": frequency,
             "channel": channel,
             "auth": auth,
-            "encryption": akm,  # ENCRYPTION  
+            "encryption": encryption,
             "cipher": cipher
-            
-        } 
+        }
 
+    def save_networks(self) -> bool:
+        """Save discovered networks to JSON file.
 
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
+            filepath = NETWORKS_DIR / f"{timestamp}.json"
 
-        # FOR DEBUGGING
-        verbose = False
+            with open(filepath, "w") as f:
+                json.dump(self.data, f, indent=4)
 
-        if verbose:
-            console.print(self.indent)
+            return True
 
+        except Exception as e:
+            _console.print(f"[bold red]Save error:[/bold red] {e}")
+            return False
 
-    
-    def network_saver(self):
-        """This will save the networks"""
-      
-        
-        # LOOP THROUGH IN CASE OF ELSE OR EXCEPTION
-        while True:
+    def print_summary(self, success: bool = True) -> None:
+        """Print scan summary.
 
-            try:
-
-                timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
-                
-                # REDUNDENCY CHECK
-                if path_network.exists():
-
-                    path = path_network / f"{timestamp}.json"
-
-                    with open(path, "w") as file:
-                        json.dump(self.data, file, indent=4)
-                        
-
-                        break
-                
-                else:
-                    path_network.mkdir(exist_ok=True, parents=True)
-
-            
-            except json.JSONDecodeError as e:
-                console.print(f"JSON Error: {e}")
-                break
-
-            except FileNotFoundError as e:
-
-                # CREATE FILE PATH
-                with open(path_network, "w") as file:
-                    json.dump(file)
-
-                console.print(f"[bold red]File not found Error:[/bold red] [yellow]{e}[/yellow]")
-                break
-
-
-            except Exception as e:
-                console.print(f"[bold red]Exception Error:[/bold red] [yellow]{e}[/yellow]")
-                break
-            
-    
-    
-    def done(self, go):
-        """Call upon this method once you are done with previous method to confirm files have been saved"""
-
-        if go:
-            console.print(f"\n\n[bold green]Total Networks Found & Saved:[/bold green] {self.indent}")
+        Args:
+            success: Whether scan completed successfully
+        """
+        if success:
+            _console.print(
+                f"\n[bold green]Networks found & saved:[/bold green] {self.network_count}"
+            )
 
 
     @staticmethod    
@@ -336,160 +313,88 @@ class Network_Mapper():
                     
  
 
-class Settings():
-    """This method will be responsible for controlling json info"""
+class Settings:
+    """Manages application settings persistence."""
 
+    DEFAULT_SETTINGS = {
+        "iface": "",
+        "captures": ""
+    }
 
-    def __init__(self):
-        pass
+    @classmethod
+    def load(cls, verbose: bool = False) -> Dict[str, Any]:
+        """Load settings from JSON file.
 
+        Args:
+            verbose: Print status messages
 
-    
+        Returns:
+            Settings dictionary
+        """
+        try:
+            if not SETTINGS_FILE.exists():
+                cls._create_default_settings()
+
+            with open(SETTINGS_FILE, "r") as f:
+                settings = json.load(f)
+
+            if verbose:
+                _console.print(f"✓ Settings loaded from {SETTINGS_FILE}", style="green")
+
+            return settings
+
+        except json.JSONDecodeError as e:
+            _console.print(f"[red]Invalid JSON in settings:[/red] {e}")
+            cls._create_default_settings()
+            return cls.DEFAULT_SETTINGS
+        except Exception as e:
+            _console.print(f"[red]Error loading settings:[/red] {e}")
+            return cls.DEFAULT_SETTINGS
+
+    @classmethod
+    def save(cls, data: Dict[str, Any], verbose: bool = False) -> bool:
+        """Save settings to JSON file.
+
+        Args:
+            data: Settings dictionary to save
+            verbose: Print status messages
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            with open(SETTINGS_FILE, "w") as f:
+                json.dump(data, f, indent=4)
+
+            if verbose:
+                _console.print("✓ Settings saved", style="green")
+
+            return True
+
+        except Exception as e:
+            _console.print(f"[red]Error saving settings:[/red] {e}")
+            return False
+
+    @classmethod
+    def _create_default_settings(cls) -> None:
+        """Create default settings file."""
+        try:
+            with open(SETTINGS_FILE, "w") as f:
+                json.dump(cls.DEFAULT_SETTINGS, f, indent=4)
+            _console.print("✓ Created default settings", style="green")
+        except Exception as e:
+            _console.print(f"[red]Error creating settings:[/red] {e}")
+
+    # Backward compatibility
     @classmethod
     def get_json(cls):
-        """This will pull and return json info"""
-
-
-        # DEBUG
-        verbose = True
-
-        
-        # DESTROY ERRORS
-        while True:
-            try:
-
-                # IF EXISTS
-                if BASE_DIR.exists():
-
-
-                    # MAKE SETTINGS
-                    path = BASE_DIR / "settings.json"
-
-
-                    with open(path, "r") as file:
-
-                        settings = json.load(file)
-
-
-                        if verbose:
-                            console.print(f"Successfully Pulled settings.json from {path}", style="bold green")
-
-
-                    return settings
-                
-
-                
-
-                # MAKE PATHS
-                else:
-
-                    BASE_DIR.mkdir(exist_ok=True, parents=True)
-            
-
-
-            # MAKE JSON
-            except FileNotFoundError as e:
-
-                if verbose:
-                    console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
-
-                
-
-                Settings.create_json()
-
-
-        
-            
-            # ERRORS
-            except Exception as e:
-                console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-                break
-
+        """Deprecated: Use Settings.load() instead."""
+        return cls.load(verbose=True)
 
     @classmethod
     def push_json(cls, data):
-        """This method will be used to push info to settings.json"""
-
-
-        # VARS
-        verbsoe = True
-        time_stamp = datetime.now().strftime("%m/%d/%Y - %I:%M:%S")
-
-
-        # DESTROY ERRORS
-        while True:
-            try:
-
-                # 
-                if BASE_DIR.exists():
-                    
-
-                    # VARS
-                    path = BASE_DIR / "settings.json"
-
-                    with open(path, "w") as file:
-
-                        json.dump(data, file, indent=4)
-
-
-                        if verbsoe:
-                            console.print("Successfully pushed settings.json", style="bold green")
-                    
-
-                    return
-
-
-
-                
-                # MAKE DIR
-                else:
-
-                    BASE_DIR.mkdir(exist_ok=True, parents=True)
-
-
-                    if verbsoe:
-                        console.print(f"Successfully created dir", style="bold green")
-                
-            
-
-
-            except FileNotFoundError as e:
-
-                if verbsoe:
-                    console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
-
-                
-                Settings.create_json()
-
-                
-            
-            except Exception as e:
-                console.print(f"[bold red]Exception Error:[yellow] {e}")
-                
-                break
-    
-
-    @classmethod
-    def create_json(cls):
-        """This is a sub method to be called upon when the json file is missing"""
-
-        # CREATE VARS
-        path = BASE_DIR / "settings.json"
-        data = {
-                "iface": "",
-                "captures": ""
-            }
-
-
-        # PUSH IT 
-        with open(path, "w") as file:
-
-            json.dump(data, file, indent=4)
-        
-
-        # PERFECT
-        console.print("Successfully created json file", style="bold green")
+        """Deprecated: Use Settings.save() instead."""
+        return cls.save(data, verbose=True)
 
     
     @classmethod
@@ -623,24 +528,13 @@ class Recon_Pusher():
 
 
 
-# FOR MODULAR TESTING
+# Backward compatibility aliases
+Network_Mapper = NetworkMapper
+Recon_Pusher = ReconPusher
+
+
 if __name__ == "__main__":
-
-    use = 1
-
-    if use == 1:
-
-        Recon_Pusher.main()
-
-        while True:
-            value = console.input("[bold green]Enter value: ")
-            data = {
-                "data": value
-            }
-            Recon_Pusher.push_war(save_data=data)
-
-    
-
-
-    elif use == 2:
-        Network_Mapper().network_logging("aa", "ass", "as", "dd", "ff", "1111")
+    print("NetCracker File Management Module")
+    print(f"Base directory: {BASE_DIR}")
+    print(f"Networks directory: {NETWORKS_DIR}")
+    print(f"War drives directory: {WAR_DRIVES_DIR}")

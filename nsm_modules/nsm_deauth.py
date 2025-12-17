@@ -176,16 +176,16 @@ class Frame_Snatcher():
         tempt = 1   
 
 
-        # LOOP THAT BITCH
+        # Loop through sniff attempts
         try:
             while True:
 
-                
+
                 # OUTPUT ATTEMPT
                 console.print(f"Sniff Attempt #{tempt}", style="bold green")
 
-                    
-                # SNIFF THAT BITCH
+
+                # Begin sniffing
                 sniff(iface=iface, prn=Frame_Snatcher.packet_parser, count=0, store=0, timeout=15)
 
                 time.sleep(1)
@@ -2885,11 +2885,11 @@ class You_Cant_DOS_ME():
                 return
             
             
-        # LOOP THAT BITCH
+        # Main connection monitoring loop
         while online:
 
             try:
-            
+
                 # TRACK PING TIME
                 time_start = time.time()
                 response = sr1(ping, timeout=timeout, verbose=verbose)
