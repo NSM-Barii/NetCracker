@@ -1268,11 +1268,11 @@ class Beacon_Flooder():
 
 
                 # CRAFT FRAME
-                dot11 = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=bssid, addr3=bssid)
-                beacon = Dot11Beacon(cap='ESS')
-                essid = Dot11Elt(ID='SSID', info=ssid.encode(), len=len(ssid))
-                dsset = Dot11Elt(ID='DSset', info=b'\x06')
-                rates = Dot11Elt(ID='Rates', info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
+                dot11 = Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid)
+                beacon = Dot11Beacon(cap="ESS+privacy")
+                essid = Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                dsset = Dot11Elt(ID="DSset", info=b'\x06')
+                rates = Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
                 frame = RadioTap()/dot11/beacon/essid/dsset/rates
 
 
@@ -1301,6 +1301,12 @@ class Beacon_Flooder():
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
                 # CRAFT FRAME
+                dot11 = Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid)
+                beacon = Dot11Beacon(cap="ESS+privacy")
+                essid = Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                dsset = Dot11Elt(ID="DSset", info=b'\x06')
+                rates = Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
+                frame = RadioTap()/dot11/beacon/essid/dsset/rates
                 dot11 = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=bssid, addr3=bssid)
                 beacon = Dot11Beacon(cap='ESS')
                 essid = Dot11Elt(ID='SSID', info=ssid.encode(), len=len(ssid))
@@ -1431,12 +1437,17 @@ class Beacon_Flooder():
         # CATCH
         try:
 
-            # GET IFACE
+            # GET IFACE3
             cls.iface = Frame_Snatcher.get_interface()
 
 
             # OUTPUT UI
             Frame_Snatcher.welcome_ui(iface=cls.iface)
+
+
+            # SET CHANNEL
+            Background_Threads.channel_hopper(set_channel=int(6)); time.sleep(1)
+
 
 
             # SNIFF AREA FOR NEARBY SSIDS
@@ -2354,9 +2365,7 @@ class War_Driving():
         # WAR DRIVER
         cls.aps = {}
 
-        d = {}
-
-        
+ 
         try:
 
             # GET IFACE
@@ -2820,12 +2829,6 @@ class Client_Sniffer():
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[bold yellow] {e}")
-
-
-
-
-
-
 
 
     @classmethod
