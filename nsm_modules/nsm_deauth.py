@@ -1225,16 +1225,18 @@ class Beacon_Flooder():
     def get_bssid(cls, type):
         """This method will create a bssid"""
 
-        
+
         # 1 == RANDOM
         if type == 1:
             mac = str(RandMAC())
+            parts = mac.split(':')
+            # Force unicast (bit 0 = 0) and locally administered (bit 1 = 1)
+            first_octet = (int(parts[0], 16) & 0xFE) | 0x02
+            return "%02x:%s" % (first_octet, ':'.join(parts[1:]))
 
-            return mac
-        
 
         elif type == 2:
-            return "02:%02x:%02x:%02x:%02x:%02x:%02x" % tuple(random.randint(0, 255) for _ in range(6))
+            return "02:%02x:%02x:%02x:%02x:%02x" % tuple(random.randint(0, 255) for _ in range(5))
 
 
         pass
