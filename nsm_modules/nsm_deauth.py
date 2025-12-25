@@ -1270,8 +1270,10 @@ class Beacon_Flooder():
                 # CRAFT FRAME
                 frame = RadioTap() /\
                     Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
-                    Dot11Beacon(cap="ESS") /\
-                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                    Dot11Beacon(cap="ESS", beacon_interval=100, timestamp=int(time.time())) /\
+                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid)) /\
+                    Dot11Elt(ID="DSset", info=chr(6)) /\
+                    Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
 
 
                 # APPEND AND GO
@@ -1301,8 +1303,10 @@ class Beacon_Flooder():
                 # CRAFT FRAME
                 frame = RadioTap() /\
                     Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
-                    Dot11Beacon(cap="ESS") /\
-                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                    Dot11Beacon(cap="ESS", beacon_interval=100, timestamp=int(time.time())) /\
+                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid)) /\
+                    Dot11Elt(ID="DSset", info=chr(6)) /\
+                    Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
 
 
                 # APPEND AND GO
@@ -1440,7 +1444,7 @@ class Beacon_Flooder():
 
     
             # CRAFT FRAMES
-            frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=3, amount=15)
+            frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=1, amount=15)
 
             
             # INJECT THE FRAMES
