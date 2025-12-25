@@ -1012,7 +1012,7 @@ class Beacon_Flooder():
     
 
     # CLASS VARS
-    custom_ssids = [
+    trolling_ssids = [
             "FBI_Surveillance_Van",
             "PrettyFlyForAWiFi",
             "ItHurtsWhenIP",
@@ -1034,6 +1034,38 @@ class Beacon_Flooder():
             "Skynet_Online",
             "Free_Crypto_Mining"
         ]
+    
+
+    christmas_ssids = [
+            "MerryChristmas",
+            "Merry_Christmas",
+            "MerryChristmas_WiFi",
+            "MerryChristmas_Guest",
+            "MerryChristmas24",
+            "MerryChristmasNet",
+            "MerryChristmasLAN",
+            "MerryChristmasHome",
+            "MerryChristmas_AP",
+            "MerryChristmas_Free",
+
+            "MerryXmas",
+            "Merry_Xmas",
+            "MerryXmas_WiFi",
+            "MerryXmas_Guest",
+            "MerryXmas24",
+            "MerryXmasNet",
+
+            "HappyHolidays",
+            "Happy_Holidays",
+            "HappyHolidays_WiFi",
+            "HappyHolidays_Guest",
+
+            "ChristmasWiFi",
+            "Christmas_WiFi",
+            "ChristmasGuest",
+            "Christmas24"
+        ]
+
 
     
     def __init__(self):
@@ -1221,31 +1253,68 @@ class Beacon_Flooder():
 
         b =  Beacon_Flooder() 
         
-        while amount >= 0:
+        # DEAPPRECIATED // TERRIBLE LOGIC LOL
+        if ssid_type == 99:
+            while amount >= 0:
 
 
-            # GET SSID
-            ssid =  b.get_ssid(type=ssid_type)
+                # GET SSID
+                ssid =  b.get_ssid(type=ssid_type)
 
-            # GET BSSID
-            bssid = Beacon_Flooder.get_bssid(type=bssid_type)
-
-
-            # CRAFT FRAME
-            frame = RadioTap() /\
-                Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
-                Dot11Beacon(cap="ESS") /\
-                Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                # GET BSSID
+                bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
 
-            # APPEND AND GO
-            frames.append(frame)
+                # CRAFT FRAME
+                frame = RadioTap() /\
+                    Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
+                    Dot11Beacon(cap="ESS") /\
+                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
 
-            amount -= 1
+
+                # APPEND AND GO
+                frames.append(frame)
+
+                amount -= 1
 
 
-            if verbose:
-                console.print(f"[bold red]Frame Creation --> [bold yellow]{frame}")
+                if verbose:
+                    console.print(f"[bold red]Frame Creation --> [bold yellow]{frame}")
+            
+
+        else:
+
+
+            if ssid_type == 1:   ssids = cls.trolling_ssids
+            elif ssid_type == 2: ssids = cls.christmas_ssids
+            elif ssid_type == 3: ssids = 4
+
+            
+
+            for ssid in ssids:
+
+                ssidd = ssid
+                bssid = Beacon_Flooder.get_bssid(type=bssid_type)
+
+                # CRAFT FRAME
+                frame = RadioTap() /\
+                    Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
+                    Dot11Beacon(cap="ESS") /\
+                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+
+
+                # APPEND AND GO
+                frames.append(frame)
+
+
+                if verbose:
+                    console.print(f"[bold red]Frame Creation --> [bold yellow]{frame}")
+
+            
+            return frames
+
+
+                
 
         
         # NOW RETURN THE LIST OF FRAMES
@@ -1365,11 +1434,11 @@ class Beacon_Flooder():
 
 
             # SNIFF AREA FOR NEARBY SSIDS
-            cls.ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
+            #cls.ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
 
     
             # CRAFT FRAMES
-            frames = Beacon_Flooder.get_frames(ssid_type=2, bssid_type=2, amount=15)
+            frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=3, amount=15)
 
             
             # INJECT THE FRAMES
