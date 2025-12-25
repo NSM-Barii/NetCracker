@@ -1070,156 +1070,45 @@ class Beacon_Flooder():
     
     def __init__(self):
         pass
-    
 
-    @classmethod
-    def sniff_local_ssids(cls, iface):
-        """This method will be used to sniff the local ssids in the area"""
-
-
-        # VARS
-        ssids = []
-        verbose = True
-
-
-        def sniffer():
-            """This will begin sniffing"""
-            
-
-            # VAR
-            attempt = 0
-            
-
-            # LOOP FOR BLANKS
-            while True:
-                try:
-
-                    # ATTEMPT
-                    attempt += 1
-                    console.print(f"[bold red]Sniff Attempt[/bold red] #{attempt}")
-
-
-                    sniff(iface=iface, prn=parser, timeout=15, count=0, store=0)
-
-                    if ssids:
-
-                        
-                        # SNIFF AGAIN
-                        sniff(iface=iface, prn=parser, timeout=15)
-
-
-                        # LEAVE
-                        break
-                    
-
-                    time.sleep(1)
-                
-
-                except Exception as e:
-                    console.print(f"[bold red]\n\nException Error:[yellow] {e}")
-
-                    console.input("[bold green]\nPress enter to return the the Main Menu: ")
-
-
-                    # RETURN TO MAIN MODULE
-                    from nsm_ui import MainUI
-                    MainUI.main()
-
-        
-
-        def parser(pkt):
-            """This will parse pkt"""
-
-            
-            # MUST MEET PROTOCOL
-            if pkt.haslayer(Dot11Beacon):
-
-
-                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
-                addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
-
-
-                use = False
-
-
-                # RETRIEVE SSID
-                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
-
-                
-                
-                # DESTINATION ADDR
-                if use:
-                    if addr1 and ssid not in ssids and use: 
-
-                        
-
-                        # APPEND
-                        ssids.append(ssid)
-
-
-                        if verbose:
-                            console.print(f"[+] Found SSID:[bold yellow] {ssid}", style="bold red")
-                    
-                
-                    
-                # SOURCE ADDR  <-- BEACON
-                elif addr2 and ssid not in ssids:
-
-
-                    # APPEND
-                    ssids.append(ssid)
-
-
-                    if verbose:
-                        console.print(f"[+] Found SSID:[bold yellow] {ssid}", style="bold red")
-
-        
-
-        # SNIFF FOR SSIDS
-        sniffer()
-
-
-        # NOW TO RETURN IT 
-        return ssids
- 
 
 
     @classmethod
-    def get_ssid(cls, type, length=8):
-        """This method will create a ssid"""
+    def _choose_ssid_type(cls):
+        """This metod will allow the user to choose the type of ssid list to advertise"""
 
 
-        # 1 == RANDOM
-        if type == 1:
-            return str(random.choices(cls.ssids)[0])
+        console.print(
+            "\n\n1. ssids_trollings",
+            "\n2. ssids_christmas",
+            "\n3. Enter Custom list"
+        )
+
+
+        while True:
+
+            try:
+
+                choice = console.input("\n\n[bold blue]Enter ssid type: ").strip()
+
+                if choice == "1": return   cls.trolling_ssids
+                elif choice == "2": return cls.christmas_ssids
+                elif choice == "3":
+
+                    console.print("[bold green]Enter ssids seperated by a comma ','  Press enter when your done!")
+
+
+                    raw = console.input("\n\n[bold yellow]Enter custom ssids: ").strip(); ssids = []
+                    clean = (raw.split(',')) 
+                    for c in clean: ssids.append(c) if c != "," else ''
+                    return ssids
+                
+                else: console.print("Choose a valid option goofy")
+            
+
+            except Exception as e:
+                console.print(f"[bold red]Exception Error:[bold yellow] {e}"); input()
         
-        
-        # SET LIST
-        elif type == 2:
-           
-
-           # SET
-           #vr = cls.custom_ssids[0]
-           #cls.custom_ssids.remove(vr)
-           vr = random.choice(cls.custom_ssids)
-           return vr
-
-           t = random.choices(cls.custom_ssids)[0]
-           
-           s = string.ascii_letters = t
-
-           
-           #return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-        
-
-        elif type == 3:
-            return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-         
-
-        pass
-
-
 
     @classmethod
     def get_bssid(cls, type):
@@ -1261,7 +1150,7 @@ class Beacon_Flooder():
 
 
                 # GET SSID
-                ssid =  b.get_ssid(type=ssid_type)
+                ssid =  ssid_type
 
                 # GET BSSID
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
@@ -1286,17 +1175,10 @@ class Beacon_Flooder():
                     console.print(f"[bold red]Frame Creation --> [bold yellow]{frame}")
             
 
-        else:
-
-
-            if ssid_type == 1:   ssids = cls.trolling_ssids
-            elif ssid_type == 2: ssids = cls.christmas_ssids
-            elif ssid_type == 3: ssids = 4
-
-            
+        else:            
 
             seq = 0
-            for ssid in ssids:
+            for ssid in ssid_type:
 
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
@@ -1316,7 +1198,7 @@ class Beacon_Flooder():
                 if verbose:
                     console.print(f"[bold red]Frame Creation --> [bold yellow]{frame}")
 
-            
+            print('\n')
             return frames
 
 
@@ -1434,20 +1316,18 @@ class Beacon_Flooder():
 
 
             # OUTPUT UI
-            Frame_Snatcher.welcome_ui(iface=cls.iface)
+            Frame_Snatcher.welcome_ui(iface=cls.iface, text="    WiFi \nSpoofing",)
 
 
             # SET CHANNEL
             Background_Threads.channel_hopper(set_channel=int(6)); time.sleep(1)
 
 
-
-            # SNIFF AREA FOR NEARBY SSIDS
-            #cls.ssids = Beacon_Flooder.sniff_local_ssids(iface=cls.iface)
+            ssid_type = Beacon_Flooder._choose_ssid_type()
 
     
             # CRAFT FRAMES
-            frames = Beacon_Flooder.get_frames(ssid_type=1, bssid_type=1, amount=15)
+            frames = Beacon_Flooder.get_frames(ssid_type=ssid_type, bssid_type=1, amount=15)
 
             
             # INJECT THE FRAMES
