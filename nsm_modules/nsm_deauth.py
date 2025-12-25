@@ -1431,12 +1431,17 @@ class Beacon_Flooder():
         # CATCH
         try:
 
-            # GET IFACE
+            # GET IFACE3
             cls.iface = Frame_Snatcher.get_interface()
 
 
             # OUTPUT UI
             Frame_Snatcher.welcome_ui(iface=cls.iface)
+
+
+            # SET CHANNEL
+            Background_Threads.channel_hopper(set_channel=int(6)); time.sleep(1)
+
 
 
             # SNIFF AREA FOR NEARBY SSIDS
@@ -2354,9 +2359,7 @@ class War_Driving():
         # WAR DRIVER
         cls.aps = {}
 
-        d = {}
-
-        
+ 
         try:
 
             # GET IFACE
@@ -2820,12 +2823,6 @@ class Client_Sniffer():
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[bold yellow] {e}")
-
-
-
-
-
-
 
 
     @classmethod
