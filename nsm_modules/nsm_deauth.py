@@ -1295,6 +1295,7 @@ class Beacon_Flooder():
 
             
 
+            seq = 0
             for ssid in ssids:
 
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
@@ -1302,13 +1303,14 @@ class Beacon_Flooder():
                 # CRAFT FRAME
                 frame = (
                     RadioTap() /
-                    Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=bssid, addr3=bssid) /
+                    Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=bssid, addr3=bssid, SC=(seq << 4)) /
                     Dot11Beacon() /
                     Dot11Elt(ID='SSID', info=ssid, len=len(ssid))
                 )
 
                 # APPEND AND GO
                 frames.append(frame)
+                seq = (seq + 1) % 4096  # Sequence wraps at 4096
 
 
                 if verbose:
