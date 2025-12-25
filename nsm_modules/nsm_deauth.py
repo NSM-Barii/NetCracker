@@ -2516,6 +2516,7 @@ class Client_Sniffer():
                 if choice in range(1, num) or choice == num:
                     ssid = data[choice][0]
                     target = data[choice][1]
+                    channel = cls.ssids[target]
 
 
                     console.print(f"\n[bold red]Target choosen:[yellow] {target}")
