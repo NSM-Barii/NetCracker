@@ -1268,12 +1268,12 @@ class Beacon_Flooder():
 
 
                 # CRAFT FRAME
-                frame = RadioTap() /\
-                    Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
-                    Dot11Beacon(cap="ESS", beacon_interval=100, timestamp=int(time.time())) /\
-                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid)) /\
-                    Dot11Elt(ID="DSset", info=chr(6)) /\
-                    Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
+                dot11 = Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid)
+                beacon = Dot11Beacon(cap="ESS+privacy")
+                essid = Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                dsset = Dot11Elt(ID="DSset", info=b'\x06')
+                rates = Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
+                frame = RadioTap()/dot11/beacon/essid/dsset/rates
 
 
                 # APPEND AND GO
@@ -1301,12 +1301,12 @@ class Beacon_Flooder():
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
                 # CRAFT FRAME
-                frame = RadioTap() /\
-                    Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid) /\
-                    Dot11Beacon(cap="ESS", beacon_interval=100, timestamp=int(time.time())) /\
-                    Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid)) /\
-                    Dot11Elt(ID="DSset", info=chr(6)) /\
-                    Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
+                dot11 = Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid)
+                beacon = Dot11Beacon(cap="ESS+privacy")
+                essid = Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
+                dsset = Dot11Elt(ID="DSset", info=b'\x06')
+                rates = Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
+                frame = RadioTap()/dot11/beacon/essid/dsset/rates
 
 
                 # APPEND AND GO
