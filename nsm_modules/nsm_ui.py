@@ -88,7 +88,7 @@ class MainUI():
             f"       [{color}][3][/{color}] [{color2}]Client Sniffer - (Spy on network)\n\n"            
             f"       [{color}][4][/{color}] [{color2}]Deauth One Client\n"
             f"       [{color}][5][/{color}] [{color2}]Deauth All Clients\n\n"
-            f"       [{color}][6][/{color}] [{color2}]Beacon Flooood {test}\n"
+            f"       [{color}][6][/{color}] [{color2}]Beacon Flooood\n"
             f"       [{color}][7][/{color}] [{color2}]Capture n Crack Handshake {test}\n\n"
             f"       [{color}][8][/{color}] [{color2}]Ping Me\n\n"
             f"       [{color}][9][/{color}] [{color2}]Scan for Networks\n"

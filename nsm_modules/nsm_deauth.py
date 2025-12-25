@@ -1079,7 +1079,7 @@ class Beacon_Flooder():
 
 
         console.print(
-            "\n\n1. ssids_trollings",
+            "1. ssids_trollings",
             "\n2. ssids_christmas",
             "\n3. Enter Custom list"
         )
@@ -1218,6 +1218,7 @@ class Beacon_Flooder():
         # VARS
         sent = 0
         down = 5
+        c1 = "bold red"
 
         # PANEL
         panel = Panel(renderable=f"Launching Attack in {down}" , title="Attack Status", style="bold yellow", border_style="bold red", expand=False)
@@ -1246,28 +1247,16 @@ class Beacon_Flooder():
                 try:
 
                     
-                    # INJECT PACKETS INTO 
-                    sendp(frames, verbose=0, iface=cls.iface)
+
+                    sendp(frames, verbose=0, iface=cls.iface);  sent += count * len(frames)
 
 
-
-                    # NOTICE
-                    sent += count * len(frames)
-
-                   
-                    # COLORS
-                    c1 = "bold red"
-
-
-                     # UPDATE PANEL
                     panel.renderable = (
                         f"[{c1}]Targets:[/{c1}] {len(frames)}  -  " 
                         f"[{c1}]Frames Sent:[/{c1}] {sent}  -  " 
                         )
                     
 
-
-                    # DELAY
                     time.sleep(0.1)
                     
 
@@ -1316,11 +1305,11 @@ class Beacon_Flooder():
 
 
             # OUTPUT UI
-            Frame_Snatcher.welcome_ui(iface=cls.iface, text="    WiFi \nSpoofing",)
+            Frame_Snatcher.welcome_ui(iface=cls.iface, text="    WiFi \nSpoofing", skip=True)
 
 
             # SET CHANNEL
-            Background_Threads.channel_hopper(set_channel=int(6)); time.sleep(1)
+            Background_Threads.channel_hopper(set_channel=int(6)); time.sleep(0.2)
 
 
             ssid_type = Beacon_Flooder._choose_ssid_type()

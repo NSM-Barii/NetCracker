@@ -346,12 +346,9 @@ class Settings():
 
     
     @classmethod
-    def get_json(cls):
+    def get_json(cls, verbose=False):
         """This will pull and return json info"""
 
-
-        # DEBUG
-        verbose = True
 
         
         # DESTROY ERRORS
