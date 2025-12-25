@@ -1297,23 +1297,16 @@ class Beacon_Flooder():
 
             for ssid in ssids:
 
-                ssidd = ssid
                 bssid = Beacon_Flooder.get_bssid(type=bssid_type)
 
                 # CRAFT FRAME
-                dot11 = Dot11(type=0, subtype=8, addr1=client, addr2=bssid, addr3=bssid)
-                beacon = Dot11Beacon(cap="ESS+privacy")
-                essid = Dot11Elt(ID="SSID", info=ssid.encode(), len=len(ssid))
-                dsset = Dot11Elt(ID="DSset", info=b'\x06')
-                rates = Dot11Elt(ID="Rates", info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
-                frame = RadioTap()/dot11/beacon/essid/dsset/rates
                 dot11 = Dot11(type=0, subtype=8, addr1='ff:ff:ff:ff:ff:ff', addr2=bssid, addr3=bssid)
-                beacon = Dot11Beacon(cap='ESS')
+                beacon = Dot11Beacon(cap='ESS', beacon_interval=100)
                 essid = Dot11Elt(ID='SSID', info=ssid.encode(), len=len(ssid))
                 dsset = Dot11Elt(ID='DSset', info=b'\x06')
                 rates = Dot11Elt(ID='Rates', info=b'\x82\x84\x8b\x96\x0c\x12\x18\x24')
-                frame = RadioTap()/dot11/beacon/essid/dsset/rates
-
+                esrates = Dot11Elt(ID='ESRates', info=b'\x30\x48\x60\x6c')
+                frame = RadioTap() / dot11 / beacon / essid / dsset / rates / esrates
 
                 # APPEND AND GO
                 frames.append(frame)
