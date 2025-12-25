@@ -1035,7 +1035,7 @@ class Beacon_Flooder():
             "Free_Crypto_Mining"
         ]
     
-
+    # f
     christmas_ssids = [
             "MerryChristmas",
             "Merry_Christmas",
