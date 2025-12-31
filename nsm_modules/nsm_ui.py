@@ -91,8 +91,8 @@ class MainUI():
             f"       [{color}][6][/{color}] [{color2}]Beacon Flooood\n"
             f"       [{color}][7][/{color}] [{color2}]Capture n Crack Handshake {test}\n\n"
             f"       [{color}][8][/{color}] [{color2}]Ping Me\n\n"
-            f"       [{color}][9][/{color}] [{color2}]Scan for Networks\n"
-            f"       [{color}][10][/{color}] [{color2}]View Saved Networks\n\n"
+            f"       [{color}][9][/{color}] [{color2}]Scan for Networks - (Windows only)\n"
+            f"       [{color}][10][/{color}] [{color2}]View Saved Networks - (windows only)  <-- SKID MODE\n\n"
             f"       [{color}][99][/{color}] [{color2}]EXIT "
             
             )
