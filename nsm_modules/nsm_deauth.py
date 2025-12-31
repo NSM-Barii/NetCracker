@@ -968,7 +968,7 @@ class Frame_Snatcher():
 
                 # ATTACK ALL CLIENTS ON TARGET
                 console.print("on", channel)
-                while cls.GO: Frame_Snatcher.target_attacker(target=target, iface=cls.iface)   
+                while cls.GO: Frame_Snatcher.target_attacker(target=target, iface=cls.iface); time.sleep(3); Background_Threads.channel_hopper(set_channel=channel)
 
 
             # SINGLE CLIENT 
@@ -979,7 +979,7 @@ class Frame_Snatcher():
                 client = Frame_Snatcher.client_chooser(target=target, iface=cls.iface)
                 
                 # NOW ATTACK CLIENT ON TARGET
-                while cls.GO: Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface); time.sleep(3)
+                while cls.GO: Frame_Snatcher.target_attacker(target=target, client=client, iface=cls.iface); Background_Threads.channel_hopper(set_channel=channel)
                             
 
 
