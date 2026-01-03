@@ -2485,7 +2485,7 @@ class Evil_Twin():
 
             Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
         
-        except KeyboardInterrupt: console.print(f"[bold red]Leaving...")
+        except KeyboardInterrupt: console.input("[bold red]\n\nPress enter to exit: ")
         
         except Exception as e: console.print(f"[bold red]Exception Error:[bold yellow] {e}")
 
