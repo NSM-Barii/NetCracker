@@ -2324,12 +2324,13 @@ class Evil_Twin():
                 channel={channel}
                 auth_algs={auth_algs}
                 """
-            ); what = "hostapd_config"
+            ).strip(); what = "hostapd_config"
 
             path = str(path / "hostapd.conf")
 
             with open(path, "w") as file: file.write(data_hostapd)
             if verbose: console.print(f"[bold green][+] Successfully created {what}")
+            return path
         
 
         except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
@@ -2348,11 +2349,12 @@ class Evil_Twin():
                 dhcp-range={dhcp_range}
                 address=/#/{address}
                 """
-                ); what = "dnsmasq.conf"
+                ).strip(); what = "dnsmasq.conf"
             
             path = str(path / "dnsmasq.conf")
             with open(path, "w") as file: file.write(data_dnsmasq)
             if verbose: console.print(f"[bold green][+] Successfully created {what}")
+            return path
         
 
         except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
@@ -2393,7 +2395,7 @@ class Evil_Twin():
         """This will redirct traffic"""
 
         subprocess.run(
-            ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING"
+            ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
              "-p", "tcp", "--dport", "80", "-j", "REDIRECT",
              "--to-port", "8080"
              ]
@@ -2448,10 +2450,10 @@ class Evil_Twin():
         conf_path, path = Evil_Twin._get_portal_path(portal=portal)
 
 
-        Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
-        Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
-        Evil_Twin._launch_hostapd(path=conf_path)
-        Evil_Twin._launch_dnsmasq(path=conf_path)
+        h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
+        d = Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
+        Evil_Twin._launch_hostapd(path=h)
+        Evil_Twin._launch_dnsmasq(path=d)
 
         Evil_Twin._Evil_Server._Start_HTTP_Server(path=path); pass
 
