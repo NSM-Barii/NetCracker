@@ -2495,6 +2495,7 @@ class Evil_Twin():
             conf_path, path = Evil_Twin._get_portal_path(portal=portal); print('\n')
 
             Evil_Twin._configure_ip(iface=iface)
+            Background_Threads.channel_hopper(set_channel=6)
 
 
             h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
