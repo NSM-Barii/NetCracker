@@ -2270,7 +2270,26 @@ class Evil_Twin():
         """Dictionary of Evil_Twin portals to choose from"""
 
         portals = {
-            1: "LA Fitness"
+            1: "LA Fitness",
+            2: "Starbucks WiFi",
+            3: "Airport_Free_WiFi",
+            4: "Marriott_Guest",
+            5: "SUBWAY_Free_WiFi",
+            6: "McDonalds_Free_WiFi",
+            7: "Target Guest WiFi",
+            8: "Walmart WiFi",
+            9: "Hospital_Guest",
+            10: "Public_Library_WiFi",
+            11: "Campus_WiFi",
+            12: "Panera WiFi",
+            13: "BestBuy_Guest",
+            14: "CORP_Guest_WiFi",
+            15: "Hilton_Honors",
+            16: "Delta Sky Club",
+            17: "Apple Store",
+            18: "YMCA_Member_WiFi",
+            19: "Whole_Foods_WiFi",
+            20: "CVS WiFi"
         }
         max = 20
 
