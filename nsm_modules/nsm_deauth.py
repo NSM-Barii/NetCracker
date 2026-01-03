@@ -2325,11 +2325,12 @@ class Evil_Twin():
         # SWITCH BACK TO PATH
         BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker";  BASE_DIR.mkdir(exist_ok=True, parents=True)
         PORTAL_DIR =  BASE_DIR / "portals";                                 PORTAL_DIR.mkdir(exist_ok=True, parents=True)
-        portal_init = PORTAL_DIR  
+        portal_init = PORTAL_DIR / portal; portal_init.mkdir(exist_ok=True, parents=True)
 
 
         return portal_init, Path(BASE_DIR / "portals")
-    
+
+  
 
     @classmethod
     def _configure_ip(cls, iface):
