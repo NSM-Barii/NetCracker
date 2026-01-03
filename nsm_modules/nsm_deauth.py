@@ -2453,7 +2453,7 @@ class Evil_Twin():
         Evil_Twin._launch_hostapd(path=conf_path)
         Evil_Twin._launch_dnsmasq(path=conf_path)
 
-        Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
+        Evil_Twin._Evil_Server._Start_HTTP_Server(path=path); pass
 
 
 
