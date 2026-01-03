@@ -2318,10 +2318,12 @@ class Evil_Twin():
         try:
 
             data_hostapd = (
-                f"interface={iface}",
-                f"ssid={ssid}",
-                f"channel={channel}",
-                f"auth_algs={auth_algs}"
+                f"""
+                interface={iface}
+                ssid={ssid}
+                "channel={channel}
+                "auth_algs={auth_algs}"
+                """
             ); what = "hostapd_config"
 
             path = path / "hostapd.conf"
@@ -2341,9 +2343,11 @@ class Evil_Twin():
         try:
 
             data_dnsmasq = (
-                    f"interface={iface}",
-                    f"dhcp_range={dhcp_range}",
-                    f"address={address}"
+                f"""
+                interface={iface}
+                dhcp_range={dhcp_range}
+                address={address}
+                """
                 ); what = "dnsmasq.conf"
             
             path = path / "dnsmasq.conf"
@@ -2413,16 +2417,18 @@ class Evil_Twin():
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
 
-                self.wfile.write(json.dumps())
+                #self.wfile.write(json.dumps())
 
             
             else: super().do_GET()
         
         
         @staticmethod
-        def _Start_HTTP_Server(address="0.0.0.0", port=8000):
+        def _Start_HTTP_Server(path, address="0.0.0.0", port=8000):
             """This will launch HTTP Server"""
 
+
+            os.chdir(path)
 
             server = HTTPServer(server_address=(address, port), RequestHandlerClass=Evil_Twin._Evil_Server)
             console.print(f"[bold green][+] Starting Evil_Twin Server on:[bold yellow] http://localhost:{port}")
@@ -2444,11 +2450,10 @@ class Evil_Twin():
 
         Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
         Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
-        Evil_Twin._launch_hostapd(path=path)
-        Evil_Twin._launch_dnsmasq(path=path)
+        Evil_Twin._launch_hostapd(path=conf_path)
+        Evil_Twin._launch_dnsmasq(path=conf_path)
 
-
-        Evil_Twin._Evil_Server._Start_HTTP_Server()
+        Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
 
 
 
