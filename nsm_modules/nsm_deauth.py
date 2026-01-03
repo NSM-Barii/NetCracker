@@ -26,6 +26,7 @@ from nsm_files import Settings, Recon_Pusher
 import threading, os, random, time, pyttsx3, subprocess, json
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, HTTPServer
+from textwrap import dedent
 
 
 # THREAD LOCKER
@@ -2304,10 +2305,12 @@ class Evil_Twin():
         except Exception as e: console.print(e)
                 
         # SWITCH BACK TO PATH
-        BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker"
+        BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker";  BASE_DIR.mkdir(exist_ok=True, parents=True)
+        PORTAL_DIR =  BASE_DIR / "portals";                                 PORTAL_DIR.mkdir(exist_ok=True, parents=True)
+        portal_init = PORTAL_DIR / portal 
 
 
-        return str(Path(BASE_DIR / "portals" / portal)), Path(BASE_DIR / "portals")
+        return portal_init, Path(BASE_DIR / "portals")
     
 
     @classmethod
@@ -2317,14 +2320,14 @@ class Evil_Twin():
 
         try:
 
-            data_hostapd = (
+            data_hostapd = dedent(
                 f"""
                 interface={iface}
                 ssid={ssid}
                 channel={channel}
                 auth_algs={auth_algs}
                 """
-            ).strip(); what = "hostapd_config"
+            ); what = "hostapd_config"
 
             path = str(path / "hostapd.conf")
 
@@ -2343,7 +2346,7 @@ class Evil_Twin():
 
         try:
 
-            data_dnsmasq = (
+            data_dnsmasq = dedent(
                 f"""
                 interface={iface}
                 dhcp-range={dhcp_range}
