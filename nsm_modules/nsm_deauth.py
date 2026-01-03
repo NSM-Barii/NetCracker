@@ -2327,7 +2327,7 @@ class Evil_Twin():
                 channel={channel}
                 auth_algs={auth_algs}
                 """
-            ); what = "hostapd_config"
+            ).strip(); what = "hostapd_config"
 
             path = str(path / "hostapd.conf")
 
