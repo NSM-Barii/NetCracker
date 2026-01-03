@@ -2270,7 +2270,7 @@ class Evil_Twin():
         """Dictionary of Evil_Twin portals to choose from"""
 
         portals = {
-            "1": "LA Fitness"
+            1: "LA Fitness"
         }
         max = 6
 
@@ -2307,7 +2307,7 @@ class Evil_Twin():
         BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker"
 
 
-        return str(Path(BASE_DIR / "portals" / {portal})), Path(BASE_DIR / "portals")
+        return str(Path(BASE_DIR / "portals" / portal)), Path(BASE_DIR / "portals")
     
 
     @classmethod
@@ -2321,12 +2321,12 @@ class Evil_Twin():
                 f"""
                 interface={iface}
                 ssid={ssid}
-                "channel={channel}
-                "auth_algs={auth_algs}"
+                channel={channel}
+                auth_algs={auth_algs}
                 """
             ); what = "hostapd_config"
 
-            path = path / "hostapd.conf"
+            path = str(path / "hostapd.conf")
 
             with open(path, "w") as file: file.write(data_hostapd)
             if verbose: console.print(f"[bold green][+] Successfully created {what}")
@@ -2345,12 +2345,12 @@ class Evil_Twin():
             data_dnsmasq = (
                 f"""
                 interface={iface}
-                dhcp_range={dhcp_range}
-                address={address}
+                dhcp-range={dhcp_range}
+                address=/#/{address}
                 """
                 ); what = "dnsmasq.conf"
             
-            path = path / "dnsmasq.conf"
+            path = str(path / "dnsmasq.conf")
             with open(path, "w") as file: file.write(data_dnsmasq)
             if verbose: console.print(f"[bold green][+] Successfully created {what}")
         
