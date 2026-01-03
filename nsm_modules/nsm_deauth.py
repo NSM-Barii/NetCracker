@@ -2272,7 +2272,7 @@ class Evil_Twin():
         portals = {
             1: "LA Fitness"
         }
-        max = 6
+        max = 20
 
         console.print(portals)
 
@@ -2306,7 +2306,7 @@ class Evil_Twin():
         # SWITCH BACK TO PATH
         BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker";  BASE_DIR.mkdir(exist_ok=True, parents=True)
         PORTAL_DIR =  BASE_DIR / "portals";                                 PORTAL_DIR.mkdir(exist_ok=True, parents=True)
-        portal_init = PORTAL_DIR / portal 
+        portal_init = PORTAL_DIR  
 
 
         return portal_init, Path(BASE_DIR / "portals")
@@ -2342,7 +2342,7 @@ class Evil_Twin():
             path = str(path / "hostapd.conf")
 
             with open(path, "w") as file: file.write(data_hostapd)
-            if verbose: console.print(f"[bold green][+] Successfully created {what}")
+            if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what}")
             return path
         
 
@@ -2366,7 +2366,7 @@ class Evil_Twin():
             
             path = str(path / "dnsmasq.conf")
             with open(path, "w") as file: file.write(data_dnsmasq)
-            if verbose: console.print(f"[bold green][+] Successfully created {what}")
+            if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what}")
             return path
         
 
@@ -2385,7 +2385,7 @@ class Evil_Twin():
         )
 
         hostpad_proc
-        if verbose: console.print(f"[bold green][+] Successfully launched hostapd")
+        if verbose: console.print(f"[bold green][+] Successfully launched:[bold yellow] hostapd")
 
 
     @classmethod
@@ -2400,7 +2400,7 @@ class Evil_Twin():
         )
 
         dnsmasq_proc
-        if verbose: console.print(f"[bold green][+] Successfully launched dnsmasq")
+        if verbose: console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
 
 
     @classmethod
@@ -2470,10 +2470,10 @@ class Evil_Twin():
         
         try:
             iface = Frame_Snatcher.get_interface()
-            Frame_Snatcher.welcome_ui(iface=iface, text=" Evil \nTwin")
+            Frame_Snatcher.welcome_ui(iface=iface, text=" Evil \nTwin", skip=True)
 
             portal, ssid = Evil_Twin._choose_portal()
-            conf_path, path = Evil_Twin._get_portal_path(portal=portal)
+            conf_path, path = Evil_Twin._get_portal_path(portal=portal); print('\n')
 
             Evil_Twin._configure_ip(iface=iface)
 
@@ -2488,6 +2488,7 @@ class Evil_Twin():
         except KeyboardInterrupt: console.print(f"[bold red]Leaving...")
         
         except Exception as e: console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+
 
         """
         1. Get interface
