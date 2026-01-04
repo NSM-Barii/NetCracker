@@ -2379,14 +2379,16 @@ class Evil_Twin():
         try:
 
             data_dnsmasq = dedent(
-                f"""
-                interface={iface}
-                listen-address=10.0.0.1
-                bind-interfaces
-                dhcp-range={dhcp_range}
-                address=/#/{address}
-                """
-                ).strip(); what = "dnsmasq.conf"
+            f"""
+            interface={iface}
+            dhcp-authoritative
+            dhcp-range=10.0.0.10,10.0.0.100,12h
+            dhcp-option=3,10.0.0.1
+            dhcp-option=6,10.0.0.1
+            server=8.8.8.8
+            log-queries
+            log-dhcp
+                """).strip(); what = "dnsmasq.conf"
             
             path = str(path / "dnsmasq.conf")
             with open(path, "w") as file: file.write(data_dnsmasq)
@@ -2414,7 +2416,7 @@ class Evil_Twin():
 
 
     @classmethod
-    def _launch_dnsmasq_old(cls, path: str, verbose=True):
+    def _launch_dnsmasq_new(cls, path: str, verbose=True):
         """This will launch dnsmasq using /etc/dnsmasq.d/ so it doesn’t hit permission denied"""
 
         try:
@@ -2567,7 +2569,7 @@ class Evil_Twin():
             h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
             d = Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
             Evil_Twin._launch_hostapd(path=h)
-            Evil_Twin._launch_dnsmasq(path=d)
+            Evil_Twin._launch_dnsmasq_new(path=d)
 
             Evil_Twin._set_iptables()
 
