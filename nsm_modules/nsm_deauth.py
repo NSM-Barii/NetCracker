@@ -2445,12 +2445,17 @@ class Evil_Twin():
             subprocess.run(["sudo", "pkill", "dnsmasq"], check=False)
             time.sleep(0.5)
 
+            # Copy config to /tmp to avoid permission issues
+            tmp_conf = "/tmp/evil_twin_dnsmasq.conf"
+            subprocess.run(["sudo", "cp", path, tmp_conf], check=True)
+            subprocess.run(["sudo", "chmod", "644", tmp_conf], check=True)
+
             if verbose:
-                console.print(f"[bold green][+] Launching dnsmasq with config:[bold yellow] {path}")
+                console.print(f"[bold green][+] Copied dnsmasq config to:[bold yellow] {tmp_conf}")
 
             # Test config first
             test = subprocess.run(
-                ["sudo", "dnsmasq", "-C", path, "--test"],
+                ["sudo", "dnsmasq", "-C", tmp_conf, "--test"],
                 capture_output=True,
                 text=True
             )
@@ -2459,16 +2464,19 @@ class Evil_Twin():
                 console.print(f"[bold red][-] dnsmasq config test FAILED:[bold yellow]\n{test.stderr}")
                 return None
 
+            if verbose:
+                console.print(f"[bold green][+] dnsmasq config test passed")
+
             # Launch dnsmasq with direct config file - NO -d flag so it daemonizes properly
             dnsmasq_proc = subprocess.Popen(
-                ["sudo", "dnsmasq", "-C", path, "--log-dhcp", "--log-queries", "--log-facility=/tmp/dnsmasq.log"],
+                ["sudo", "dnsmasq", "-C", tmp_conf, "--log-dhcp", "--log-queries", "--log-facility=/tmp/dnsmasq.log"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True
             )
 
             if verbose:
-                console.print(f"[bold green][+] dnsmasq launched successfully")
+                console.print(f"[bold green][+] dnsmasq launched")
                 console.print(f"[bold yellow][!] Logs available at: /tmp/dnsmasq.log")
 
             # Give it a moment to start
@@ -2478,6 +2486,12 @@ class Evil_Twin():
             check = subprocess.run(["pgrep", "dnsmasq"], capture_output=True)
             if check.returncode != 0:
                 console.print(f"[bold red][-] dnsmasq failed to start! Check logs at /tmp/dnsmasq.log")
+                # Try to show the log
+                try:
+                    with open("/tmp/dnsmasq.log", "r") as f:
+                        console.print(f"[bold red]Last log entries:[bold yellow]\n{f.read()}")
+                except:
+                    pass
                 return None
 
             console.print(f"[bold green][+] dnsmasq is running (PID: {check.stdout.decode().strip()})")
