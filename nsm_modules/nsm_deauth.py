@@ -2397,17 +2397,15 @@ class Evil_Twin():
 
             data_dnsmasq = dedent(
             f"""
+            port=0
             interface={iface}
             bind-interfaces
-            listen-address=10.0.0.1
             dhcp-authoritative
             dhcp-range=10.0.0.10,10.0.0.100,12h
             dhcp-option=3,10.0.0.1
             dhcp-option=6,10.0.0.1
             dhcp-leasefile=/tmp/dnsmasq.leases
-            no-resolv
-            server=8.8.8.8
-            log-queries
+            log-facility=/tmp/dnsmasq.log
             log-dhcp
                 """).strip(); what = "dnsmasq.conf"
 
@@ -2438,66 +2436,41 @@ class Evil_Twin():
 
     @classmethod
     def _launch_dnsmasq_new(cls, path: str, verbose=True):
-        """This will launch dnsmasq using direct config file"""
+        """This will launch dnsmasq using /etc/dnsmasq.d/ so it doesn't hit permission denied"""
 
         try:
-            # Kill any existing dnsmasq instances first
-            subprocess.run(["sudo", "pkill", "dnsmasq"], check=False)
-            time.sleep(0.5)
+            # Ensure the system config dir exists
+            subprocess.run(["sudo", "mkdir", "-p", "/etc/dnsmasq.d"], check=True)
 
-            # Copy config to /tmp to avoid permission issues
-            tmp_conf = "/tmp/evil_twin_dnsmasq.conf"
-            subprocess.run(["sudo", "cp", path, tmp_conf], check=True)
-            subprocess.run(["sudo", "chmod", "644", tmp_conf], check=True)
+            # Define destination and copy config
+            system_conf = "/etc/dnsmasq.d/evil_twin.conf"
+            subprocess.run(["sudo", "cp", path, system_conf], check=True)
 
             if verbose:
-                console.print(f"[bold green][+] Copied dnsmasq config to:[bold yellow] {tmp_conf}")
+                console.print(f"[bold green][+] Copied dnsmasq config to:[bold yellow] {system_conf}")
 
-            # Test config first
-            test = subprocess.run(
-                ["sudo", "dnsmasq", "-C", tmp_conf, "--test"],
-                capture_output=True,
-                text=True
-            )
-
-            if test.returncode != 0:
-                console.print(f"[bold red][-] dnsmasq config test FAILED:[bold yellow]\n{test.stderr}")
-                return None
-
-            if verbose:
-                console.print(f"[bold green][+] dnsmasq config test passed")
-
-            # Launch dnsmasq with direct config file - NO -d flag so it daemonizes properly
+            # Launch dnsmasq (system will auto-read /etc/dnsmasq.d/*.conf)
             dnsmasq_proc = subprocess.Popen(
-                ["sudo", "dnsmasq", "-C", tmp_conf, "--log-dhcp", "--log-queries", "--log-facility=/tmp/dnsmasq.log"],
+                ["sudo", "dnsmasq", "-d"],  # foreground for debugging
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True
+                stderr=subprocess.PIPE
             )
 
             if verbose:
-                console.print(f"[bold green][+] dnsmasq launched")
-                console.print(f"[bold yellow][!] Logs available at: /tmp/dnsmasq.log")
+                console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
 
-            # Give it a moment to start
-            time.sleep(2)
-
-            # Verify it's actually running
-            check = subprocess.run(["pgrep", "dnsmasq"], capture_output=True)
-            if check.returncode != 0:
-                console.print(f"[bold red][-] dnsmasq failed to start! Check logs at /tmp/dnsmasq.log")
-                # Try to show the log
-                try:
-                    with open("/tmp/dnsmasq.log", "r") as f:
-                        console.print(f"[bold red]Last log entries:[bold yellow]\n{f.read()}")
-                except:
-                    pass
-                return None
-
-            console.print(f"[bold green][+] dnsmasq is running (PID: {check.stdout.decode().strip()})")
+            # Allow it to initialize and print any errors
+            out, err = dnsmasq_proc.communicate(timeout=1)
+            if err:
+                console.print(f"[bold red][-] dnsmasq error:\n[bold yellow]{err.decode().strip()}")
 
             return dnsmasq_proc
 
+        except subprocess.CalledProcessError as e:
+            console.print(f"[bold red][-] Command failed: {e.cmd}\n[bold yellow]{e.stderr}")
+        except subprocess.TimeoutExpired:
+            console.print(f"[bold yellow][!] dnsmasq is running in background.")
+            return dnsmasq_proc
         except Exception as e:
             console.print(f"[bold red][-] Failed to launch dnsmasq: [bold yellow]{e}")
 
