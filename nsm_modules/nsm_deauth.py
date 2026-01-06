@@ -2439,6 +2439,10 @@ class Evil_Twin():
         """This will launch dnsmasq using /etc/dnsmasq.d/ so it doesn't hit permission denied"""
 
         try:
+            # Kill any existing dnsmasq first
+            subprocess.run(["sudo", "pkill", "dnsmasq"], check=False)
+            time.sleep(0.5)
+
             # Ensure the system config dir exists
             subprocess.run(["sudo", "mkdir", "-p", "/etc/dnsmasq.d"], check=True)
 
@@ -2449,28 +2453,47 @@ class Evil_Twin():
             if verbose:
                 console.print(f"[bold green][+] Copied dnsmasq config to:[bold yellow] {system_conf}")
 
-            # Launch dnsmasq (system will auto-read /etc/dnsmasq.d/*.conf)
-            dnsmasq_proc = subprocess.Popen(
-                ["sudo", "dnsmasq", "-d"],  # foreground for debugging
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+            # Launch dnsmasq WITHOUT -d flag so it daemonizes (runs in background properly)
+            result = subprocess.run(
+                ["sudo", "dnsmasq", "-C", system_conf, "-k"],  # -k = no daemon (but stays alive), -C = use this config
+                capture_output=True,
+                text=True,
+                timeout=2
             )
 
+            # This shouldn't return if successful, but if it does check for errors
+            if result.returncode != 0:
+                console.print(f"[bold red][-] dnsmasq failed to start:[bold yellow]\n{result.stderr}")
+                return None
+
+        except subprocess.TimeoutExpired:
+            # This is GOOD - means dnsmasq is still running
             if verbose:
-                console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
+                console.print(f"[bold green][+] dnsmasq is running")
 
-            # Allow it to initialize and print any errors
-            out, err = dnsmasq_proc.communicate(timeout=1)
-            if err:
-                console.print(f"[bold red][-] dnsmasq error:\n[bold yellow]{err.decode().strip()}")
+            # Verify it's actually running
+            time.sleep(1)
+            check = subprocess.run(["pgrep", "dnsmasq"], capture_output=True)
 
-            return dnsmasq_proc
+            if check.returncode == 0:
+                pid = check.stdout.decode().strip()
+                console.print(f"[bold green][+] dnsmasq confirmed running (PID: {pid})")
+
+                # Check if it's listening on port 67
+                port_check = subprocess.run(["sudo", "netstat", "-ulnp"], capture_output=True, text=True)
+                if ":67" in port_check.stdout:
+                    console.print(f"[bold green][+] dnsmasq is listening on port 67 (DHCP)")
+                else:
+                    console.print(f"[bold red][-] WARNING: dnsmasq running but NOT listening on port 67!")
+                    console.print(f"[bold yellow]Check /tmp/dnsmasq.log for errors")
+            else:
+                console.print(f"[bold red][-] dnsmasq process not found after launch!")
+                return None
+
+            return True
 
         except subprocess.CalledProcessError as e:
             console.print(f"[bold red][-] Command failed: {e.cmd}\n[bold yellow]{e.stderr}")
-        except subprocess.TimeoutExpired:
-            console.print(f"[bold yellow][!] dnsmasq is running in background.")
-            return dnsmasq_proc
         except Exception as e:
             console.print(f"[bold red][-] Failed to launch dnsmasq: [bold yellow]{e}")
 
