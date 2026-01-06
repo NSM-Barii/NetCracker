@@ -2448,20 +2448,39 @@ class Evil_Twin():
             if verbose:
                 console.print(f"[bold green][+] Launching dnsmasq with config:[bold yellow] {path}")
 
-            # Launch dnsmasq with direct config file (no /etc/dnsmasq.d/)
+            # Test config first
+            test = subprocess.run(
+                ["sudo", "dnsmasq", "-C", path, "--test"],
+                capture_output=True,
+                text=True
+            )
+
+            if test.returncode != 0:
+                console.print(f"[bold red][-] dnsmasq config test FAILED:[bold yellow]\n{test.stderr}")
+                return None
+
+            # Launch dnsmasq with direct config file - NO -d flag so it daemonizes properly
             dnsmasq_proc = subprocess.Popen(
-                ["sudo", "dnsmasq", "-C", path, "-d", "--log-dhcp", "--log-queries"],
+                ["sudo", "dnsmasq", "-C", path, "--log-dhcp", "--log-queries", "--log-facility=/tmp/dnsmasq.log"],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,  # Merge stderr to stdout
+                stderr=subprocess.STDOUT,
                 text=True
             )
 
             if verbose:
-                console.print(f"[bold green][+] dnsmasq launched in debug mode")
-                console.print(f"[bold yellow][!] Watching for DHCP traffic...")
+                console.print(f"[bold green][+] dnsmasq launched successfully")
+                console.print(f"[bold yellow][!] Logs available at: /tmp/dnsmasq.log")
 
-            # Give it a moment to start and print initial output
-            time.sleep(1)
+            # Give it a moment to start
+            time.sleep(2)
+
+            # Verify it's actually running
+            check = subprocess.run(["pgrep", "dnsmasq"], capture_output=True)
+            if check.returncode != 0:
+                console.print(f"[bold red][-] dnsmasq failed to start! Check logs at /tmp/dnsmasq.log")
+                return None
+
+            console.print(f"[bold green][+] dnsmasq is running (PID: {check.stdout.decode().strip()})")
 
             return dnsmasq_proc
 
