@@ -1,0 +1,150 @@
+=== Checking if port 67 is listening ===
+
+=== Watching for DHCP traffic (press Ctrl+C after 10 seconds) ===
+tcpdump: listening on wlan1, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+17:12:36.842067 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 300, xid 0xd14e555f, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+	    SLP-NA (80), length 0""
+17:12:36.842078 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 300, xid 0xd14e555f, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+	    SLP-NA (80), length 0""
+17:12:37.749373 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 300, xid 0xd14e555f, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+	    SLP-NA (80), length 0""
+17:12:37.749382 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 300, xid 0xd14e555f, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+	    SLP-NA (80), length 0""
+17:12:39.575527 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 300, xid 0xd14e555f, secs 2, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+	    SLP-NA (80), length 0""
+17:12:39.575536 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 300, xid 0xd14e555f, secs 2, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+	    SLP-NA (80), length 0""
+17:12:43.384406 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 326)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 298, xid 0xd14e555f, secs 6, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+17:12:43.384416 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 326)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 298, xid 0xd14e555f, secs 6, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+17:12:51.835535 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 326)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 298, xid 0xd14e555f, secs 14, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
+17:12:51.835544 IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto UDP (17), length 326)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 6e:aa:8c:e0:1d:35 (oui Unknown), length 298, xid 0xd14e555f, secs 14, Flags [none] (0x0000)
+	  Client-Ethernet-Address 6e:aa:8c:e0:1d:35 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message (53), length 1: Discover
+	    Client-ID (61), length 7: ether 6e:aa:8c:e0:1d:35
+	    MSZ (57), length 2: 1500
+	    Vendor-Class (60), length 15: "android-dhcp-16"
+	    Hostname (12), length 8: "Pixel-7a"
+	    Parameter-Request (55), length 12: 
+	      Subnet-Mask (1), Default-Gateway (3), Domain-Name-Server (6), Domain-Name (15)
+	      MTU (26), BR (28), Lease-Time (51), RN (58)
+	      RB (59), Vendor-Option (43), URL (114), Unknown (108)
