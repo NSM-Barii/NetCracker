@@ -135,11 +135,13 @@ log-facility=/tmp/dnsmasq.log
 dhcp-leasefile=/tmp/dnsmasq.leases
 """
 
-        # Write config file as root (since we're running as root)
-        with open(self.dnsmasq_conf, 'w') as f:
+        # Write to temp file first, then move it
+        temp_file = "/tmp/dnsmasq_temp.conf"
+        with open(temp_file, 'w') as f:
             f.write(config)
 
-        # Set readable permissions for dnsmasq
+        # Copy to /etc/dnsmasq.d/ with sudo
+        subprocess.run(["cp", temp_file, self.dnsmasq_conf], check=True)
         subprocess.run(["chmod", "644", self.dnsmasq_conf], check=True)
 
         print(f"[+] dnsmasq config created: {self.dnsmasq_conf}")
