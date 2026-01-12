@@ -122,13 +122,11 @@ ignore_broadcast_ssid=0
         subprocess.run(["mkdir", "-p", "/var/lib/misc"], check=True)
         subprocess.run(["mkdir", "-p", "/var/log"], check=True)
 
-        # KEY FIX: port=0 disables DNS, only DHCP
-        config = f"""# Disable DNS (CRITICAL - avoids port 53 conflicts)
-port=0
-
-# Interface to use
+        # DNS + DHCP for captive portal redirect
+        config = f"""# Interface to use
 interface={self.interface}
 bind-interfaces
+listen-address={self.gateway_ip}
 
 # DHCP Settings
 dhcp-range={self.dhcp_range_start},{self.dhcp_range_end},12h
@@ -136,8 +134,13 @@ dhcp-option=3,{self.gateway_ip}
 dhcp-option=6,{self.gateway_ip}
 dhcp-authoritative
 
+# DNS - redirect ALL domains to our server
+address=/#/{self.gateway_ip}
+no-resolv
+
 # Logging
 log-dhcp
+log-queries
 log-facility={self.dnsmasq_log}
 
 # Lease file
