@@ -27,7 +27,7 @@ class EvilTwinAttack:
 
         # Config file paths
         self.hostapd_conf = "/tmp/evil_hostapd.conf"
-        self.dnsmasq_conf = "/tmp/evil_dnsmasq.conf"
+        self.dnsmasq_conf = "/etc/dnsmasq.d/evil_twin.conf"
 
 
     def check_root(self):
@@ -110,6 +110,9 @@ ignore_broadcast_ssid=0
         """Create dnsmasq configuration - DHCP only, no DNS"""
         print("[*] Creating dnsmasq config...")
 
+        # Ensure /etc/dnsmasq.d/ exists
+        subprocess.run(["mkdir", "-p", "/etc/dnsmasq.d"], check=False)
+
         # KEY FIX: port=0 disables DNS, only DHCP
         config = f"""# Disable DNS (CRITICAL - avoids port 53 conflicts)
 port=0
@@ -132,7 +135,7 @@ log-facility=/tmp/dnsmasq.log
 dhcp-leasefile=/tmp/dnsmasq.leases
 """
 
-        # Write config file with proper permissions
+        # Write config file as root (since we're running as root)
         with open(self.dnsmasq_conf, 'w') as f:
             f.write(config)
 
