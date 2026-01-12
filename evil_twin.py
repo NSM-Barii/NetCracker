@@ -26,7 +26,7 @@ class EvilTwinAttack:
         self.dhcp_range_end = "10.0.0.100"
 
         # Config file paths
-        self.hostapd_conf = "/tmp/evil_hostapd.conf"
+        self.hostapd_conf = "/etc/hostapd/evil_twin.conf"
         self.dnsmasq_conf = "/etc/dnsmasq.d/evil_twin.conf"
 
 
@@ -90,6 +90,9 @@ class EvilTwinAttack:
         """Create hostapd configuration file"""
         print("[*] Creating hostapd config...")
 
+        # Ensure /etc/hostapd/ exists
+        subprocess.run(["mkdir", "-p", "/etc/hostapd"], check=False)
+
         config = f"""interface={self.interface}
 driver=nl80211
 ssid={self.ssid}
@@ -100,8 +103,14 @@ auth_algs=1
 ignore_broadcast_ssid=0
 """
 
-        with open(self.hostapd_conf, 'w') as f:
+        # Write to temp first, then copy
+        temp_file = "/tmp/hostapd_temp.conf"
+        with open(temp_file, 'w') as f:
             f.write(config)
+
+        # Copy to /etc/hostapd/
+        subprocess.run(["cp", temp_file, self.hostapd_conf], check=True)
+        subprocess.run(["chmod", "644", self.hostapd_conf], check=True)
 
         print(f"[+] hostapd config created: {self.hostapd_conf}")
 
