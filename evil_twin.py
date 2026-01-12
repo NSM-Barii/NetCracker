@@ -351,4 +351,4 @@ if __name__ == "__main__":
         print(f"[+] Created basic portal at {portal_dir}")
 
     attack = EvilTwinAttack(interface, ssid, portal_dir)
-    attack.run()
+    attack.run() # r
