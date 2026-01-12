@@ -2572,7 +2572,7 @@ class Evil_Twin():
             Evil_Twin._launch_hostapd(path=h)
             Evil_Twin._launch_dnsmasq_new(path=d)
 
-            Evil_Twin._set_iptables()
+            # Evil_Twin._set_iptables()  # Disabled - iptables nat table not available
 
             Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
         
