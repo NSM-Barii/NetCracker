@@ -2483,7 +2483,8 @@ class Evil_Twin():
             ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
              "-p", "tcp", "--dport", "80", "-j", "REDIRECT",
              "--to-port", "8000"
-             ]
+             ],
+            check=False  # Ignore errors if iptables nat table doesn't exist
         )
 
         if verbose: console.print(f"[bold green][+] Successfully configured:[bold yellow] iptables")
