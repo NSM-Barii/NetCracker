@@ -132,8 +132,12 @@ log-facility=/tmp/dnsmasq.log
 dhcp-leasefile=/tmp/dnsmasq.leases
 """
 
+        # Write config file with proper permissions
         with open(self.dnsmasq_conf, 'w') as f:
             f.write(config)
+
+        # Set readable permissions for dnsmasq
+        subprocess.run(["chmod", "644", self.dnsmasq_conf], check=True)
 
         print(f"[+] dnsmasq config created: {self.dnsmasq_conf}")
 
