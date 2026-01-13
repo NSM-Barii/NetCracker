@@ -330,7 +330,8 @@ if __name__ == "__main__":
     interface = sys.argv[1]
     ssid = sys.argv[2]
 
-    script_dir = Path(__file__).parent
+    # Portal is in parent directory (netcracker/portals/)
+    script_dir = Path(__file__).parent.parent
     portal_dir = script_dir / "portals" / "portal_1"
 
     if not portal_dir.exists():
