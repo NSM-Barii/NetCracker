@@ -265,21 +265,32 @@ dhcp-leasefile={self.dnsmasq_leases}
         class CaptivePortalHandler(SimpleHTTPRequestHandler):
             def do_GET(self):
                 """Handle GET requests - trigger captive portal detection"""
-                # Captive portal detection URLs
-                captive_urls = [
-                    '/hotspot-detect.html',  # Apple
-                    '/library/test/success.html',  # Apple
-                    '/generate_204',  # Android/Chrome
-                    '/gen_204',  # Android
-                    '/ncsi.txt',  # Windows
-                    '/connecttest.txt',  # Windows
-                ]
 
-                # If it's a captive portal detection URL, return 302 redirect
-                if self.path in captive_urls:
-                    self.send_response(302)
-                    self.send_header('Location', 'http://10.0.0.1/')
+                # Apple captive portal detection
+                if self.path in ['/hotspot-detect.html', '/library/test/success.html']:
+                    # Apple expects "Success" - give them something else to trigger popup
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
                     self.end_headers()
+                    self.wfile.write(b'<HTML><HEAD><TITLE>Redirect</TITLE></HEAD></HTML>')
+                    return
+
+                # Android captive portal detection
+                if self.path in ['/generate_204', '/gen_204']:
+                    # Android expects 204 No Content - give 200 with content to trigger popup
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(b'<HTML><HEAD><TITLE>Redirect</TITLE></HEAD></HTML>')
+                    return
+
+                # Windows captive portal detection
+                if self.path in ['/ncsi.txt', '/connecttest.txt']:
+                    # Windows expects specific text - give wrong response
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain')
+                    self.end_headers()
+                    self.wfile.write(b'Redirect')
                     return
 
                 # Otherwise serve files normally
