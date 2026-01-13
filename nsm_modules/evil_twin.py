@@ -226,13 +226,44 @@ dhcp-leasefile={self.dnsmasq_leases}
                     print(f"[+] Windows captive portal detection triggered")
                     return
 
-                # For ALL other requests (ANY domain), serve the portal page
+                # For ALL other requests, try to serve the file from portal dir
+                # If file doesn't exist, serve index.html as fallback
                 try:
-                    with open(portal_index, 'rb') as f:
-                        content = f.read()
+                    # Get the requested file path
+                    if self.path == '/' or self.path == '':
+                        file_path = 'index.html'
+                    else:
+                        # Remove leading slash
+                        file_path = self.path.lstrip('/')
+                        # Prevent directory traversal
+                        if '..' in file_path:
+                            file_path = 'index.html'
+
+                    # Try to read the requested file
+                    try:
+                        with open(file_path, 'rb') as f:
+                            content = f.read()
+                    except FileNotFoundError:
+                        # File not found, serve index.html as fallback
+                        with open('index.html', 'rb') as f:
+                            content = f.read()
+
+                    # Determine content type
+                    if file_path.endswith('.html'):
+                        content_type = 'text/html'
+                    elif file_path.endswith('.css'):
+                        content_type = 'text/css'
+                    elif file_path.endswith('.js'):
+                        content_type = 'application/javascript'
+                    elif file_path.endswith('.png'):
+                        content_type = 'image/png'
+                    elif file_path.endswith('.jpg') or file_path.endswith('.jpeg'):
+                        content_type = 'image/jpeg'
+                    else:
+                        content_type = 'text/html'
 
                     self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
+                    self.send_header('Content-type', content_type)
                     self.end_headers()
                     self.wfile.write(content)
 
