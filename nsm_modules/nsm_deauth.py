@@ -2299,7 +2299,7 @@ class Evil_Twin():
             19: "Whole_Foods_WiFi",
             20: "CVS WiFi"
         }
-        max = 20
+        max = 20 # git push
 
         console.print(portals)
 
