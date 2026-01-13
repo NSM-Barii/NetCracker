@@ -428,8 +428,6 @@ class Background_Threads():
         return None
 
 
-
-
     @classmethod
     def get_channel(cls, pkt):
         """This will be used to get the ssid channel"""
@@ -455,7 +453,6 @@ class Background_Threads():
         return channel
 
     
-
     @classmethod
     def get_freq(cls, freq):
         """This will return frequency"""
@@ -466,15 +463,9 @@ class Background_Threads():
         else: return "6 GHz"
 
 
-
     @classmethod
     def get_encryption(cls, pkt):
         """Get this encryption"""
-
-
-
-
-
 
 
     @classmethod
@@ -547,10 +538,32 @@ class Background_Threads():
         threading.Thread(target=hopper, args=(), daemon=True).start()
         cls.hop = True
 
+   
+    @staticmethod
+    def change_iface_mode(iface, mode=["managed", "monitor"], verbose=True):
+        """This method will be resposnible for chaning iface mode"""
+
+
+        if mode == "monitor":
+
+            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["sudo", "iw", "dev", f"{iface}", "type", "monitor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+       
+        
+        elif mode == "managed":
+
+            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["sudo", "iw" "dev", f"{iface}", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        
+        else: console.print(f"[bold red][-] non-valid choice picked for change_iface_mode!"); return False
 
 
 
-
+        check = subprocess.run(["iw", "dev", f"{iface}", "info"], capture_output=True, text=True)
+        if "type monitor" or "type managed" in check.stdout.lower(): console.print(f"\n[bold green][+] Successfully changed iface_mode -> {mode}!\n")
 
 
 
@@ -560,6 +573,7 @@ class Background_Threads():
 
 # FOR MODULE TESTING
 if __name__ == "__main__":
+
 
 
 

