@@ -186,6 +186,8 @@ dhcp-leasefile={self.dnsmasq_leases}
         """Start captive portal web server - responds to ALL requests"""
         print(f"[*] Starting captive portal server on port 80...")
 
+        # Change to portal directory so we can serve all files
+        os.chdir(str(self.portal_dir))
         portal_index = self.portal_dir / "index.html"
 
         class CaptivePortalHandler(BaseHTTPRequestHandler):
