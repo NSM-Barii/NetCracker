@@ -543,28 +543,31 @@ class Background_Threads():
     def change_iface_mode(iface, mode=["managed", "monitor"], verbose=True):
         """This method will be resposnible for chaning iface mode"""
 
-
-        if mode == "monitor":
-
-            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["sudo", "iw", "dev", f"{iface}", "type", "monitor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-       
         
-        elif mode == "managed":
+        if mode == "monitor": return
+        try:
+            if mode == "monitor":
 
-            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["sudo", "iw" "dev", f"{iface}", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
+                subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "iw", "dev", f"{iface}", "type", "monitor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
-        else: console.print(f"[bold red][-] non-valid choice picked for change_iface_mode!"); return False
+            
+            elif mode == "managed":
+
+                subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "iw" "dev", f"{iface}", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            
+            else: console.print(f"[bold red][-] non-valid choice picked for change_iface_mode!"); return False
 
 
 
-        check = subprocess.run(["iw", "dev", f"{iface}", "info"], capture_output=True, text=True)
-        if "type monitor" or "type managed" in check.stdout.lower(): console.print(f"\n[bold green][+] Successfully changed iface_mode -> {mode}!\n")
-
+            check = subprocess.run(["iw", "dev", f"{iface}", "info"], capture_output=True, text=True)
+            if "type monitor" or "type managed" in check.stdout.lower(): console.print(f"[bold green][+] Successfully changed iface_mode -> {mode}!\n")
+        
+        except Exception as e: console.print(e)
 
 
 

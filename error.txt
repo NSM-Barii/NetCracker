@@ -1,3 +1,0 @@
-modprobe: FATAL: Module ip_tables not found in directory /lib/modules/6.18.3-zen1-1-zen
-iptables v1.8.11 (legacy): can't initialize iptables table `nat': Table does not exist (do you need to insmod?)
-Perhaps iptables or your kernel needs to be upgraded.
