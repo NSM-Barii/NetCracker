@@ -6,38 +6,69 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
 
 
 ## ⚙️ Features
-- Packet analysis with live metrics
-- Device and vendor discovery
-- Real-time countermeasure trigger logic
+- **Wardriving** - Mobile WiFi network discovery and mapping
+- **Wardriving Stationary Mode** - Fixed-position network monitoring
+- **Deauth Attacks** - Disconnect all clients from target SSID
+- **Targeted Deauth** - Disconnect specific clients
+- **Client Sniffer** - Monitor and spy on network client traffic
+- **Beacon Flood** - Spam fake access points
+- **Evil Twin Attack** - Rogue AP with captive portal for credential harvesting
+- **Packet Analysis** - Live metrics and deep packet inspection
+- **Device Discovery** - Identify devices and manufacturers
 
 ## 🧪 Tested On
 - Kali Linux
 - Arch Linux
 
+## 📋 Prerequisites
 
-## Comming Soon
-- Evil Twin Attack
-- Beacon (spam) Flood 
-- Frames that can crash Routers
-- Wifi cracking (done with hashcat)
+### System Dependencies
+Install required system packages before running NetCracker:
+
+**Arch Linux:**
+```bash
+sudo pacman -S hostapd dnsmasq
+```
+
+**Kali Linux:**
+```bash
+sudo apt update
+sudo apt install hostapd dnsmasq
+```
+
+Disable auto-start for these services:
+```bash
+sudo systemctl stop hostapd dnsmasq
+sudo systemctl disable hostapd dnsmasq
+```
 
 ## 🚀 Quick Start
 
-1. Clone the repo  
-   `git clone https://github.com/nsm-barii/netcracker.git`
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/nsm-barii/netcracker.git
+   cd netcracker/nsm_modules
+   ```
 
-2. Navigate to the project directory  
-   `cd netcracker/nsm_modules`
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
 
-3. create virtual env 
-  `python -m venv venv`
-  'source venv/bin/activate'
+3. **Install Python dependencies**
+   ```bash
+   pip install -r ../requirements.txt
+   ```
 
-5. Install dependencies  
-   `pip install -r ../requirements.txt`
+4. **Run NetCracker**
+   ```bash
+   sudo venv/bin/python nsm_main.py
+   ```
 
-6. Run the tool  
-   `sudo venv/bin/python nsm_main.py`
+## 🔮 Coming Soon
+- Router crash frames
+- WiFi password cracking (hashcat integration)
 
 ---
 
