@@ -6,15 +6,19 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
 
 
 ## ⚙️ Features
+
+### 📡 Monitor Mode Attacks
 - **Wardriving** - Mobile WiFi network discovery and mapping
-- **Wardriving Stationary Mode** - Fixed-position network monitoring
+- **Wardriving Stationary Mode** - Discover wireless clients and non-AP devices
 - **Deauth Attacks** - Disconnect all clients from target SSID
 - **Targeted Deauth** - Disconnect specific clients
 - **Client Sniffer** - Monitor and spy on network client traffic
 - **Beacon Flood** - Spam fake access points
-- **Evil Twin Attack** - Rogue AP with captive portal for credential harvesting
 - **Packet Analysis** - Live metrics and deep packet inspection
 - **Device Discovery** - Identify devices and manufacturers
+
+### 🎭 Managed Mode Attacks
+- **Evil Twin Attack** - Rogue AP with captive portal for credential harvesting
 
 ## 🧪 Tested On
 - Kali Linux
