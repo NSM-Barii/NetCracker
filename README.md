@@ -8,7 +8,7 @@ NetCracker is a lightweight but powerful network tool designed to monitor, analy
 ## ⚙️ Features
 
 ### 📡 Monitor Mode Attacks
-- **Wardriving** - Mobile WiFi network discovery and mapping
+- **Wardriving** -  WiFi network discovery and mapping
 - **Wardriving Stationary Mode** - Discover wireless clients and non-AP devices
 - **Deauth Attacks** - Disconnect all clients from target SSID
 - **Targeted Deauth** - Disconnect specific clients
