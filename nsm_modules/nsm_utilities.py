@@ -543,7 +543,8 @@ class Background_Threads():
     def change_iface_mode(iface, mode=["managed", "monitor"], verbose=True):
         """This method will be resposnible for chaning iface mode"""
 
-        
+         
+        return
         if mode == "monitor": return
         try:
             if mode == "monitor":

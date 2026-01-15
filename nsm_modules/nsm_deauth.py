@@ -949,7 +949,7 @@ class Frame_Snatcher():
             Frame_Snatcher.welcome_ui(skip=skip, iface=cls.iface)
             
             
-            Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
+            #Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
 
 
             # START AUTO HOPPER // FOR NOW
@@ -2235,7 +2235,7 @@ class War_Driving():
 
             # WELCOME UI
             Frame_Snatcher.welcome_ui(iface=iface, text="    War \nDriving", c2="bold blue")
-            Background_Threads.change_iface_mode(iface=cls.iface, mode="monitor")
+            Background_Threads.change_iface_mode(iface=iface, mode="monitor")
 
 
 
