@@ -543,21 +543,23 @@ class Background_Threads():
     def change_iface_mode(iface, mode=["managed", "monitor"], verbose=True):
         """This method will be resposnible for chaning iface mode"""
 
-         
         return
-        if mode == "monitor": return
+        #if mode == "monitor": return
         try:
-            if mode == "monitor":
+            if mode == "monitor" or 2:
+
+
+                #os.system(f"sudo ip link set {iface} down; sudo iw dev {iface} type monitor; sudo ip link set {iface} up")
 
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.run(["sudo", "iw", "dev", f"{iface}", "type", "monitor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "iw", "dev", f"{iface}", "set", "type", "monitor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
             
-            elif mode == "managed":
+            elif mode == "managed" or 1:
 
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.run(["sudo", "iw" "dev", f"{iface}", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "iw" "dev", f"{iface}", "set", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             
@@ -566,9 +568,11 @@ class Background_Threads():
 
 
             check = subprocess.run(["iw", "dev", f"{iface}", "info"], capture_output=True, text=True)
-            if "type monitor" or "type managed" in check.stdout.lower(): console.print(f"[bold green][+] Successfully changed iface_mode -> {mode}!\n")
+            if "type monitor" or "type managed" in check.stdout.lower(): console.print(f"[bold green][+] Successfully changed iface_mode --> {mode}!")
         
         except Exception as e: console.print(e)
+
+        finally: console.print("[bold red] Ctrl + c x2 == EXIT\n")
 
 
 
