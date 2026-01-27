@@ -543,7 +543,7 @@ class Background_Threads():
     def change_iface_mode(iface, mode=["managed", "monitor"], verbose=True):
         """This method will be resposnible for chaning iface mode"""
 
-        return
+ 
         #if mode == "monitor": return
         try:
             if mode == "monitor" or 2:
@@ -583,33 +583,22 @@ class Background_Threads():
 if __name__ == "__main__":
 
 
+    try:
+        from pathlib import Path
+        from scapy.all import wrpcap
+                
+        path = str(Path(__file__).parent.parent / "hashes" / "handshake.pcap ") 
+        eapol_frames = []
+        USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+        path = USER_HOME / "Documents" / "nsm_tools" / "netcracker" / "hashes"
+
+        file = path / "handshake.pcap"
+        print("made file")
+
+        handshake = "pkt"
+        wrpcap("hand.pcap", eapol_frames)
+        print("pushed file")
+        wrpcap(str(file), eapol_frames)
 
 
-    parser = manuf.MacParser("manuf.txt")
-    console.print(len(parser))
-
-
-
-    tests = {
-        0: "ass",
-        1: "toes",
-        2: "booty",
-        3: "but"
-    }
-
-
-    toe = 3
-
-    console.print(tests.get(toe))
-
-
-    console.print(os.name)
-
-
-
-    Background_Threads.channel_hopper()
-
-
-
-    while True:
-        pass
+    except Exception as e: console.print(e)
