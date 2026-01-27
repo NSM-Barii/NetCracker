@@ -1359,7 +1359,8 @@ class Hash_Snatcher():
                 if addr2 and ssid not in cls.ssids:
 
                     console.print(f"[bold red][+] SSID Found:[bold yellow] {ssid}")
-                    cls.ssids.append(ssid); cls.mac_ifo.append((len(cls.ssids), ssid, addr2, channel))
+                    cls.mac_ifo.append((len(cls.ssids), ssid, addr2, channel))
+                    cls.ssids.append(ssid)
     
 
         sniffer()
@@ -1382,7 +1383,7 @@ class Hash_Snatcher():
     
                 
                 if 1 <= choice <= max: 
-                    num     = cls.mac_ifo[choice][0]; num -= 1
+                    num     = cls.mac_ifo[choice][0]
                     ssid    = cls.mac_ifo[choice][1]
                     bssid   = cls.mac_ifo[choice][2]
                     channel = cls.mac_ifo[choice][3]
@@ -1441,7 +1442,7 @@ class Hash_Snatcher():
         
         stay = True
         handshake = False
-        eapol_frames = []
+        cls.eapol_frames = []
         time.sleep(.5)
         
         
@@ -1518,7 +1519,7 @@ class Hash_Snatcher():
             # ADDR2 AND ADDR3 == SRC
 
 
-            if handshake: console.print(pkt); return KeyboardInterrupt
+            if handshake: raise KeyboardInterrupt
 
             if not handshake and pkt.haslayer(EAPOL): 
 
@@ -1531,9 +1532,7 @@ class Hash_Snatcher():
                 if addr1: console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {sd} --> {addr1} --> {pkt}")
                 if addr2: console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {addr2} --> {sd}  --> {pkt}")
 
-                cls.SNIFF = False
-                handshake = pkt
-                eapol_frames.append(pkt)
+                cls.sniff = False
 
                 USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
                 path = USER_HOME / "Documents" / "nsm_tools" / "netcracker" / "hashes"; path.mkdir(exist_ok=True, parents=True)
@@ -1541,7 +1540,14 @@ class Hash_Snatcher():
 
                 file = file_enumerator(path=path, ssid="N/A")
 
-                wrpcap(str(file), eapol_frames); console.print("[bold green][+] pushed file")
+
+
+                cls.eapol_frames.append(pkt)
+                if len(cls.eapol_frames) > 3:
+                    wrpcap(str(file), cls.eapol_frames); console.print("[bold green][+] pushed file")
+                    handshake = pkt
+                    cls.eapol_frames = []
+                
 
 
 
