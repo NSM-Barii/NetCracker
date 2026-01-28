@@ -1,0 +1,54 @@
+# INSTALL HASHCAT AND HCXPCAPNGTOOL ON ARCH LINUX
+
+=========================
+1. Install Hashcat
+=========================
+Hashcat is in the official Arch repo:
+
+    sudo pacman -S hashcat
+
+Verify installation:
+
+    hashcat --version
+
+
+=========================
+2. Install hcxpcapngtool (via AUR)
+=========================
+You need an AUR helper like yay:
+
+    yay -S hcxtools
+
+This installs:
+- hcxpcapngtool
+- hcxpcaptool
+- hcxhash2cap
+- etc.
+
+Verify:
+
+    hcxpcapngtool --help
+
+
+=========================
+3. If you don't have yay yet:
+=========================
+
+    sudo pacman -S base-devel git
+    git clone https://aur.archlinux.org/yay.git
+    cd yay
+    makepkg -si
+
+Then install hcxtools:
+
+    yay -S hcxtools
+
+
+=========================
+4. You're Done ✅
+=========================
+
+Test the tools:
+
+    hashcat -m 22000 capture.16800 rockyou.txt
+    hcxpcapngtool -o capture.16800 handshake.pcap
