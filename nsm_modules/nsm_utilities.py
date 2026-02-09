@@ -11,7 +11,7 @@ console = Console()
 # NETWORK IMPORTS
 import pywifi, socket, ipaddress, requests, manuf
 from scapy.all import sniff, RadioTap
-from scapy.layers.dot11 import Dot11Elt
+from scapy.layers.dot11 import Dot11Elt, Dot11Beacon
 from mac_vendor_lookup import MacLookup
 
 # DOWNLOAD THE WHOLE DATABASE
@@ -418,13 +418,25 @@ class Background_Threads():
         
     @staticmethod
     def _get_channel_from_radiotap(pkt):
+        """fallback method"""
+
+
         if pkt.haslayer(RadioTap):
+
             try:
                 freq = pkt[RadioTap].ChannelFrequency
+
                 if freq:
-                    return Background_Threads._freq_to_channel(freq)
-            except:
-                pass
+                    # 2.4 GHz band
+                    if 2412 <= freq <= 2484:
+                        return (freq - 2407) // 5
+                    # 5 GHz band (partial support)
+                    elif 5180 <= freq <= 5825:
+                        return (freq - 5000) // 5
+                    # 6 GHz and others can be added as needed
+                    return None
+                
+            except: pass
         return None
 
 
@@ -465,7 +477,23 @@ class Background_Threads():
 
     @classmethod
     def get_encryption(cls, pkt):
-        """Get this encryption"""
+
+        if not pkt.haslayer(Dot11Beacon):
+            return None
+
+        cap = pkt.sprintf("{Dot11Beacon:%Dot11Beacon.cap%}")
+        if "privacy" not in cap: return "OPEN"
+
+        rsn = pkt.getlayer(Dot11Elt, ID=48)
+        wpa = pkt.getlayer(Dot11Elt, ID=221)
+
+        if rsn:
+            rsn_info = rsn.info
+            if b'\x00\x0f\xac\x08' in rsn_info: return "WPA3"
+            return "WPA2"
+
+        if wpa and b"WPA" in wpa.info:return "WPA"
+        return "WEP"
 
 
     @classmethod

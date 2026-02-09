@@ -257,11 +257,9 @@ class Frame_Snatcher():
                 
 
                 channel = Background_Threads.get_channel(pkt=pkt)
-                
-
-
-                #ssid, channel, rsn, info, vendor = NetTilities.get_ies(pkt=pkt, sort=True, ap=True)
-
+                rssi = NetTilities.get_rssi(pkt=pkt)
+                encryption = Background_Threads.get_encryption(pkt=pkt)
+                frequency = Background_Threads.get_freq(freq=pkt[RadioTap].ChannelFrequency)
 
 
                 
@@ -269,8 +267,8 @@ class Frame_Snatcher():
                 if addr1 not in cls.macs and addr1 != "No":
                     
 
-                    # ADD MAC
-                    cls.beacons.append((ssid, addr1, vendor, channel))
+                    # ADD MAC                              # ENCRYPTION, FREQUENCY -- RSSI
+                    cls.beacons.append((ssid, addr1, vendor, encryption, frequency, channel, rssi))
                     cls.macs.append(addr1)
                     cls.num += 1
 
@@ -285,7 +283,7 @@ class Frame_Snatcher():
 
 
                     # ADD MAC
-                    cls.beacons.append((ssid, addr2, vendor, channel))
+                    cls.beacons.append((ssid, addr2, vendor, encryption, frequency, channel, rssi))
                     cls.macs.append(addr2)
                     cls.num += 1
 
@@ -411,7 +409,10 @@ class Frame_Snatcher():
         table.add_column("SSID", style="bold blue")
         table.add_column("MAC Addr", style="bold green")
         table.add_column("Vendor", style="yellow")
-        table.add_column("Channel", style="red")
+        table.add_column("Encryption")
+        table.add_column("Frequency")
+        table.add_column("Channel")
+        table.add_column("Rssi", style="red")
         
 
 
@@ -423,11 +424,11 @@ class Frame_Snatcher():
             num +=1 
 
             # ADD TO DICT
-            data[num] = (var[1], var[3])
+            data[num] = (var[1], var[5])
 
 
             # ADD TO TABLE
-            table.add_row(f"{num}", f"{var[0]}",  f"{var[1]}", f"{var[2]}", f"{var[3]}")
+            table.add_row(f"{num}", f"{var[0]}",  f"{var[1]}", f"{var[2]}", f"{var[3]}", f"{var[4]}", f"{var[5]}", f"{var[6]}")
             
         
 
