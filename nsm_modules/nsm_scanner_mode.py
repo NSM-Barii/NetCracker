@@ -6,15 +6,15 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.live import Live
 from rich.console import Console
+
 console = Console()
 
 # NETWORK IMPORTS
 import pywifi
 
 
-# ETC IMPORTS 
+# ETC IMPORTS
 import threading, time, pyfiglet
-
 
 
 # NSM IMPORTS
@@ -22,11 +22,8 @@ from nsm_utilities import Utilities, NetTilities
 from nsm_files import Network_Mapper
 
 
-
-
-class WifiScanner():
+class WifiScanner:
     """This class will be responsible for finding wifi networks within your area"""
-
 
     def __init__(self):
 
@@ -36,34 +33,29 @@ class WifiScanner():
 
         # CREATE A INSTANCE FOR MAPPING
         self.map = Network_Mapper()
-        
-    
 
     def scanner(self, table):
         """Scanner"""
-        
+
         push = True
 
         # CREATE OBJECTS / GET CURRENT USER WIRELESS LAN INTERFACE
         try:
             wifi = pywifi.PyWiFi()
-        
+
             # TELL LOOP TO STOP
             iface = wifi.interfaces()[0]
-        
-        
+
         # NO WIFI INTERFACES
         except Exception as e:
             self.go = False
             return
-        
 
         try:
-        # TELL THE USER THE INTERFACE CURRENTLY BEING USED
+            # TELL THE USER THE INTERFACE CURRENTLY BEING USED
             if len(self.networks) == 0:
                 console.print(f"[bold green]Current WLAN:[/bold green] {iface.name()}")
-            
-            
+
             # NOW TO SCAN AND INTERATE THROUGH THE LIST
             console.print("Scanning for wireless networks...", style="yellow")
             iface.scan()
@@ -72,17 +64,14 @@ class WifiScanner():
         except Exception as e:
             console.print(f"[bold red]NSM_Logic Module Error: [yellow]{e}")
             push = False
-        
 
         # CATCH EXCPETION ERRORS:
         if push:
             for net in results:
-
                 if not results:
-                    console.print("[bold red]No Wireless networks found[/bold red]") 
-                
+                    console.print("[bold red]No Wireless networks found[/bold red]")
+
                 else:
-                    
                     use = False
 
                     # GET FREQ AND AKM TYPE
@@ -90,51 +79,77 @@ class WifiScanner():
                     encryption = NetTilities.get_encryption(akm=net.akm[0])
 
                     # CATCH EMPTY SSID
-                    if net.ssid.strip().lower() == "" or net.ssid.strip().lower() == "5ghz" or net.ssid.strip().lower() == "2ghz":
+                    if (
+                        net.ssid.strip().lower() == ""
+                        or net.ssid.strip().lower() == "5ghz"
+                        or net.ssid.strip().lower() == "2ghz"
+                    ):
                         net.ssid = "N/A"
-                
 
-                    # THESE PRINT STATEMENTS WILL NO LONGER BE USED BUT WILL BE KEPT FOR DEBUGGING REASONS FOR THE TIME BEING 
+                    # THESE PRINT STATEMENTS WILL NO LONGER BE USED BUT WILL BE KEPT FOR DEBUGGING REASONS FOR THE TIME BEING
                     if use:
-                        console.print(f"[bold blue]SSID: [/bold blue]{net.ssid}  |  [yellow]Signal: [/yellow]{net.signal}  |  BSSID: {net.bssid}  |  Encryption: {encryption}")
-                    
+                        console.print(
+                            f"[bold blue]SSID: [/bold blue]{net.ssid}  |  [yellow]Signal: [/yellow]{net.signal}  |  BSSID: {net.bssid}  |  Encryption: {encryption}"
+                        )
+
                     # USE TABLES INSTEAD
                     else:
-                        
                         # MAKE SURE WE HAVENT ALREADY LOGGED THE NETWORK
                         if net.bssid not in self.networks:
-
                             # APPEND NETWORK TO LIST
                             self.networks.append(net.bssid)
-                            
+
                             # ADD DATA TO TABLE
-                            table.add_row(f"{len(self.networks)}",f"{net.signal}", f"{net.ssid}", f"{frequency}", f"{net.auth}", f"{encryption}", f"{net.bssid}")
-                            
+                            table.add_row(
+                                f"{len(self.networks)}",
+                                f"{net.signal}",
+                                f"{net.ssid}",
+                                f"{frequency}",
+                                f"{net.auth}",
+                                f"{encryption}",
+                                f"{net.bssid}",
+                            )
+
                             # ADD NETWORK TO FILE
-                            self.map.network_logging(ssid=net.ssid, bssid=net.bssid, signal=net.signal, auth=net.auth, frequency=frequency, akm=encryption, channel=1, cipher=net.cipher, )
-        
+                            self.map.network_logging(
+                                ssid=net.ssid,
+                                bssid=net.bssid,
+                                signal=net.signal,
+                                auth=net.auth,
+                                frequency=frequency,
+                                akm=encryption,
+                                channel=1,
+                                cipher=net.cipher,
+                            )
 
-        #else:
-            #table.add_row("FAILED TO SCAN")
+        # else:
+        # table.add_row("FAILED TO SCAN")
 
-    
     def loop_controller(self):
         """This will be responsible for looping through wifi scanning and appending data to the table"""
-        
 
         # TABLE FOR WIFI NETWORKS
-        table = Table(title="Wireless Network's", title_style='bold red',header_style='red', style='bold purple')
+        table = Table(
+            title="Wireless Network's",
+            title_style="bold red",
+            header_style="red",
+            style="bold purple",
+        )
         table.add_column("#")
-        table.add_column("Signal", style='yellow')
-        table.add_column("SSID", style='bold green')
+        table.add_column("Signal", style="yellow")
+        table.add_column("SSID", style="bold green")
         table.add_column("Frequency")
         table.add_column("Authentication")
         table.add_column("Encryption")  # AKA AKM // AUTHENCTION AND KEY MANAGEMENT
-        table.add_column("BSSID", style='cyan')
-        
+        table.add_column("BSSID", style="cyan")
 
         # PANEL FOR DATA
-        panel = Panel(renderable=f"Networks Found: {len(self.networks)}", style='bold red', border_style='bold yellow', expand=False)
+        panel = Panel(
+            renderable=f"Networks Found: {len(self.networks)}",
+            style="bold red",
+            border_style="bold yellow",
+            expand=False,
+        )
 
         # USE THIS TO LOOP THROUGH THE WIFI SCANNER METHOD AND APPEND NEW RESULTS TO THE LIST
         interval = 3
@@ -143,52 +158,52 @@ class WifiScanner():
         loop = 3
         self.go = True
 
-
         # TELL USER SCAN HAS STARTED
-        threading.Thread(target=Utilities.tts, args=("Beginning network wide scanning", ), daemon=True).start()
+        threading.Thread(
+            target=Utilities.tts, args=("Beginning network wide scanning",), daemon=True
+        ).start()
 
         try:
-            with Live(table, console=console, refresh_per_second=.5):
+            with Live(table, console=console, refresh_per_second=0.5):
                 while loop > 0:
-
                     self.scanner(table=table)
-                    
+
                     if self.go:
-                        # WAIT FOR THIS THEN REPEAT THE PROCESS 
+                        # WAIT FOR THIS THEN REPEAT THE PROCESS
                         time.sleep(interval)
-                        loop -= 1 
-                    
+                        loop -= 1
+
                     else:
                         time.sleep(2)
                         break
-        
+
         except Exception as e:
             console.print(e)
-        
-
-                
 
         # CURRENT NETWORKS FOUND
         self.map.network_saver()
         self.map.done(go=self.go)
 
         if self.go:
-            Utilities.tts(say=f"I have found a total of: {len(self.networks)} networks sir. ")
-            Utilities.tts(say="I WILL NOW BEGIN TO HACK TARGETED NETWORKS" , voice_sound="1")
-        
+            Utilities.tts(
+                say=f"I have found a total of: {len(self.networks)} networks sir. "
+            )
+            Utilities.tts(
+                say="I WILL NOW BEGIN TO HACK TARGETED NETWORKS", voice_sound="1"
+            )
+
         else:
             console.print("Scan Failed")
 
 
-
-class WifiUI():
+class WifiUI:
     """This class will house basic UI logic"""
 
     def __init__(self):
         pass
-    
+
     @staticmethod
-    def welcome_message(sleep=.01):
+    def welcome_message(sleep=0.01):
         """This will hold and print the ascii text and a nice sexy looking manner"""
 
         art = """
@@ -204,65 +219,63 @@ class WifiUI():
         (_____)---------------------------------------------------(_____)
         """
         from pathlib import Path
-        path = Path.home() / "Documents" / "nsm tools" / "network tools" / "wifi scanner" / "art.txt"
+
+        path = (
+            Path.home()
+            / "Documents"
+            / "nsm tools"
+            / "network tools"
+            / "wifi scanner"
+            / "art.txt"
+        )
         with open(path, "r") as file:
             console.print(file.read())
-            
- 
-           
+
         say = "Initiating scan for all nearby networks. If I connect, it's legally a penetration test. If I get caught, it was a prank. FUCK YOU"
 
         threading.Thread(target=Utilities.tts, args=(say, False, 10)).start()
 
         for char in art:
-            print(char, end='', flush=True)
+            print(char, end="", flush=True)
             time.sleep(sleep)
 
         Utilities.clear_screen()
 
-
         fonts = pyfiglet.FigletFont.getFonts()
         console.print(fonts)
-        
+
         use = False
         if use:
             for f in fonts:
                 time.sleep(2)
-            
+
                 art_static = pyfiglet.figlet_format(text="Net\nCracker", font=f)
-                console.print(f"Using: {f}\n{art_static}", style='bold red')
-    
+                console.print(f"Using: {f}\n{art_static}", style="bold red")
 
         art_static = pyfiglet.figlet_format(text="          Net", font="bloody")
-        console.print(art_static)        
+        console.print(art_static)
         art_static = pyfiglet.figlet_format(text="    Cracker", font="bloody")
         console.print(art_static, style="bold red")
-       # console.print(Panel(title="Malicious Practitionar", renderable=f"{art_static}", expand=False, style="bold red", border_style="red"))
-        print('\n\n')
-
-
+        # console.print(Panel(title="Malicious Practitionar", renderable=f"{art_static}", expand=False, style="bold red", border_style="red"))
+        print("\n\n")
 
     @staticmethod
     def main():
         """Call upon this method to start module logic"""
 
-
-       # WifiUI.welcome_message()
+        # WifiUI.welcome_message()
         WifiScanner().loop_controller()
-       
-        console.input("[bold red]Press enter to exit: ")
-        time.sleep(.3)
 
+        console.input("[bold red]Press enter to exit: ")
+        time.sleep(0.3)
 
 
 # CURRENTLY USED FOR PROGRAM TESTING
 if __name__ == "__main__":
-
     use = 2
 
     if use == 1:
         WifiUI.main()
-
 
     elif use == 2:
         wifi = pywifi.PyWiFi()

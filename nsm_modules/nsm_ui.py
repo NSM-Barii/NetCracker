@@ -4,6 +4,7 @@
 # UI IMPORTS
 from rich.panel import Panel
 from rich.console import Console
+
 console = Console()
 console_width = console.size.width
 import pyfiglet
@@ -14,67 +15,67 @@ import time
 
 
 # NSM MODULE IMPORTS
-from nsm_scanner_mode import WifiUI 
+from nsm_scanner_mode import WifiUI
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-from nsm_deauth import Frame_Snatcher, You_Cant_DOS_ME, Hash_Snatcher, Beacon_Flooder, War_Driving, Client_Sniffer, Evil_Twin
+from nsm_deauth import (
+    Frame_Snatcher,
+    You_Cant_DOS_ME,
+    Hash_Snatcher,
+    Beacon_Flooder,
+    War_Driving,
+    Client_Sniffer,
+    Evil_Twin,
+)
 
 
-class MainUI():
+class MainUI:
     """This will house main menu ui logic"""
-
 
     def __init__(self):
         pass
 
-    
     @staticmethod
     def welcome_message(font="dos_rebel"):
         """This will be the welcome message that is displayed within the main menu"""
-        
+
         # FOR SPACE FROM TOP OF TERMINAL
         print("\n\n")
 
         # CREATE
-        art1 = pyfiglet.figlet_format(text="        Net", font=font)    
+        art1 = pyfiglet.figlet_format(text="        Net", font=font)
         art2 = pyfiglet.figlet_format(text="  Cracker", font=font)
 
-
         # PRINT
-        console.print(art1, style="bold yellow")  
+        console.print(art1, style="bold yellow")
         console.print(art2, style="bold blue")
-        
-        
 
-        console.print("        ========================================================================", style="bold yellow")
         console.print(
-        
-           "            ===================  Developed by NSM Barii  ===================",
-           style="bold blue"
-
+            "        ========================================================================",
+            style="bold yellow",
         )
-        console.print("        ========================================================================", style="bold yellow")
-     
-    
+        console.print(
+            "            ===================  Developed by NSM Barii  ===================",
+            style="bold blue",
+        )
+        console.print(
+            "        ========================================================================",
+            style="bold yellow",
+        )
 
     @staticmethod
     def main_menu():
         """This will house the main menu logic"""
-        
 
         # WILL NO LONGER BE USING PANELS FOR MENU SELECTION AS I WANT BETTER LOOKING UI'S
         choices = Panel(
-
-            renderable="\n[1] Scan for Networks\n[2] Crack Networks\n[4] View saved networks\n[5] EXIT", 
+            renderable="\n[1] Scan for Networks\n[2] Crack Networks\n[4] View saved networks\n[5] EXIT",
             title="Malicious Practioner",
             style="purple",
-            border_style='bold purple',
-            width=min(130, console_width - 2)
-            
-        
+            border_style="bold purple",
+            width=min(130, console_width - 2),
         )
 
-        
         color = "bold blue"
         color2 = "bold yellow"
 
@@ -82,8 +83,8 @@ class MainUI():
 
         choicess = (
             f"\n       [{color}][1][/{color}] [{color2}]War Driving\n"
-            f"       [{color}][2][/{color}] [{color2}]War Driving - Stationary Mode\n\n"            
-            f"       [{color}][3][/{color}] [{color2}]Client Sniffer - (Spy on network)\n\n"            
+            f"       [{color}][2][/{color}] [{color2}]War Driving - Stationary Mode\n\n"
+            f"       [{color}][3][/{color}] [{color2}]Client Sniffer - (Spy on network)\n\n"
             f"       [{color}][4][/{color}] [{color2}]Deauth One Client\n"
             f"       [{color}][5][/{color}] [{color2}]Deauth All Clients\n\n"
             f"       [{color}][6][/{color}] [{color2}]Evil Twin\n"
@@ -93,17 +94,13 @@ class MainUI():
             f"       [{color}][10][/{color}] [{color2}]Scan for Networks - (Windows only)\n"
             f"       [{color}][11][/{color}] [{color2}]View Saved Networks - (windows only)  <-- SKID MODE\n\n"
             f"       [{color}][99][/{color}] [{color2}]EXIT "
-            
-            )
-        
-        console.print("\n\n\n", choicess, "\n\n")
-  
-        try:
+        )
 
-            
+        console.print("\n\n\n", choicess, "\n\n")
+
+        try:
             # LOOP FOR ERRORS
             while True:
-
                 choice = console.input("     [bold red]Enter choice here: [/bold red]")
 
                 # ALL VALID OPTIONS EXCEPT EXIT
@@ -111,50 +108,66 @@ class MainUI():
 
                 if choice in cc:
                     Utilities.clear_screen()
-                
-
 
                 # DEAUTH ATTACK - ONE CLIENT
-                if choice == "1": War_Driving.main(mode=1);  break
-                
-                elif choice == "2": War_Driving.main(mode=2); break
+                if choice == "1":
+                    War_Driving.main(mode=1)
+                    break
 
-                # CLIENT SNIFFER               
-                elif choice == "3": Client_Sniffer.main(); break
+                elif choice == "2":
+                    War_Driving.main(mode=2)
+                    break
+
+                # CLIENT SNIFFER
+                elif choice == "3":
+                    Client_Sniffer.main()
+                    break
 
                 # DEAUTH ATTACK - ONE CLIENT
-                elif choice == "4": Frame_Snatcher.main(type=1); break
+                elif choice == "4":
+                    Frame_Snatcher.main(type=1)
+                    break
 
                 # DEAUTH ATTACK - ALL CLIENTS
-                elif choice == "5": Frame_Snatcher.main(type=2); break
+                elif choice == "5":
+                    Frame_Snatcher.main(type=2)
+                    break
 
                 # EVIL TWIN
-                elif choice == "6": Evil_Twin.main(); break
+                elif choice == "6":
+                    Evil_Twin.main()
+                    break
 
                 # BEACON FLOOD
-                elif choice == "7": Beacon_Flooder.main(); break
-                   
-                # CAPTURE AND CRACK HANDSHAKES
-                elif choice == "8": Hash_Snatcher.main(); break
+                elif choice == "7":
+                    Beacon_Flooder.main()
+                    break
 
-                # PING ME 
-                elif choice == "9": You_Cant_DOS_ME.ping(); break
+                # CAPTURE AND CRACK HANDSHAKES
+                elif choice == "8":
+                    Hash_Snatcher.main()
+                    break
+
+                # PING ME
+                elif choice == "9":
+                    You_Cant_DOS_ME.ping()
+                    break
 
                 # SCAN FOR NETWORKS
-                elif choice == "10": WifiUI.main(); break
+                elif choice == "10":
+                    WifiUI.main()
+                    break
 
                 # VIEW SAVED NETWORKS
-                elif choice == "11": Network_Mapper.network_puller(); break
-                
-    
+                elif choice == "11":
+                    Network_Mapper.network_puller()
+                    break
+
                 # EXIT
                 elif choice == "99":
                     console.print("\nLater..............", style="bold red")
-                    time.sleep(.1)
+                    time.sleep(0.1)
                     exit()
-
-                
-                
 
                 # THIS IS STRICTLY FOR TESTING // ITS ALSO DEAPPRECIATED
                 elif choice == "101":
@@ -164,30 +177,22 @@ class MainUI():
                     import_handler().import_uninstaller()
 
                     break
-                
+
                 else:
                     console.print("\n     Please choose a valid option")
-                
 
-        
         except Exception as e:
             console.print(e)
-
-    
 
     @staticmethod
     def main():
         """Call modular logic from this method"""
 
-        
         # ANDDDD START
         while True:
             Utilities.clear_screen()
             MainUI.welcome_message()
             MainUI.main_menu()
-
-
-
 
 
 # FOR MODULAR TESTING
