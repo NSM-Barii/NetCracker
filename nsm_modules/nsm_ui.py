@@ -14,15 +14,13 @@ import pyfiglet
 from nsm_scanner_mode import WifiUI
 from nsm_utilities import Utilities
 from nsm_files import Network_Mapper
-from nsm_deauth import (
-    Frame_Snatcher,
-    You_Cant_DOS_ME,
-    Hash_Snatcher,
-    Beacon_Flooder,
-    War_Driving,
-    Client_Sniffer,
-    Evil_Twin,
-)
+from nsm_deauth import Frame_Snatcher
+from nsm_beacon_flood import Beacon_Flooder
+from nsm_hash_snatcher import Hash_Snatcher
+from nsm_war_driving import War_Driving
+from nsm_evil_twin import Evil_Twin
+from nsm_client_sniffer import Client_Sniffer
+from nsm_ping import You_Cant_DOS_ME
 
 console = Console()
 console_width = console.size.width
