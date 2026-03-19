@@ -9,7 +9,7 @@ from rich.console import Console
 console = Console()
 
 # NETWORK IMPORTS
-import pywifi, socket, ipaddress, requests, manuf
+import pywifi, socket, ipaddress, manuf
 from scapy.all import sniff, RadioTap
 from scapy.layers.dot11 import Dot11Elt, Dot11Beacon
 from mac_vendor_lookup import MacLookup
