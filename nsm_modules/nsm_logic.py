@@ -14,7 +14,7 @@ from scapy.all import sniff
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyfiglet, random
+import threading, os, random, time, pyfiglet
 
 
 
@@ -112,7 +112,7 @@ class WifiScanner():
                             table.add_row(f"{len(self.networks)}",f"{net.signal}", f"{net.ssid}", f"{frequency}", f"{net.auth}", f"{encryption}", f"{net.bssid}")
                             
                             # ADD NETWORK TO FILE
-                            self.map.network_logging(ssid=net.ssid, bssid=net.bssid, signal=net.signal, auth=net.auth, frequency=frequency, encryption=encryption)
+                            self.map.network_logging(ssid=net.ssid, bssid=net.bssid, signal=net.signal, auth=net.auth, frequency=frequency, akm=encryption, channel="N/A", cipher="N/A")
         
 
         #else:
