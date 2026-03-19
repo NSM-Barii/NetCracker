@@ -23,7 +23,7 @@ vendors.load_vendors()
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyttsx3, platform, os, subprocess
+import threading, os, random, time, pyttsx3, platform, subprocess
 
 
 
@@ -161,7 +161,7 @@ class Utilities():
             
 
             # IF BOTH ARE FALSE
-            if OS.lower() in ["windows","linx"]:
+            if OS.lower() in ["windows", "linux"]:
                 return OS
             
             else:
@@ -436,7 +436,7 @@ class Background_Threads():
                     # 6 GHz and others can be added as needed
                     return None
                 
-            except: pass
+            except Exception: pass
         return None
 
 
@@ -574,7 +574,7 @@ class Background_Threads():
  
         #if mode == "monitor": return
         try:
-            if mode == "monitor" or 2:
+            if mode == "monitor" or mode == 2:
 
 
                 #os.system(f"sudo ip link set {iface} down; sudo iw dev {iface} type monitor; sudo ip link set {iface} up")
@@ -582,12 +582,12 @@ class Background_Threads():
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 subprocess.run(["sudo", "iw", "dev", f"{iface}", "set", "type", "monitor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        
-            
-            elif mode == "managed" or 1:
+
+
+            elif mode == "managed" or mode == 1:
 
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "down"],    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.run(["sudo", "iw" "dev", f"{iface}", "set", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["sudo", "iw", "dev", f"{iface}", "set", "type", "managed"],  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             
@@ -596,7 +596,7 @@ class Background_Threads():
 
 
             check = subprocess.run(["iw", "dev", f"{iface}", "info"], capture_output=True, text=True)
-            if "type monitor" or "type managed" in check.stdout.lower(): console.print(f"[bold green][+] Successfully changed iface_mode --> {mode}!")
+            if "type monitor" in check.stdout.lower() or "type managed" in check.stdout.lower(): console.print(f"[bold green][+] Successfully changed iface_mode --> {mode}!")
         
         except Exception as e: console.print(e)
 
