@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from textwrap import dedent
-from nsm_utilities import Background_Threads
+from nsm_utilities import Background_Threads, Utilities
 from nsm_deauth import Frame_Snatcher
 
 console = Console()
@@ -71,8 +71,7 @@ class Evil_Twin:
 
         # TEMP FIX FOR FILE CRASHING WITHOUT SUDO
         try:
-            sudo_user = os.getenv("SUDO_USER")
-            USER_HOME = Path(f"/home/{sudo_user}") if sudo_user else Path.home()
+            USER_HOME = Utilities.get_user_home()
             BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / "netcracker"
         except Exception as e:
             console.print(e)

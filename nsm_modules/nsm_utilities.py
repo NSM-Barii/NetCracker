@@ -18,6 +18,7 @@ import time
 import pyttsx3
 import platform
 import subprocess
+from pathlib import Path
 
 console = Console()
 
@@ -86,6 +87,12 @@ class Utilities:
                 console.print(e)
 
     @staticmethod
+    def get_user_home():
+        """Get the real user home dir even when running under sudo"""
+        sudo_user = os.getenv("SUDO_USER")
+        return Path(f"/home/{sudo_user}") if sudo_user else Path.home()
+
+    @staticmethod
     def clear_screen():
         """This will be used to clear the os screen"""
 
@@ -141,6 +148,11 @@ class NetTilities:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def get_addr(pkt_addr, fallback=False):
+        """Extract MAC address, filtering out broadcast. Returns fallback for broadcast MACs."""
+        return pkt_addr if pkt_addr and pkt_addr != "ff:ff:ff:ff:ff:ff" else fallback
 
     @staticmethod
     def get_iface(get_name=False, verbose=False):
@@ -551,15 +563,11 @@ class Background_Threads:
 # FOR MODULE TESTING
 if __name__ == "__main__":
     try:
-        from pathlib import Path
         from scapy.all import wrpcap
 
         path = str(Path(__file__).parent.parent / "hashes" / "handshake.pcap ")
         eapol_frames = []
-        USER_HOME = (
-            Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}")
-            or Path.home()
-        )
+        USER_HOME = Utilities.get_user_home()
         path = USER_HOME / "Documents" / "nsm_tools" / "netcracker" / "hashes"
 
         file = path / "handshake.pcap"

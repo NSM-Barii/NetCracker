@@ -25,8 +25,7 @@ base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker"
 
 # TEMP FIX FOR FILE CRASHING WITHOUT SUDO
 try:
-    sudo_user = os.getenv("SUDO_USER")
-    USER_HOME = Path(f"/home/{sudo_user}") if sudo_user else Path.home()
+    USER_HOME = Utilities.get_user_home()
     BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / ".data" / "netcracker"
 except Exception as e:
     console.print(e)
@@ -80,41 +79,29 @@ class Network_Mapper:
     def network_saver(self):
         """This will save the networks"""
 
-        # LOOP THROUGH IN CASE OF ELSE OR EXCEPTION
-        while True:
-            try:
-                timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
+        # REDUNDENCY CHECK
+        path_network.mkdir(exist_ok=True, parents=True)
 
-                # REDUNDENCY CHECK
-                if path_network.exists():
-                    path = path_network / f"{timestamp}.json"
+        try:
+            timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
+            path = path_network / f"{timestamp}.json"
 
-                    with open(path, "w") as file:
-                        json.dump(self.data, file, indent=4)
+            with open(path, "w") as file:
+                json.dump(self.data, file, indent=4)
 
-                        break
+        except json.JSONDecodeError as e:
+            console.print(f"JSON Error: {e}")
 
-                else:
-                    path_network.mkdir(exist_ok=True, parents=True)
+        except FileNotFoundError as e:
+            # CREATE FILE PATH
+            path_network.mkdir(exist_ok=True, parents=True)
 
-            except json.JSONDecodeError as e:
-                console.print(f"JSON Error: {e}")
-                break
+            console.print(
+                f"[bold red]File not found Error:[/bold red] [yellow]{e}[/yellow]"
+            )
 
-            except FileNotFoundError as e:
-                # CREATE FILE PATH
-                path_network.mkdir(exist_ok=True, parents=True)
-
-                console.print(
-                    f"[bold red]File not found Error:[/bold red] [yellow]{e}[/yellow]"
-                )
-                break
-
-            except Exception as e:
-                console.print(
-                    f"[bold red]Exception Error:[/bold red] [yellow]{e}[/yellow]"
-                )
-                break
+        except Exception as e:
+            console.print(f"[bold red]Exception Error:[/bold red] [yellow]{e}[/yellow]")
 
     def done(self, go):
         """Call upon this method once you are done with previous method to confirm files have been saved"""
@@ -123,6 +110,72 @@ class Network_Mapper:
             console.print(
                 f"\n\n[bold green]Total Networks Found & Saved:[/bold green] {self.indent}"
             )
+
+    @staticmethod
+    def _display_network_file(file_path, table_use):
+        """Helper to display a single network json file"""
+
+        with open(file_path, "r") as file:
+            content = json.load(file)
+
+        # RAW OUTPUT EXAMPLE
+        ("05-01-2025", "_", "01_18_16")
+
+        # TO PREVENT FILE NAMING ERRORS // STILL IN TESTING STAGES
+        if os.name == "nt":
+            # GET TIMESTAMP, DATE AND TIME
+            timestamp = file.name.split("\\")[8].split(".")[0]
+            date = timestamp.partition("_")[0]
+            timee = ":".join(timestamp.partition("_")[2].split("_"))
+
+        else:
+            timestamp = "N/A"
+            date = "Still testing"
+            timee = "for linux"
+
+        line = "-" * 80
+
+        # FOR TEXT PRINT
+        if not table_use:
+            console.print("\n\n", line)
+            console.print(f"Date: {date}  Time: {timee}\n")
+
+        # TABLE OBJECT
+        table = Table(
+            title=f"Date: {date}  Time: {timee}",
+            title_style="bold green",
+            header_style="bold red",
+            style="bold purple",
+        )
+        table.add_column("signal")
+        table.add_column("ssid")
+        table.add_column("bssid")
+        table.add_column("auth")
+        table.add_column("frequency")
+        table.add_column("encryption")
+
+        # PRINT VALUES IN JSON
+        for key, value in content.items():
+            # FOR SEXY ASS TABLE PRINT // LOL NOOB
+            if table_use:
+                # APPEND DATA TO TABLE
+                table.add_row(
+                    f"{value['signal']}",
+                    f"{value['ssid']}",
+                    f"{value['bssid']}",
+                    f"{value['auth']}",
+                    f"{value['frequency']}",
+                    f"{value['encryption']}",
+                )
+
+            # FOR PLAIN JSON PRINT
+            else:
+                console.print(f"[cyan]Network #{key}[/cyan]: {value}")
+
+        if table_use:
+            console.print("\n\n", table)
+        else:
+            console.print("\n", line)
 
     @staticmethod
     def network_puller() -> str:
@@ -135,135 +188,67 @@ class Network_Mapper:
         while True:
             try:
                 # MAKE SURE NETWORK DIR EXIST
-                if path_network.exists() and path_network.is_dir():
-                    # USE THIS TO ITERATE THROUGH A DIR
-                    for file in path_network.iterdir():
-                        # TO CHECK IF THERE ARE ANY FILES
-                        if file:
-                            with open(file, "r") as file:
-                                content = json.load(file)
-
-                                # RAW OUTPUT EXAMPLE
-                                ("05-01-2025", "_", "01_18_16")
-
-                                # TO PREVENT FILE NAMING ERRORS // STILL IN TESTING STAGES
-                                if os.name == "nt":
-                                    # GET TIMESTAMP, DATE AND TIME
-                                    timestamp = file.name.split("\\")[8].split(".")[0]
-                                    date = timestamp.partition("_")[0]
-                                    timee = ":".join(
-                                        timestamp.partition("_")[2].split("_")
-                                    )
-
-                                else:
-                                    timestamp = "N/A"
-                                    date = "Still testing"
-                                    timee = "for linux"
-
-                                line = "-" * 80
-
-                                # FOR TEXT PRINT
-                                if not table_use:
-                                    console.print("\n\n", line)
-                                    console.print(f"Date: {date}  Time: {timee}\n")
-
-                                # TABLE OBJECT
-                                table = Table(
-                                    title=f"Date: {date}  Time: {timee}",
-                                    title_style="bold green",
-                                    header_style="bold red",
-                                    style="bold purple",
-                                )
-                                table.add_column("signal")
-                                table.add_column("ssid")
-                                table.add_column("bssid")
-                                table.add_column("auth")
-                                table.add_column("frequency")
-                                table.add_column("encryption")
-
-                                # PRINT VALUES IN JSON
-                                for key, value in content.items():
-                                    # FOR SEXY ASS TABLE PRINT // LOL NOOB
-                                    if table_use:
-                                        # APPEND DATA TO TABLE
-                                        table.add_row(
-                                            f"{value['signal']}",
-                                            f"{value['ssid']}",
-                                            f"{value['bssid']}",
-                                            f"{value['auth']}",
-                                            f"{value['frequency']}",
-                                            f"{value['encryption']}",
-                                        )
-
-                                    # FOR PLAIN JSON PRINT
-                                    else:
-                                        console.print(
-                                            f"[cyan]Network #{key}[/cyan]: {value}"
-                                        )
-
-                                if table_use:
-                                    console.print("\n\n", table)
-
-                                else:
-                                    console.print("\n", line)
-
-                        # IF THERE ARE NO SAVED JSON FILES
-                        else:
-                            console.print("\n\n[bold red]No Files found")
-
-                    # THIS WILL BE WERE THE USER CAN CHOOSE TO CHANGE OUTPUT STYLE OR CLEAR JSON FILES
-                    panel = Panel(
-                        renderable="[blue]\nJson View == [red]1 \n"
-                        "[purple]Table View == [red]2 \n"
-                        "[green]Clear log == [red]Coming soon\n",
-                        style="bold red",
-                        title="Output Style",
-                        border_style="bold red",
-                        expand=False,
-                    )
-
-                    console.print("\n\n[bold green]All networks Successfully printed\n")
-                    console.print(panel)
-
-                    # MAKE A CHOICE
-                    choice = console.input("\n[bold red]Press enter to exit: ")
-
-                    # TEXT VIEW
-                    if (
-                        choice.strip().lower() == "1"
-                        or choice.strip().lower() == "text"
-                        or choice.strip().lower() == "json"
-                    ):
-                        table_use = False
-                        Utilities.clear_screen()
-
-                    # TABLE VIEW
-                    elif (
-                        choice.strip().lower() == "2"
-                        or choice.strip().lower() == "table"
-                    ):
-                        table_use = True
-                        Utilities.clear_screen()
-
-                    # DELETE FILES // NOT DONE // MIGHT NOT EVER BE DONE // LOLOLO
-                    elif (
-                        choice.strip().lower() == "clear"
-                        or choice.strip().lower() == "3"
-                        or choice.strip().lower() == "cls"
-                    ):
-                        Network_Mapper.network_deleter()
-
-                        time.sleep(2)
-
-                        pass
-
-                    # EXIT
-                    else:
-                        break
-
-                # MAKE DEFAULT DIR
-                else:
+                if not (path_network.exists() and path_network.is_dir()):
+                    # MAKE DEFAULT DIR
                     path_network.mkdir(exist_ok=True, parents=True)
+                    continue
+
+                # USE THIS TO ITERATE THROUGH A DIR
+                for file in path_network.iterdir():
+                    # TO CHECK IF THERE ARE ANY FILES
+                    if not file:
+                        # IF THERE ARE NO SAVED JSON FILES
+                        console.print("\n\n[bold red]No Files found")
+                        continue
+
+                    Network_Mapper._display_network_file(file, table_use)
+
+                # THIS WILL BE WERE THE USER CAN CHOOSE TO CHANGE OUTPUT STYLE OR CLEAR JSON FILES
+                panel = Panel(
+                    renderable="[blue]\nJson View == [red]1 \n"
+                    "[purple]Table View == [red]2 \n"
+                    "[green]Clear log == [red]Coming soon\n",
+                    style="bold red",
+                    title="Output Style",
+                    border_style="bold red",
+                    expand=False,
+                )
+
+                console.print("\n\n[bold green]All networks Successfully printed\n")
+                console.print(panel)
+
+                # MAKE A CHOICE
+                choice = console.input("\n[bold red]Press enter to exit: ")
+
+                # TEXT VIEW
+                if (
+                    choice.strip().lower() == "1"
+                    or choice.strip().lower() == "text"
+                    or choice.strip().lower() == "json"
+                ):
+                    table_use = False
+                    Utilities.clear_screen()
+
+                # TABLE VIEW
+                elif choice.strip().lower() == "2" or choice.strip().lower() == "table":
+                    table_use = True
+                    Utilities.clear_screen()
+
+                # DELETE FILES // NOT DONE // MIGHT NOT EVER BE DONE // LOLOLO
+                elif (
+                    choice.strip().lower() == "clear"
+                    or choice.strip().lower() == "3"
+                    or choice.strip().lower() == "cls"
+                ):
+                    Network_Mapper.network_deleter()
+
+                    time.sleep(2)
+
+                    pass
+
+                # EXIT
+                else:
+                    break
 
             except Exception as e:
                 console.print(e)
@@ -310,6 +295,7 @@ class Settings:
         """This will pull and return json info"""
 
         # DESTROY ERRORS
+        # Loop retries after creating missing dir or json file, then reads on next iteration
         while True:
             try:
                 # IF EXISTS
@@ -354,6 +340,7 @@ class Settings:
         _time_stamp = datetime.now().strftime("%m/%d/%Y - %I:%M:%S")
 
         # DESTROY ERRORS
+        # Loop retries after creating missing dir or json file, then writes on next iteration
         while True:
             try:
                 #
@@ -411,27 +398,19 @@ class Settings:
         # VAR
         verbose = True
 
-        # LOOP FOR ERRORS
-        while True:
-            try:
-                if BASE_DIR.exists():
-                    path = BASE_DIR / filename
+        try:
+            BASE_DIR.mkdir(exist_ok=True, parents=True)
 
-                    with open(path, "a") as file:
-                        file.write(data)
+            path = BASE_DIR / filename
 
-                    if verbose:
-                        console.print("Successfully appended info", style="bold green")
+            with open(path, "a") as file:
+                file.write(data)
 
-                    break
+            if verbose:
+                console.print("Successfully appended info", style="bold green")
 
-                else:
-                    BASE_DIR.mkdir()
-
-            except Exception as e:
-                console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-                break
+        except Exception as e:
+            console.print(f"[bold red]Exception Error:[yellow] {e}")
 
 
 class Recon_Pusher:

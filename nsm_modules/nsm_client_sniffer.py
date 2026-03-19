@@ -122,7 +122,6 @@ class Client_Sniffer:
 
         num = 1
         data = {}
-        error = False
         time.sleep(2)
 
         table = Table(
@@ -170,64 +169,18 @@ class Client_Sniffer:
         print("\n")
 
         # DESTROY ERRORS
-        while True:
-            try:
-                # FOR CLEANER OUTPUT
-                if error:
-                    console.print(
-                        f"\n[bold red]Enter a key[bold red] 1 - {num},[bold green] to choose your target!"
-                    )
-                    error = False
+        choice = Frame_Snatcher._choose_from_list(data, num - 1, verbose=verbose)
+        if choice is None:
+            return
 
-                # USER CHOOSES THERE TARGET
-                choice = console.input("[bold red]Who do you want to attack?: ").strip()
+        ssid = data[choice][0]
+        target = data[choice][1]
+        channel = cls.ssids[target]
 
-                # INT IT
-                choice = int(choice)
+        console.print(f"\n[bold red]Target choosen:[yellow] {target}")
 
-                if choice in range(1, num) or choice == num:
-                    ssid = data[choice][0]
-                    target = data[choice][1]
-                    channel = cls.ssids[target]
-
-                    console.print(f"\n[bold red]Target choosen:[yellow] {target}")
-
-                    # RETURN THE TARGET
-                    return ssid, target, channel
-
-                # OUTSIDE OF NUM
-                else:
-                    error = True
-
-            # DIDNT ENTER A KEY VALUE (INTEGER)
-            except KeyError as e:
-                if verbose:
-                    console.print(e)
-
-                error = True
-
-            # DIDNT ENTER A KEY VALUE (INTEGER)
-            except TypeError as e:
-                if verbose:
-                    console.print(e)
-
-                error = True
-
-            # ELSE
-            except Exception as e:
-                if verbose:
-                    console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-                if not error:
-                    error = 1
-
-                elif error:
-                    error += 1
-
-                # SAFETY CATCH
-                if error == 4:
-                    console.print("Alright ur done for", style="bold red")
-                    break
+        # RETURN THE TARGET
+        return ssid, target, channel
 
     @classmethod
     def sniff_the_target(cls, iface, ssid, target, channel):

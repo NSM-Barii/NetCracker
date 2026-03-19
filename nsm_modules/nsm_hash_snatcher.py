@@ -5,12 +5,10 @@ from scapy.all import sniff, RadioTap, sendp, wrpcap
 from scapy.layers.eap import EAPOL
 from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11ProbeResp
 import threading
-import os
 import time
 import subprocess
-from pathlib import Path
 from datetime import datetime
-from nsm_utilities import Background_Threads
+from nsm_utilities import Background_Threads, Utilities
 from nsm_deauth import Frame_Snatcher
 
 console = Console()
@@ -355,8 +353,7 @@ class Hash_Snatcher:
                         )
                     # if addr2: console.print(f"[bold green][+] HANDSHAKE Snatched:[bold yellow] {addr2} --> {sd}  --> {pkt}")
 
-                    sudo_user = os.getenv("SUDO_USER")
-                    USER_HOME = Path(f"/home/{sudo_user}") if sudo_user else Path.home()
+                    USER_HOME = Utilities.get_user_home()
                     path = (
                         USER_HOME / "Documents" / "nsm_tools" / "netcracker" / "hashes"
                     )

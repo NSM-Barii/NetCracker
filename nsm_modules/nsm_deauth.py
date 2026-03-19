@@ -344,6 +344,41 @@ class Frame_Snatcher:
 
         console.print("[bold red]Killed Background thread")
 
+    @staticmethod
+    def _choose_from_list(
+        data, num, prompt="[bold red]Who do you want to attack?: ", verbose=False
+    ):
+        """Shared input validation loop for target/client selection. DRY is king."""
+        error = False
+        while True:
+            try:
+                if error:
+                    console.print(
+                        f"\n[bold red]Enter a key[bold red] 1 - {num},[bold green] to choose your target!"
+                    )
+                    error = False
+                choice = console.input(prompt).strip()
+                choice = int(choice)
+                if 1 <= choice <= num:
+                    return choice
+                else:
+                    error = True
+            except (KeyError, TypeError) as e:
+                if verbose:
+                    console.print(e)
+                error = True
+            except Exception as e:
+                if verbose:
+                    console.print(f"[bold red]Exception Error:[yellow] {e}")
+                if not error:
+                    error = 1
+                elif error:
+                    error += 1
+                # SAFETY CATCH
+                if error == 4:
+                    console.print("Alright ur done for", style="bold red")
+                    return None
+
     @classmethod
     def target_chooser(cls, type):
         """In this method the user will choose which target they want to attack"""
@@ -351,7 +386,6 @@ class Frame_Snatcher:
         # CREATE VARS
         data = {}
         num = 0
-        error = False
         verbose = False
 
         # CREATE A TABLE AND OUTPUT IT
@@ -421,56 +455,17 @@ class Frame_Snatcher:
         rescan_option()
 
         # DESTROY ERRORS
-        while True:
-            try:
-                # FOR CLEANER OUTPUT
-                if error:
-                    console.print(
-                        f"\n[bold red]Enter a key[bold red] 1 - {num},[bold green] to choose your target!"
-                    )
-                    error = False
+        choice = Frame_Snatcher._choose_from_list(data, num, verbose=verbose)
+        if choice is None:
+            return
 
-                # USER CHOOSES THERE TARGET
-                choice = console.input("[bold red]Who do you want to attack?: ").strip()
+        ssid = data[choice][0]
+        channel = data[choice][1]
 
-                # INT IT
-                choice = int(choice)
+        console.print(f"\n[bold red]Target choosen:[yellow] {ssid}, channel: {channel}")
 
-                if choice in range(1, num) or choice == num:
-                    ssid = data[choice][0]
-                    channel = data[choice][1]
-
-                    console.print(
-                        f"\n[bold red]Target choosen:[yellow] {ssid}, channel: {channel}"
-                    )
-
-                    # RETURN THE TARGET
-                    return ssid, channel
-
-                else:
-                    error = True
-
-            except KeyError as e:
-                if verbose:
-                    console.print(e)
-                error = True
-
-            except TypeError as e:
-                if verbose:
-                    console.print(e)
-                error = True
-
-            except Exception as e:
-                if verbose:
-                    console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-                if not error:
-                    error = 1
-                elif error:
-                    error += 1
-                if error == 4:
-                    console.print("Alright ur done for", style="bold red")
-                    break
+        # RETURN THE TARGET
+        return ssid, channel
 
     @classmethod
     def client_chooser(cls, target, iface, verbose=0, timeout=120):
@@ -609,7 +604,6 @@ class Frame_Snatcher:
 
         data = {}
         num = 0
-        error = False
         for client in clients:
             # NUM
             num += 1
@@ -620,62 +614,16 @@ class Frame_Snatcher:
         console.print(data)
 
         # DESTROY ERRORS
-        while True:
-            try:
-                # FOR CLEANER OUTPUT
-                if error:
-                    console.print(
-                        f"\n[bold red]Enter a key[bold red] 1 - {num},[bold green] to choose your target!"
-                    )
-                    error = False
+        choice = Frame_Snatcher._choose_from_list(data, num, verbose=verbose)
+        if choice is None:
+            return
 
-                # USER CHOOSES THERE TARGET
-                choice = console.input("[bold red]Who do you want to attack?: ").strip()
+        target = data[choice]
 
-                # INT IT
-                choice = int(choice)
+        console.print(f"\n[bold red]Target choosen:[yellow] {target}")
 
-                if choice in range(1, num) or choice == num:
-                    target = data[choice]
-
-                    console.print(f"\n[bold red]Target choosen:[yellow] {target}")
-
-                    # RETURN THE TARGET
-                    return target
-
-                # OUTSIDE OF NUM
-                else:
-                    error = True
-
-            # DIDNT ENTER A KEY VALUE (INTEGER)
-            except KeyError as e:
-                if verbose:
-                    console.print(e)
-
-                error = True
-
-            # DIDNT ENTER A KEY VALUE (INTEGER)
-            except TypeError as e:
-                if verbose:
-                    console.print(e)
-
-                error = True
-
-            # ELSE
-            except Exception as e:
-                if verbose:
-                    console.print(f"[bold red]Exception Error:[yellow] {e}")
-
-                if not error:
-                    error = 1
-
-                elif error:
-                    error += 1
-
-                # SAFETY CATCH
-                if error == 4:
-                    console.print("Alright ur done for", style="bold red")
-                    break
+        # RETURN THE TARGET
+        return target
 
     @classmethod
     def target_attacker(
