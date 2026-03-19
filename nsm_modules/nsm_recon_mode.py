@@ -14,7 +14,7 @@ from scapy.all import sniff
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyfiglet, random
+import threading, os, random, time, pyfiglet
 
 
 
@@ -65,7 +65,7 @@ class ReconScanner():
             
             # IN CASE ITS EMPTY
             if not networks:
-                raise KeyboardInterrupt
+                return False
 
            
            # ITERATE THROUGH GIVEN LIST
@@ -75,9 +75,6 @@ class ReconScanner():
                 # GET ENCRYPTION AND FREQUENCY
                 frequency = NetTilities.get_frequency(frequency=net.freq)
                 encryption = NetTilities.get_encryption(akm=net.akm[0])
-                console.print(f"Cipher: {net.cipher}")
-                print(int(net.cipher))
-                console.print(f"Cipher: {net.cipher}")
                 cipher = NetTilities.get_cipher(cipher=net.cipher)
                 channel = NetTilities.get_channel(freq=net.freq)
 
