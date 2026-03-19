@@ -27,26 +27,34 @@ class import_handler:
 
         try:
             # UI IMPORTS
-            from rich.panel import Panel
-            from rich.table import Table
-            from rich.live import Live
+            from rich.panel import Panel  # noqa: F401
+            from rich.table import Table  # noqa: F401
+            from rich.live import Live  # noqa: F401
             from rich.console import Console
 
             console = Console()
 
             # NETWORK IMPORTS
-            import pywifi, socket, ipaddress
-            from scapy.all import sniff
+            import pywifi  # noqa: F401
+            import socket  # noqa: F401
+            import ipaddress  # noqa: F401
+            from scapy.all import sniff  # noqa: F401
 
             # ETC IMPORTS
-            import threading, os, random, time, pyttsx3, pyfiglet
-            from datetime import datetime
+            import threading  # noqa: F401
+            import os  # noqa: F401
+            import random  # noqa: F401
+            import time  # noqa: F401
+            import pyttsx3  # noqa: F401
+            import pyfiglet  # noqa: F401
+            from datetime import datetime  # noqa: F401
 
             # FILE HANDLING
-            import json, pathlib
+            import json  # noqa: F401
+            import pathlib  # noqa: F401
 
             # NSM MODULES
-            from nsm_logic import WifiUI
+            from nsm_logic import WifiUI  # noqa: F401
 
             # NOW TO BEGIN
             console.print("Module check complete", style="bold green")

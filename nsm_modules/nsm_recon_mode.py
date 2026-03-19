@@ -6,19 +6,20 @@ from rich.table import Table
 from rich.live import Live
 from rich.console import Console
 
-console = Console()
-
 # NETWORK IMPORTS
 import pywifi
 
 
 # ETC IMPORTS
-import time, pyfiglet
+import time
+import pyfiglet
 
 
 # NSM IMPORTS
 from nsm_utilities import NetTilities
 from nsm_files import Network_Mapper
+
+console = Console()
 
 
 class ReconScanner:
@@ -38,7 +39,7 @@ class ReconScanner:
         wifi = pywifi.PyWiFi()
         iface = wifi.interfaces()[0]
 
-        if iface == False:
+        if not iface:
             console.print("[bold red]Error:[yellow] Failed to get network adapter")
 
             return False
@@ -134,7 +135,7 @@ class ReconScanner:
 
                         time.sleep(interval)
 
-                    except KeyboardInterrupt as e:
+                    except KeyboardInterrupt:
                         console.print("\n\nKilling Recon mode...", style="bold red")
 
                         break

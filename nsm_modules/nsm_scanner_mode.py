@@ -7,19 +7,21 @@ from rich.table import Table
 from rich.live import Live
 from rich.console import Console
 
-console = Console()
-
 # NETWORK IMPORTS
 import pywifi
 
 
 # ETC IMPORTS
-import threading, time, pyfiglet
+import threading
+import time
+import pyfiglet
 
 
 # NSM IMPORTS
 from nsm_utilities import Utilities, NetTilities
 from nsm_files import Network_Mapper
+
+console = Console()
 
 
 class WifiScanner:
@@ -47,7 +49,7 @@ class WifiScanner:
             iface = wifi.interfaces()[0]
 
         # NO WIFI INTERFACES
-        except Exception as e:
+        except Exception:
             self.go = False
             return
 
@@ -144,7 +146,7 @@ class WifiScanner:
         table.add_column("BSSID", style="cyan")
 
         # PANEL FOR DATA
-        panel = Panel(
+        _panel = Panel(
             renderable=f"Networks Found: {len(self.networks)}",
             style="bold red",
             border_style="bold yellow",
@@ -207,15 +209,15 @@ class WifiUI:
         """This will hold and print the ascii text and a nice sexy looking manner"""
 
         art = """
-        _____                                                     _____ 
+        _____                                                     _____
         ( ___ )---------------------------------------------------( ___ )
-        |   |                                                     |   | 
-        |   |  _   _      _    ____                _              |   | 
-        |   | | \ | | ___| |_ / ___|_ __ __ _  ___| | _____ _ __  |   | 
-        |   | |  \| |/ _ \ __| |   | '__/ _` |/ __| |/ / _ \ '__| |   | 
-        |   | | |\  |  __/ |_| |___| | | (_| | (__|   <  __/ |    |   | 
-        |   | |_| \_|\___|\__|\____|_|  \__,_|\___|_|\_\___|_|    |   | 
-        |___|                                                     |___| 
+        |   |                                                     |   |
+        |   |  _   _      _    ____                _              |   |
+        |   | | \ | | ___| |_ / ___|_ __ __ _  ___| | _____ _ __  |   |
+        |   | |  \| |/ _ \ __| |   | '__/ _` |/ __| |/ / _ \ '__| |   |
+        |   | | |\  |  __/ |_| |___| | | (_| | (__|   <  __/ |    |   |
+        |   | |_| \_|\___|\__|\____|_|  \__,_|\___|_|\_\___|_|    |   |
+        |___|                                                     |___|
         (_____)---------------------------------------------------(_____)
         """
         from pathlib import Path

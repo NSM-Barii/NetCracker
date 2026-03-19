@@ -5,13 +5,9 @@
 from rich.panel import Panel
 from rich.console import Console
 
-console = Console()
-console_width = console.size.width
-import pyfiglet
-
-
 # ETC IMPORTS
 import time
+import pyfiglet
 
 
 # NSM MODULE IMPORTS
@@ -27,6 +23,9 @@ from nsm_deauth import (
     Client_Sniffer,
     Evil_Twin,
 )
+
+console = Console()
+console_width = console.size.width
 
 
 class MainUI:
@@ -68,7 +67,7 @@ class MainUI:
         """This will house the main menu logic"""
 
         # WILL NO LONGER BE USING PANELS FOR MENU SELECTION AS I WANT BETTER LOOKING UI'S
-        choices = Panel(
+        _choices = Panel(
             renderable="\n[1] Scan for Networks\n[2] Crack Networks\n[4] View saved networks\n[5] EXIT",
             title="Malicious Practioner",
             style="purple",

@@ -2,7 +2,8 @@
 
 
 # IMPORTS
-import argparse, subprocess
+import argparse
+import subprocess
 
 
 class Mode:

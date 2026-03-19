@@ -8,11 +8,10 @@ from rich.table import Table
 from rich.live import Live
 from rich.console import Console
 
-console = Console()
-
 
 # NETWORK IMPORTS
-import socket, ipaddress
+import socket
+import ipaddress
 from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp, RandMAC, wrpcap
 from scapy.layers.eap import EAPOL
 from scapy.layers.dot11 import (
@@ -31,11 +30,18 @@ from nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS
-import threading, os, random, time, subprocess, json
+import threading
+import os
+import random
+import time
+import subprocess
+import json
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from textwrap import dedent
 from datetime import datetime
+
+console = Console()
 
 
 # THREAD LOCKER
@@ -220,9 +226,9 @@ class Frame_Snatcher:
         def parser(pkt):
 
             # COLORS
-            c1 = "bold yellow"
+            _c1 = "bold yellow"
             c2 = "bold red"
-            c3 = "bold blue"
+            _c3 = "bold blue"
             c4 = "bold green"
 
             # THIS IS STRICTLY USED TO CAPTURE BEACON FRAMES // SENT FROM AP'S
@@ -250,10 +256,10 @@ class Frame_Snatcher:
                 vendor = Utilities.get_vendor(mac=addr2)
 
                 if vendor:
-                    text = f"Vendor: {vendor}"
+                    _text = f"Vendor: {vendor}"
 
                 else:
-                    text = ""
+                    _text = ""
 
                 channel = Background_Threads.get_channel(pkt=pkt)
                 rssi = NetTilities.get_rssi(pkt=pkt)
@@ -407,7 +413,7 @@ class Frame_Snatcher:
             )
 
         # CREATE VAR
-        keys = num
+        _keys = num
 
         print("\n\n")
         console.print(table)
@@ -482,7 +488,7 @@ class Frame_Snatcher:
                 if verbose:
                     console.print(f"[bold red]Exception Error:[yellow] {e}")
 
-                if error == False:
+                if not error:
                     error = 1
                 elif error:
                     error += 1
@@ -686,7 +692,7 @@ class Frame_Snatcher:
                 if verbose:
                     console.print(f"[bold red]Exception Error:[yellow] {e}")
 
-                if error == False:
+                if not error:
                     error = 1
 
                 elif error:
@@ -711,7 +717,6 @@ class Frame_Snatcher:
 
         # VARS
         packets_sent = 0
-        error = 0
         STAY = True
         cls.SNIFF = True
 
@@ -1001,7 +1006,7 @@ class Beacon_Flooder:
         verbose = True
         print("\n\n")
 
-        b = Beacon_Flooder()
+        _b = Beacon_Flooder()
 
         # DEAPPRECIATED // TERRIBLE LOGIC LOL
         if ssid_type == 99:
@@ -1104,7 +1109,7 @@ class Beacon_Flooder:
                     time.sleep(0.1)
 
                 # THIS LOGIC IS TO SUBSIDIZE SENDP
-                except KeyboardInterrupt as e:
+                except KeyboardInterrupt:
                     console.print("ATTEMPTING TO ESCAPE THE MATRIX", style="bold red")
 
                     try:
@@ -1112,7 +1117,7 @@ class Beacon_Flooder:
 
                         break
 
-                    except KeyboardInterrupt as e:
+                    except KeyboardInterrupt:
                         console.print("STOP PRESSING CTRL + C", style="bold yellow")
 
                 # GENERAL ERRORS
@@ -1207,7 +1212,7 @@ class Hash_Snatcher:
             """Parse packets"""
 
             if pkt.haslayer(Dot11Beacon):
-                addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
+                _addr1 = pkt.addr1 if pkt.addr1 != "ff:ff:ff:ff:ff:ff" else False
                 addr2 = pkt.addr2 if pkt.addr2 != "ff:ff:ff:ff:ff:ff" else False
 
                 channel = Background_Threads.get_channel(pkt=pkt)
@@ -1325,7 +1330,7 @@ class Hash_Snatcher:
                         1
                     )  # ; console.print("Still Sniffing --> hashes\n", style="bold green")
 
-                except KeyboardInterrupt as e:
+                except KeyboardInterrupt:
                     console.print("\n ---  HASH SNIFF ENDED  --- ", style="bold red")
                     stay = False
                     cls.sniff = False
@@ -1388,7 +1393,7 @@ class Hash_Snatcher:
                     return False
 
             try:
-                result = subprocess.run(
+                subprocess.run(
                     ["hcxpcapngtool", "-o", str(output_path), str(handshake_path)],
                     check=True,
                     capture_output=True,
@@ -1588,9 +1593,9 @@ class War_Driving:
 
         # COLORS
         c1 = "bold red"
-        c2 = "bold green"
-        c3 = "bold blue"
-        c4 = "bold purple"
+        _c2 = "bold green"
+        _c3 = "bold blue"
+        _c4 = "bold purple"
 
         # VARS
         d = 1
@@ -1605,7 +1610,7 @@ class War_Driving:
 
         from rich.align import Align
 
-        panel_allign = Align(panel, align="left", vertical="bottom")
+        _panel_allign = Align(panel, align="left", vertical="bottom")
 
         # CREATE LIVE ENV
         with Live(panel, console=console, refresh_per_second=1, screen=False):
@@ -1636,7 +1641,7 @@ class War_Driving:
 
                         d += 1
 
-                except KeyboardInterrupt as e:
+                except KeyboardInterrupt:
                     # console.print("Now escaping the MATRIX", style="bold red")
 
                     # KILL BACKGROUND THREAD
@@ -1884,14 +1889,14 @@ class War_Driving:
         c2 = "bold green"
         c3 = "bold purple"
         c4 = "bold yellow"
-        c5 = "bold cyan"
+        _c5 = "bold cyan"
 
         # INFO
         # ADDR1 == DST, ADDR2 == SRC
 
         if pkt.haslayer(Dot11ProbeReq):
             # SET ADDR1
-            addr1 = (
+            _addr1 = (
                 pkt[Dot11].addr1 if pkt[Dot11].addr1 != "ff:ff:ff:ff:ff:ff" else False
             )
             addr2 = (
@@ -2270,7 +2275,7 @@ class Evil_Twin:
             # Get device info
             user_agent = self.headers.get("User-Agent", "Unknown")
             ip_address = self.client_address[0]
-            language = self.headers.get("Accept-Language", "Unknown")
+            _language = self.headers.get("Accept-Language", "Unknown")
 
             # Parse device details from User-Agent
             if "iPhone" in user_agent or "iPad" in user_agent:
@@ -2373,7 +2378,7 @@ class Evil_Twin:
                 self.end_headers()
                 self.wfile.write(content)
 
-            except Exception as e:
+            except Exception:
                 self.send_response(404)
                 self.end_headers()
                 self.wfile.write(b"Portal page not found")
@@ -2426,7 +2431,7 @@ class Evil_Twin:
         dnsmasq_conf = "/etc/dnsmasq.d/evil_twin.conf"
         dnsmasq_log = "/var/log/dnsmasq_evil.log"
         dnsmasq_leases = "/var/lib/misc/dnsmasq.leases"
-        paths = [hostapd_conf, dnsmasq_conf, dnsmasq_log, dnsmasq_leases]
+        _paths = [hostapd_conf, dnsmasq_conf, dnsmasq_log, dnsmasq_leases]
 
         cls.creds = []
 
@@ -2692,7 +2697,7 @@ class Client_Sniffer:
                 if verbose:
                     console.print(f"[bold red]Exception Error:[yellow] {e}")
 
-                if error == False:
+                if not error:
                     error = 1
 
                 elif error:

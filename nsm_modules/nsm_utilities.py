@@ -4,22 +4,27 @@
 import pywifi.iface
 from rich.console import Console
 
-console = Console()
-
 # NETWORK IMPORTS
-import pywifi, manuf
+import pywifi
+import manuf
 from scapy.all import RadioTap
 from scapy.layers.dot11 import Dot11Elt, Dot11Beacon
 from mac_vendor_lookup import MacLookup
+
+# ETC IMPORTS
+import threading
+import os
+import time
+import pyttsx3
+import platform
+import subprocess
+
+console = Console()
 
 # DOWNLOAD THE WHOLE DATABASE
 # MacLookup().update_vendors(data_store_path="mac-vendors.json")
 vendors = MacLookup()
 vendors.load_vendors()
-
-
-# ETC IMPORTS
-import threading, os, time, pyttsx3, platform, subprocess
 
 
 class Utilities:
@@ -33,7 +38,7 @@ class Utilities:
         """This class will be responsible for getting the vendor"""
 
         # FOR DEBUGIGNG
-        verbose = False
+        _verbose = False
 
         response = manuf.MacParser("manuf.txt").get_manuf_long(mac=mac)
 
@@ -57,21 +62,15 @@ class Utilities:
                 engine.setProperty("rate", rate - voice_rate)
 
                 # NOW TO CHOOSE THE VOICE WE WANT TO USE
-                if voice_sound != False:
+                if voice_sound is not False:
                     voice_sound = int(voice_sound)
                     engine.setProperty("voice", voices[voice_sound])
-                    T = "1"
 
                 elif len(voices) > 1:
                     engine.setProperty("voice", voices[1].id)
-                    T = "2"
 
                 else:
                     engine.setProperty("voice", voices[0].id)
-                    T = "3"
-
-                # FOR DEBUGGING
-                # console.print(T)
 
                 # NOW TO SPEAK TTS
                 if not lock:
@@ -262,7 +261,7 @@ class NetTilities:
             try:
                 # GET ID & NAME
                 ie_id = elt.ID
-                ie_name = IE_NAMES.get(ie_id, f"UNKOWN({ie_id})")
+                _ie_name = IE_NAMES.get(ie_id, f"UNKOWN({ie_id})")
                 ie_data = (
                     elt.info.decode(errors="ignore")
                     if elt.info.decode(errors="ignore")

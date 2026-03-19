@@ -5,13 +5,10 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.console import Console
 
-console = Console()
-
-
 # ETC IMPORTS
 from datetime import datetime
-import time, os
-
+import time
+import os
 
 # NSM IMPORTS
 from nsm_utilities import Utilities
@@ -19,6 +16,8 @@ from nsm_utilities import Utilities
 # FILE HANDLING
 from pathlib import Path
 import json
+
+console = Console()
 
 # CREATE DEFAULT FILE PATH LOCATION // DEAPPRECIATED
 base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker"
@@ -164,7 +163,7 @@ class Network_Mapper:
                                 line = "-" * 80
 
                                 # FOR TEXT PRINT
-                                if table_use == False:
+                                if not table_use:
                                     console.print("\n\n", line)
                                     console.print(f"Date: {date}  Time: {timee}\n")
 
@@ -352,7 +351,7 @@ class Settings:
 
         # VARS
         verbose = True
-        time_stamp = datetime.now().strftime("%m/%d/%Y - %I:%M:%S")
+        _time_stamp = datetime.now().strftime("%m/%d/%Y - %I:%M:%S")
 
         # DESTROY ERRORS
         while True:
