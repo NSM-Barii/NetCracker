@@ -34,9 +34,11 @@ class Mode():
     def change_mode(iface, mode):
         """Change mode"""
 
-        
-        subprocess.run(f"sudo ip link set {iface} down; sudo iw dev {iface} set type {mode}; sudo ip link set {iface} up", shell=True)
-        subprocess.run('iwconfig', shell=True)
+        # No shell=True here, that's how you get command injection'd lol
+        subprocess.run(["sudo", "ip", "link", "set", iface, "down"])
+        subprocess.run(["sudo", "iw", "dev", iface, "set", "type", mode])
+        subprocess.run(["sudo", "ip", "link", "set", iface, "up"])
+        subprocess.run(["iwconfig"])
     
 
 
