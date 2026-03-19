@@ -4,7 +4,6 @@
 from rich.panel import Panel
 from rich.table import Table
 from rich.console import Console
-from rich.live import Live
 console = Console()
 
 
@@ -267,7 +266,7 @@ class Network_Mapper():
 
 
                     # MAKE A CHOICE
-                    choice = console.input(f"\n[bold red]Press enter to exit: ")
+                    choice = console.input("\n[bold red]Press enter to exit: ")
 
                     
                     # TEXT VIEW
@@ -447,7 +446,7 @@ class Settings():
 
 
                     if verbose:
-                        console.print(f"Successfully created dir", style="bold green")
+                        console.print("Successfully created dir", style="bold green")
                 
             
 
@@ -515,7 +514,7 @@ class Settings():
 
 
                     if verbose:
-                        console.print(f"Successfully appended info", style="bold green")
+                        console.print("Successfully appended info", style="bold green")
 
                     
                     break
@@ -597,7 +596,7 @@ class Recon_Pusher():
 
                 
                 if verbose:
-                    CONSOLE.print(f"[+] War Results Succesfully pushed", style="bold green")
+                    CONSOLE.print("[+] War Results Succesfully pushed", style="bold green")
             
         
         # DESTROY ERRORS

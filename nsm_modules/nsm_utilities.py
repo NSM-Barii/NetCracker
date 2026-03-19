@@ -2,15 +2,12 @@
 
 # UI IMPORTS
 import pywifi.iface
-from rich.panel import Panel
-from rich.table import Table
-from rich.live import Live
 from rich.console import Console
 console = Console()
 
 # NETWORK IMPORTS
-import pywifi, socket, ipaddress, manuf
-from scapy.all import sniff, RadioTap
+import pywifi, manuf
+from scapy.all import RadioTap
 from scapy.layers.dot11 import Dot11Elt, Dot11Beacon
 from mac_vendor_lookup import MacLookup
 
@@ -23,7 +20,7 @@ vendors.load_vendors()
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyttsx3, platform, subprocess
+import threading, os, time, pyttsx3, platform, subprocess
 
 
 
@@ -591,7 +588,7 @@ class Background_Threads():
                 subprocess.run(["sudo", "ip", "link", "set", f"{iface}", "up"],      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             
-            else: console.print(f"[bold red][-] non-valid choice picked for change_iface_mode!"); return False
+            else: console.print("[bold red][-] non-valid choice picked for change_iface_mode!"); return False
 
 
 

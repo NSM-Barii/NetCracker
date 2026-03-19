@@ -3,8 +3,6 @@
 
 # UI IMPORTS
 from rich.panel import Panel
-from rich.live import Live
-from rich.table import Table
 from rich.console import Console
 console = Console()
 console_width = console.size.width

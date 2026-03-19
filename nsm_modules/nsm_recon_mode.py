@@ -2,24 +2,22 @@
 
 
 # UI IMPORTS
-from rich.panel import Panel
 from rich.table import Table
 from rich.live import Live
 from rich.console import Console
 console = Console()
 
 # NETWORK IMPORTS
-import pywifi, socket, ipaddress
-from scapy.all import sniff
+import pywifi
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyfiglet
+import time, pyfiglet
 
 
 
 # NSM IMPORTS
-from nsm_utilities import Utilities, NetTilities
+from nsm_utilities import NetTilities
 from nsm_files import Network_Mapper
 
 
@@ -49,7 +47,7 @@ class ReconScanner():
         iface = wifi.interfaces()[0]
 
         if iface == False:
-            console.print(f"[bold red]Error:[yellow] Failed to get network adapter")
+            console.print("[bold red]Error:[yellow] Failed to get network adapter")
 
             return False
 

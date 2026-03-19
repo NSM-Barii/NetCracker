@@ -9,12 +9,11 @@ from rich.console import Console
 console = Console()
 
 # NETWORK IMPORTS
-import pywifi, socket, ipaddress
-from scapy.all import sniff
+import pywifi
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyfiglet
+import threading, time, pyfiglet
 
 
 
@@ -80,7 +79,7 @@ class WifiScanner():
             for net in results:
 
                 if not results:
-                    console.print(f"[bold red]No Wireless networks found[/bold red]") 
+                    console.print("[bold red]No Wireless networks found[/bold red]") 
                 
                 else:
                     

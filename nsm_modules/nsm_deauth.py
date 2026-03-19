@@ -11,7 +11,7 @@ console = Console()
 
 
 # NETWORK IMPORTS
-import pywifi, socket, ipaddress
+import socket, ipaddress
 from scapy.all import sniff, RadioTap, IP, ICMP, sr1, sendp, RandMAC, wrpcap
 from scapy.layers.eap import EAPOL
 from scapy.layers.dot11 import Dot11, Dot11Beacon, Dot11Elt, Dot11Deauth, Dot11ProbeReq, Dot11ProbeResp
@@ -23,7 +23,7 @@ from nsm_files import Settings, Recon_Pusher
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyttsx3, subprocess, json
+import threading, os, random, time, subprocess, json
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from textwrap import dedent
@@ -490,7 +490,7 @@ class Frame_Snatcher():
 
 
                 # USER CHOOSES THERE TARGET
-                choice = console.input(f"[bold red]Who do you want to attack?: ").strip()
+                choice = console.input("[bold red]Who do you want to attack?: ").strip()
 
                 # INT IT 
                 choice = int(choice)
@@ -701,7 +701,7 @@ class Frame_Snatcher():
 
 
                 # USER CHOOSES THERE TARGET
-                choice = console.input(f"[bold red]Who do you want to attack?: ").strip()
+                choice = console.input("[bold red]Who do you want to attack?: ").strip()
 
                 # INT IT 
                 choice = int(choice)
@@ -866,7 +866,7 @@ class Frame_Snatcher():
                     # WAIT
                     while STAY:
                         try:
-                            console.print(f"Cleaning up", style="bold red")
+                            console.print("Cleaning up", style="bold red")
                             time.sleep(1)
 
                             STAY      = False       # BREAK NESTED LOOP
@@ -1228,7 +1228,7 @@ class Beacon_Flooder():
                 
                 # THIS LOGIC IS TO SUBSIDIZE SENDP
                 except KeyboardInterrupt as e:
-                    console.print(f"ATTEMPTING TO ESCAPE THE MATRIX", style="bold red")
+                    console.print("ATTEMPTING TO ESCAPE THE MATRIX", style="bold red")
 
                     try:
                         time.sleep(0.5)
@@ -1536,10 +1536,10 @@ class Hash_Snatcher():
                 ], check=True, capture_output=True, text=True)
 
                 if validate_hash_file(output_path):
-                    console.print(f"[bold green][+] Conversion complete | .pcap → .16800")
+                    console.print("[bold green][+] Conversion complete | .pcap → .16800")
                     return output_path
                 else:
-                    console.print(f"[bold red][-] Conversion failed: invalid or empty hash file.")
+                    console.print("[bold red][-] Conversion failed: invalid or empty hash file.")
                     return None
 
             except subprocess.CalledProcessError as e:
@@ -1746,7 +1746,7 @@ class War_Driving():
 
         
         # DEFINE PANEL
-        panel = Panel(renderable=f"AP's Found: 0   -   Clients Found: 0   -   [bold green]Developed by NSM Barii",
+        panel = Panel(renderable="AP's Found: 0   -   Clients Found: 0   -   [bold green]Developed by NSM Barii",
                       style="bold yellow", border_style="bold red",
                       expand=False
                       )
@@ -2444,7 +2444,7 @@ class Evil_Twin():
             console.print(f"[bold red][-]Error: {err.decode()}")
             return False
 
-        if verbose: console.print(f"[bold green][+] Successfully started:[bold yellow] hostapd"); return True
+        if verbose: console.print("[bold green][+] Successfully started:[bold yellow] hostapd"); return True
     
 
     @classmethod
@@ -2864,7 +2864,7 @@ class Client_Sniffer():
 
 
                 # USER CHOOSES THERE TARGET
-                choice = console.input(f"[bold red]Who do you want to attack?: ").strip()
+                choice = console.input("[bold red]Who do you want to attack?: ").strip()
 
                 # INT IT 
                 choice = int(choice)
@@ -3082,7 +3082,7 @@ class Client_Sniffer():
             threading.Thread(target=small_deauth, daemon=True).start()
 
 
-            console.print(f"\nI will now begin to sniff for clients for the next 'infinite' seconds if you want to stop earlier press [bold green]ctrl + c!\n", style="bold red")
+            console.print("\nI will now begin to sniff for clients for the next 'infinite' seconds if you want to stop earlier press [bold green]ctrl + c!\n", style="bold red")
             time.sleep(2)
 
             # SNIFF
@@ -3255,7 +3255,7 @@ class You_Cant_DOS_ME():
                 
 
                 else:
-                    console.print(f"[bold blue]Connection Status: [bold red]Offline  -  I HATE YOU")
+                    console.print("[bold blue]Connection Status: [bold red]Offline  -  I HATE YOU")
 
 
 
