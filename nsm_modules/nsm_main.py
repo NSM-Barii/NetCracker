@@ -81,11 +81,11 @@ class import_handler():
 
                         
                         
-                        # IMPORT OS SO WE CAN INSTALL LIBARIES
-                        import os
+                        # IMPORT SUBPROCESS SO WE CAN INSTALL LIBARIES
+                        import subprocess
                         for key, value in self.libaries.items():
                             print(f"Now trying to install: {value}   #{key}/12")
-                            os.system(f"pip install {value}")
+                            subprocess.run(["pip", "install", value])
 
                         
 
@@ -118,13 +118,14 @@ class import_handler():
 
             while True:
                 cmd = input("Enter command: ")
-                
+
                 if cmd == "exit":
                     print("later")
                     break
 
                 else:
-                    os.system(cmd)
+                    # os.system(cmd) was basically a free shell for anyone lol
+                    print(f"Unknown command: {cmd}. Type 'exit' to leave.")
         
     
 
