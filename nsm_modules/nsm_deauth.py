@@ -1339,7 +1339,7 @@ class Hash_Snatcher():
                 
                 
                 except KeyboardInterrupt: return KeyboardInterrupt
-                except Exception as e: console.print(f"\n[bold red]Sniffer exception Error:[bold yellow] {e}"); return Exception
+                except Exception as e: console.print(f"\n[bold red]Sniffer exception Error:[bold yellow] {e}"); return False
 
 
         def parser(pkt):
@@ -1625,7 +1625,7 @@ class Hash_Snatcher():
 
                     if not addr1 == cls.handshake_tracker["client"] and not addr2 == cls.handshake_tracker["ap"]: return
 
-                    print("hi")
+                    # print("hi")  # debug statement that made it to prod, classic
                     if pkt.haslayer(Dot11ProbeResp): 
                         cls.probe = True
                         cls.handshake_tracker["frames"].append(pkt)
@@ -1641,7 +1641,8 @@ class Hash_Snatcher():
 
                     
 
-                    USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+                    sudo_user = os.getenv("SUDO_USER")
+                    USER_HOME = Path(f"/home/{sudo_user}") if sudo_user else Path.home()
                     path = USER_HOME / "Documents" / "nsm_tools" / "netcracker" / "hashes"; path.mkdir(exist_ok=True, parents=True)
 
 
@@ -2308,9 +2309,10 @@ class Evil_Twin():
 
         # TEMP FIX FOR FILE CRASHING WITHOUT SUDO
         try:
-            USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
-            BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / "netcracker" 
-        except Exception as e: 
+            sudo_user = os.getenv("SUDO_USER")
+            USER_HOME = Path(f"/home/{sudo_user}") if sudo_user else Path.home()
+            BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / "netcracker"
+        except Exception as e:
 
             console.print(e)
             # SWITCH BACK TO PATH
@@ -2591,7 +2593,7 @@ class Evil_Twin():
                 try:
                     data = json.loads(post_data.decode('utf-8'))
                     console.print(f"[bold red][!] CREDENTIALS CAPTURED:[bold yellow] {data}"); Evil_Twin.creds.append(data)
-                except: pass
+                except Exception: pass
 
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
@@ -2719,8 +2721,7 @@ class Client_Sniffer():
         except Exception as e:
             console.print(f"[bold red]Exception Error:[bold yellow] {e}")
 
-            input("hii")
-
+            console.input("[bold red]Press enter to return: ")
 
             from nsm_ui import MainUI
             MainUI.main()
