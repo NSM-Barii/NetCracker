@@ -26,11 +26,12 @@ base_dir = Path.home() / "Documents" / "nsm tools" / ".data" / "NetCracker"
 
 # TEMP FIX FOR FILE CRASHING WITHOUT SUDO
 try:
-    USER_HOME = Path(os.getenv("SUDO_USER") and f"/home/{os.getenv('SUDO_USER')}") or Path.home()
+    sudo_user = os.getenv("SUDO_USER")
+    USER_HOME = Path(f"/home/{sudo_user}") if sudo_user else Path.home()
     BASE_DIR = USER_HOME / "Documents" / "nsm_tools" / ".data" / "netcracker"
 except Exception as e:
     console.print(e)
-    
+
     # SWITCH BACK TO PATH
     BASE_DIR = Path.home() / "Documents" / "nsm_tools" / ".data" / "netcracker"
 
@@ -120,8 +121,7 @@ class Network_Mapper():
             except FileNotFoundError as e:
 
                 # CREATE FILE PATH
-                with open(path_network, "w") as file:
-                    json.dump(file)
+                path_network.mkdir(exist_ok=True, parents=True)
 
                 console.print(f"[bold red]File not found Error:[/bold red] [yellow]{e}[/yellow]")
                 break
@@ -317,12 +317,13 @@ class Network_Mapper():
         try:
 
             if path_network.exists() and path_network.is_dir():
-                
+
                 # REDEFINE THE NETWORK DIR // I DONT THINK ITS NEEDED BUT FUCK IT LOL
                 path_network = BASE_DIR / "Networks"
 
-                # NOW TO OVERWRITE CURRENT DIR
-                os.remove(path_network)
+                # NOW TO CLEAR CURRENT DIR (os.remove doesn't work on dirs lol)
+                import shutil
+                shutil.rmtree(path_network)
                 path_network.mkdir(exist_ok=True, parents=False)
               
                 console.print("\n[bold red]Network Directory sucessfully cleared!!!")
@@ -410,7 +411,7 @@ class Settings():
 
 
         # VARS
-        verbsoe = True
+        verbose = True
         time_stamp = datetime.now().strftime("%m/%d/%Y - %I:%M:%S")
 
 
@@ -430,7 +431,7 @@ class Settings():
                         json.dump(data, file, indent=4)
 
 
-                        if verbsoe:
+                        if verbose:
                             console.print("Successfully pushed settings.json", style="bold green")
                     
 
@@ -445,7 +446,7 @@ class Settings():
                     BASE_DIR.mkdir(exist_ok=True, parents=True)
 
 
-                    if verbsoe:
+                    if verbose:
                         console.print(f"Successfully created dir", style="bold green")
                 
             
@@ -453,7 +454,7 @@ class Settings():
 
             except FileNotFoundError as e:
 
-                if verbsoe:
+                if verbose:
                     console.print(f"[bold red]FileNotFound Error:[yellow] {e}")
 
                 
@@ -490,15 +491,15 @@ class Settings():
 
     
     @classmethod
-    def push_txt(cls, data):
+    def push_txt(cls, data, filename="output.txt"):
         """This method is just to make a new txt file with info"""
 
-        
+
         # VAR
         verbose = True
 
 
-        
+
         # LOOP FOR ERRORS
         while True:
 
@@ -506,7 +507,7 @@ class Settings():
 
                 if BASE_DIR.exists():
 
-                    path = BASE_DIR / ""
+                    path = BASE_DIR / filename
 
 
                     with open(path, "a") as file:
