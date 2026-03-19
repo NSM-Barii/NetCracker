@@ -54,7 +54,7 @@ class import_handler:
             import pathlib  # noqa: F401
 
             # NSM MODULES
-            from nsm_logic import WifiUI  # noqa: F401
+            from nsm_scanner_mode import WifiUI  # noqa: F401
 
             # NOW TO BEGIN
             console.print("Module check complete", style="bold green")
