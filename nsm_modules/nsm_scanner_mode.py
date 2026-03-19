@@ -14,7 +14,7 @@ from scapy.all import sniff
 
 
 # ETC IMPORTS 
-import threading, os, random, time, pyfiglet, random
+import threading, os, random, time, pyfiglet
 
 
 
