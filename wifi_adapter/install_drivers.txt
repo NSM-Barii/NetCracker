@@ -1,35 +1,23 @@
-GitHub Repo: https://github.com/aircrack-ng/rtl8814au
-(replaces: https://github.com/zebulon2/rtl8814au — abandoned since 2019)
+GitHub Repo: https://github.com/morrownr/8814au
 
 Version: 5.8.5.1
+Adapter: ALFA AWUS1900 (RTL8814AU chipset)
+Supports: Monitor mode, ARM64, kernels 5.4 - 6.18.x
 
 
-# INSTALLATION FOR KALI-LINUX
-
-NOTE: aircrack-ng marks this driver deprecated.
-For mac80211 alternative: https://github.com/lwfinger/rtw88
+# INSTALLATION FOR KALI-LINUX (Raspberry Pi 4B/5B)
 
 
-## Option 1: DKMS via Makefile (recommended)
+1. Install dependencies
 
-1. git clone https://github.com/aircrack-ng/rtl8814au.git
-   cd rtl8814au
-
-2. make dkms_install
-
-   # to remove:
-   # make dkms_remove
-
-3. May need to restart environment (system)
+   sudo apt install -y kalipi-kernel-headers build-essential dkms git libelf-dev rfkill iw
 
 
-## Option 2: Manual DKMS
+2. Clone and install
 
-1. git clone https://github.com/aircrack-ng/rtl8814au.git
-   cd rtl8814au
+   git clone https://github.com/morrownr/8814au.git
+   cd 8814au
+   sudo ./install-driver.sh
 
-2. sudo cp -R . /usr/src/realtek-rtl8814au-5.8.5.1
-   sudo dkms build -m realtek-rtl8814au -v 5.8.5.1
-   sudo dkms install -m realtek-rtl8814au -v 5.8.5.1
 
 3. May need to restart environment (system)
