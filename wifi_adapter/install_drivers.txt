@@ -1,14 +1,35 @@
-GitHub Repo: https://github.com/zebulon2/rtl8814au
+GitHub Repo: https://github.com/aircrack-ng/rtl8814au
+(replaces: https://github.com/zebulon2/rtl8814au — abandoned since 2019)
+
+Version: 5.8.5.1
 
 
 # INSTALLATION FOR KALI-LINUX
 
+NOTE: aircrack-ng marks this driver deprecated.
+For mac80211 alternative: https://github.com/lwfinger/rtw88
 
-1. git clone https://github.com/zebulon2/rtl8814au
 
-2. sudo cp -R . /usr/src/rtl8814au-4.3.21
-   sudo dkms build -m rtl8814au -v 4.3.21
-   sudo dkms install -m rtl8814au -v 4.3.21
+## Option 1: DKMS via Makefile (recommended)
 
+1. git clone https://github.com/aircrack-ng/rtl8814au.git
+   cd rtl8814au
+
+2. make dkms_install
+
+   # to remove:
+   # make dkms_remove
+
+3. May need to restart environment (system)
+
+
+## Option 2: Manual DKMS
+
+1. git clone https://github.com/aircrack-ng/rtl8814au.git
+   cd rtl8814au
+
+2. sudo cp -R . /usr/src/realtek-rtl8814au-5.8.5.1
+   sudo dkms build -m realtek-rtl8814au -v 5.8.5.1
+   sudo dkms install -m realtek-rtl8814au -v 5.8.5.1
 
 3. May need to restart environment (system)
