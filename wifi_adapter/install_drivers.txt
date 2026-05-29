@@ -1,7 +1,7 @@
 GitHub Repo: https://github.com/zebulon2/rtl8814au
 
 
-# INSTALLATION FOR KALI-LINUX
+# INSTALLATION FOR KALI-LINUX - STILL WORKING
 
 
 1. git clone https://github.com/zebulon2/rtl8814au
